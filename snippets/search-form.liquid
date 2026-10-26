@@ -1,0 +1,59 @@
+{%- doc -%}
+  Predictive search form (combobox) used by the header search modal and the search page.
+  Needs assets/predictive-search.js (loaded by the header section) and the `.ps-*`
+  styles (output by the header section stylesheet).
+
+  @param {string} id - unique id suffix for the input and the panel
+  @param {string} [placeholder] - input placeholder
+  @param {string} [types] - comma list for the `type` parameter, default "product"
+  @param {boolean} [show_clear] - show a clear link when a search was performed
+  @param {string} [class] - extra classes for the form element
+
+  @example
+  {% render 'search-form', id: 'header', placeholder: 'Search the store' %}
+{%- enddoc -%}
+
+{%- liquid
+  assign form_types = types | default: 'product'
+  assign input_id = 'SearchInput-' | append: id
+  assign panel_id = 'PredictivePanel-' | append: id
+-%}
+<predictive-search
+  class="srch-predictive"
+  data-section-id="predictive-search"
+  data-url="{{ routes.predictive_search_url }}"
+>
+  <form action="{{ routes.search_url }}" method="get" role="search" class="srch-form {{ class }}">
+    <label for="{{ input_id }}" class="eyebrow srch-label">{{ 'search.label' | t }}</label>
+    <div class="srch-field">
+      {% render 'icon', name: 'search', size: 44, stroke: 2.4 %}
+      <input
+        id="{{ input_id }}"
+        class="srch-input"
+        type="search"
+        name="q"
+        value="{{ search.terms | escape }}"
+        placeholder="{{ placeholder | escape }}"
+        enterkeyhint="search"
+        aria-describedby="{{ panel_id }}-live"
+      >
+      <input type="hidden" name="type" value="{{ form_types }}">
+      <input type="hidden" name="options[prefix]" value="last">
+      {%- if show_clear and search.terms != blank -%}
+        <a href="{{ routes.search_url }}" class="srch-clear" aria-label="{{ 'search.clear' | t }}">
+          {% render 'icon', name: 'close', size: 24, stroke: 2.5 %}
+        </a>
+      {%- endif -%}
+      <button type="submit" class="visually-hidden">{{ 'search.submit' | t }}</button>
+    </div>
+    <div
+      id="{{ panel_id }}"
+      class="ps-panel"
+      role="listbox"
+      aria-label="{{ 'search.suggestions' | t }}"
+      data-predictive-panel
+      hidden
+    ></div>
+    <p id="{{ panel_id }}-live" class="visually-hidden" role="status" aria-live="polite" data-predictive-live></p>
+  </form>
+</predictive-search>

@@ -1,76 +1,140 @@
 {%- if settings.cart_type == 'drawer' -%}
   {%- liquid
-    assign s_title = 'chrome.drawer.title' | t: count: '__COUNT__'
-    assign s_away = 'chrome.drawer.shipping_away' | t: amount: '__AMOUNT__'
-    assign s_remove_item = 'chrome.drawer.remove_item' | t: title: '__TITLE__'
-    assign s_decrease = 'chrome.drawer.decrease' | t: title: '__TITLE__'
-    assign s_increase = 'chrome.drawer.increase' | t: title: '__TITLE__'
-    assign s_each = 'chrome.drawer.each' | t: price: '__PRICE__'
-    assign s_unlocked = 'chrome.drawer.shipping_unlocked' | t
-    assign s_remove = 'chrome.drawer.remove' | t
-    assign s_quantity = 'chrome.drawer.quantity' | t
-    assign s_error = 'chrome.drawer.error' | t
-    assign s_updated = 'chrome.drawer.updated' | t
+    assign threshold = settings.free_shipping_threshold | default: 0 | times: 100
+    assign shipping_pct = 100
+    assign shipping_unlocked = false
+    if threshold > 0
+      assign shipping_pct = cart.total_price | times: 100.0 | divided_by: threshold | round | at_most: 100
+      if cart.total_price >= threshold
+        assign shipping_unlocked = true
+      else
+        assign remaining_cents = threshold | minus: cart.total_price
+        assign remaining_money = remaining_cents | money
+      endif
+    endif
+    assign drawer_title = 'chrome.drawer.title' | t: count: cart.item_count
   -%}
-  <cart-drawer class="cart-drawer" data-cart-drawer hidden>
+  <cart-drawer
+    class="cart-drawer color-{{ section.settings.color_scheme }}"
+    data-cart-drawer
+    data-section-id="{{ section.id }}"
+    data-msg-updated="{{ 'chrome.drawer.updated' | t | escape }}"
+    data-msg-error="{{ 'chrome.drawer.error' | t | escape }}"
+    data-msg-max="{{ 'cart_page.max_reached' | t | escape }}"
+    hidden
+  >
     <div class="cart-drawer__backdrop" data-drawer-close></div>
     <div class="cart-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title" tabindex="-1" data-drawer-panel>
       <div class="cart-drawer__head">
-        <h2 class="cart-drawer__title display" id="cart-drawer-title" data-drawer-title>{{ 'chrome.drawer.label' | t }}</h2>
+        <h2 class="cart-drawer__title display" id="cart-drawer-title" data-drawer-title>{{ drawer_title }}</h2>
         <button type="button" class="icon-btn" aria-label="{{ 'chrome.drawer.close' | t }}" data-drawer-close>{% render 'icon', name: 'close' %}</button>
       </div>
 
-      <div class="cart-drawer__shipping" data-drawer-shipping hidden>
-        <p class="cart-drawer__shipping-msg" data-drawer-shipping-msg></p>
-        <div class="cart-drawer__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="cart-drawer-shipping-msg" data-drawer-bar>
-          <div class="cart-drawer__bar-fill" data-drawer-bar-fill></div>
-        </div>
-      </div>
+      <p class="cart-drawer__error" role="alert" data-drawer-error hidden></p>
 
-      <div class="cart-drawer__body" data-drawer-body></div>
+      <div class="cart-drawer__content" data-drawer-content>
+        {%- if cart.item_count > 0 -%}
+          {%- if threshold > 0 -%}
+            <div class="cart-drawer__shipping" data-shipping-meter>
+              <p class="cart-drawer__shipping-msg" id="cart-drawer-shipping-msg">
+                {%- if shipping_unlocked -%}
+                  {{ 'chrome.drawer.shipping_unlocked' | t }}
+                {%- else -%}
+                  {{ 'chrome.drawer.shipping_away' | t: amount: remaining_money }}
+                {%- endif -%}
+              </p>
+              <div class="cart-drawer__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ shipping_pct }}" aria-labelledby="cart-drawer-shipping-msg">
+                <div class="cart-drawer__bar-fill" data-bar-fill style="width: {{ shipping_pct }}%"></div>
+              </div>
+            </div>
+          {%- endif -%}
 
-      <div class="cart-drawer__foot" data-drawer-foot hidden>
-        <div class="cart-drawer__subtotal">
-          <span>{{ 'chrome.drawer.subtotal' | t }}</span>
-          <span class="mono cart-drawer__subtotal-price" data-drawer-subtotal></span>
-        </div>
-        <p class="cart-drawer__note">{{ 'chrome.drawer.taxes_note' | t }}</p>
-        <form action="{{ routes.cart_url }}" method="post">
-          <button type="submit" name="checkout" class="btn btn--accent btn--block">
-            {% render 'icon', name: 'arrow-right', size: 18, stroke: 2.5 %}{{ 'chrome.drawer.checkout' | t }}
-          </button>
-        </form>
-        <a href="{{ routes.cart_url }}" class="cart-drawer__view">{{ 'chrome.drawer.view_cart' | t }}</a>
+          <form action="{{ routes.cart_url }}" method="post" id="CartDrawerForm-{{ section.id }}" class="cart-drawer__form" novalidate>
+            <div class="cart-drawer__body">
+              <ul class="cart-drawer__list" role="list">
+                {%- for item in cart.items -%}
+                  <li class="cart-drawer__item" data-line-key="{{ item.key }}" data-line="{{ forloop.index }}">
+                    <a href="{{ item.url }}" class="cart-drawer__thumb" aria-hidden="true" tabindex="-1">
+                      {% render 'placeholder-media',
+                        image: item.image,
+                        ratio: '4 / 5',
+                        label: item.product.title,
+                        sizes: '96px',
+                        widths: '96,192,288'
+                      %}
+                    </a>
+                    <div class="cart-drawer__info">
+                      <div class="cart-drawer__row">
+                        <div class="cart-drawer__meta">
+                          <a href="{{ item.url }}" class="cart-drawer__name">{{ item.product.title }}</a>
+                          {% render 'cart-line-details', item: item %}
+                        </div>
+                        {% render 'cart-line-price', item: item %}
+                      </div>
+                      <div class="cart-drawer__controls">
+                        {% render 'cart-line-quantity', item: item, index: forloop.index, id_prefix: section.id %}
+                        <button type="button" class="cart-drawer__remove" data-remove aria-label="{{ 'cart_page.remove_item' | t: title: item.product.title }}">{{ 'cart_page.remove' | t }}</button>
+                      </div>
+                      {%- if item.error_message != blank -%}
+                        <p class="cart-drawer__line-error" role="alert">{{ item.error_message }}</p>
+                      {%- endif -%}
+                    </div>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+
+            <div class="cart-drawer__foot">
+              {%- for discount in cart.cart_level_discount_applications -%}
+                <div class="cart-drawer__discount">
+                  <span>{{ discount.title }}</span>
+                  <span>-{{ discount.total_allocated_amount | money }}</span>
+                </div>
+              {%- endfor -%}
+
+              <div class="cart-drawer__subtotal">
+                <span>{{ 'cart_page.total' | t }}</span>
+                <span class="mono cart-drawer__subtotal-price" data-cart-total>{{ cart.total_price | money }}</span>
+              </div>
+              <p class="cart-drawer__note">
+                {%- if cart.taxes_included -%}
+                  {{ 'chrome.drawer.taxes_included_note' | t }}
+                {%- else -%}
+                  {{ 'chrome.drawer.taxes_note' | t }}
+                {%- endif -%}
+              </p>
+
+              {%- if section.settings.show_order_note -%}
+                <div class="field cart-drawer__order-note">
+                  <label for="CartDrawerNote-{{ section.id }}">{{ 'cart_page.order_note' | t }}</label>
+                  <textarea id="CartDrawerNote-{{ section.id }}" name="note" class="input" rows="2" placeholder="{{ 'cart_page.order_note_placeholder' | t }}">{{ cart.note }}</textarea>
+                </div>
+              {%- endif -%}
+
+              <button type="submit" name="checkout" class="btn btn--accent btn--block">
+                {% render 'icon', name: 'arrow-right', size: 18, stroke: 2.5 %}{{ 'chrome.drawer.checkout' | t }}
+              </button>
+              {%- if additional_checkout_buttons and section.settings.show_accelerated_checkout -%}
+                <div class="cart-drawer__accelerated">
+                  {{ content_for_additional_checkout_buttons }}
+                </div>
+              {%- endif -%}
+              <a href="{{ routes.cart_url }}" class="cart-drawer__view">{{ 'chrome.drawer.view_cart' | t }}</a>
+            </div>
+          </form>
+        {%- else -%}
+          <div class="cart-drawer__body">
+            <div class="cart-drawer__empty">
+              <p class="cart-drawer__empty-heading display">{{ 'chrome.drawer.empty_heading' | t }}</p>
+              <p class="muted">{{ 'chrome.drawer.empty_text' | t }}</p>
+              <a href="{{ routes.all_products_collection_url }}" class="btn btn--ink">{{ 'chrome.drawer.continue_shopping' | t }}</a>
+            </div>
+          </div>
+        {%- endif -%}
       </div>
 
       <p class="visually-hidden" role="status" aria-live="polite" data-drawer-live></p>
     </div>
-
-    <template data-drawer-placeholder>
-      {% render 'placeholder-media', ratio: '4 / 5', label: 'Image', sizes: '96px' %}
-    </template>
-    <template data-drawer-empty>
-      <div class="cart-drawer__empty">
-        <p class="cart-drawer__empty-heading display">{{ 'chrome.drawer.empty_heading' | t }}</p>
-        <p class="muted">{{ 'chrome.drawer.empty_text' | t }}</p>
-        <a href="{{ routes.all_products_collection_url }}" class="btn btn--ink">{{ 'chrome.drawer.continue_shopping' | t }}</a>
-      </div>
-    </template>
-    <script type="application/json" data-drawer-strings>
-      {
-        "title": {{ s_title | json }},
-        "away": {{ s_away | json }},
-        "unlocked": {{ s_unlocked | json }},
-        "remove": {{ s_remove | json }},
-        "removeItem": {{ s_remove_item | json }},
-        "decrease": {{ s_decrease | json }},
-        "increase": {{ s_increase | json }},
-        "each": {{ s_each | json }},
-        "quantity": {{ s_quantity | json }},
-        "error": {{ s_error | json }},
-        "updated": {{ s_updated | json }}
-      }
-    </script>
   </cart-drawer>
 
   <script src="{{ 'cart-drawer.js' | asset_url }}" defer></script>
@@ -143,12 +207,61 @@
     border-right: 2px solid var(--fg);
     transition: width 0.4s;
   }
+  .cart-drawer__content,
+  .cart-drawer__form {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
   .cart-drawer__body {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 0 20px;
+  }
+  .cart-drawer__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .cart-drawer__error,
+  .cart-drawer__line-error {
+    margin: 0;
+    color: var(--accent-ink);
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .cart-drawer__error {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .cart-drawer__discount {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--accent-ink);
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .cart-drawer__order-note label {
+    font-family: var(--f-body);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--fg);
+  }
+  .cart-drawer__order-note .input {
+    min-height: 0;
+    padding: 10px;
+    font-size: 14px;
+    resize: vertical;
+  }
+  .cart-drawer__accelerated {
+    min-width: 0;
   }
   .cart-drawer__list {
     list-style: none;
@@ -193,18 +306,6 @@
     text-decoration: none;
     overflow-wrap: anywhere;
   }
-  .cart-drawer__meta {
-    display: block;
-    margin-top: 4px;
-    font-size: 14px;
-    color: var(--muted);
-  }
-  .cart-drawer__line {
-    font-family: var(--f-mono);
-    font-weight: 700;
-    font-size: 16px;
-    white-space: nowrap;
-  }
   .cart-drawer__controls {
     display: flex;
     flex-wrap: wrap;
@@ -212,29 +313,10 @@
     justify-content: space-between;
     gap: 8px;
   }
-  .cart-drawer__qty {
-    display: flex;
-    align-items: center;
-    border: 2px solid var(--fg);
-    border-radius: var(--r);
-  }
-  .cart-drawer__qty button {
-    width: 44px;
-    height: 44px;
-    display: grid;
-    place-items: center;
-    background: none;
-    border: 0;
-    color: inherit;
-  }
-  .cart-drawer__qty-value {
-    min-width: 28px;
-    text-align: center;
-    font-family: var(--f-mono);
-    font-weight: 700;
-  }
   .cart-drawer__remove {
     min-height: 44px;
+    min-width: 44px;
+    cursor: pointer;
     padding: 0;
     background: none;
     border: 0;
@@ -243,11 +325,15 @@
     font-weight: 700;
     text-decoration: underline;
   }
-  .cart-drawer__item.is-busy {
+  .cart-drawer__item[aria-busy="true"],
+  .cart-drawer__content[aria-busy="true"] .cart-drawer__form {
     opacity: 0.5;
     pointer-events: none;
   }
   .cart-drawer__foot {
+    flex: none;
+    max-height: 60vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -266,6 +352,9 @@
   }
   .cart-drawer__subtotal-price {
     font-size: 24px;
+  }
+  .cart-drawer__info .cart-line-price {
+    flex: none;
   }
   .cart-drawer__note {
     font-size: 13px;
@@ -309,7 +398,26 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Only active when Cart type is set to Drawer in theme settings. The free shipping meter uses the threshold from theme settings."
+      "content": "Only shown when cart type is set to drawer in theme settings. The free shipping meter uses the threshold from theme settings."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_order_note",
+      "label": "Show order note",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_accelerated_checkout",
+      "label": "Show accelerated checkout buttons",
+      "info": "Displays the payment buttons enabled in your payment settings, such as Shop Pay.",
+      "default": true
     }
   ]
 }

@@ -1,18 +1,15 @@
 {%- liquid
-  assign nl_heading = section.settings.heading | strip
-  assign nl_words = nl_heading | split: ' '
-  assign nl_last = nl_words | last
-  assign nl_first = nl_heading | remove_last: nl_last | strip
   assign nl_input_id = 'nl-email-' | append: section.id
   assign nl_placeholder = 'home.newsletter.email_placeholder' | t
 -%}
 
-<section class="container newsletter">
+<div
+  class="newsletter color-{{ section.settings.color_scheme }}"
+  style="--nl-pt: {{ section.settings.padding_top }}; --nl-pb: {{ section.settings.padding_bottom }};"
+>
+  <div class="container">
   <div class="newsletter__box">
-    <h2 class="display display--md">
-      {%- if nl_first != blank %}{{ nl_first }} {% endif -%}
-      <span class="newsletter__hl">{{ nl_last }}</span>
-    </h2>
+    <h2 class="display display--md newsletter__heading">{{ section.settings.heading }}</h2>
     {%- form 'customer', id: section.id, class: 'newsletter__form' -%}
       <input type="hidden" name="contact[tags]" value="newsletter">
       <label for="{{ nl_input_id }}" class="eyebrow">{{ section.settings.label }}</label>
@@ -39,11 +36,19 @@
       </div>
     {%- endform -%}
   </div>
-</section>
+  </div>
+</div>
 
 {% stylesheet %}
 .newsletter {
-  padding-bottom: clamp(64px, 8vw, 120px);
+  padding-top: calc(var(--nl-pt) * 0.6px);
+  padding-bottom: calc(var(--nl-pb) * 0.6px);
+}
+@media (min-width: 750px) {
+  .newsletter {
+    padding-top: calc(var(--nl-pt) * 1px);
+    padding-bottom: calc(var(--nl-pb) * 1px);
+  }
 }
 .newsletter__box {
   display: grid;
@@ -54,7 +59,9 @@
   background: var(--surface);
   border-radius: var(--r-img);
 }
-.newsletter__hl {
+.newsletter__heading em {
+  display: inline-block;
+  font-style: normal;
   padding: 0 0.1em;
   background: var(--accent);
   color: var(--on-accent);
@@ -84,15 +91,23 @@
   "class": "section-newsletter",
   "settings": [
     {
-      "type": "text",
+      "type": "inline_richtext",
       "id": "heading",
       "label": "Heading",
-      "info": "The last word is highlighted.",
-      "default": "Get the drop first."
+      "info": "Use italics to highlight a word.",
+      "default": "Get the drop <em>first</em>."
     },
-    { "type": "text", "id": "label", "label": "Label", "default": "Early access, restocks, no spam" },
-    { "type": "text", "id": "button_label", "label": "Button label", "default": "Subscribe" }
+    { "type": "text", "id": "label", "label": "Email field label", "default": "Early access, restocks, no spam" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Subscribe" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 80 }
   ],
-  "presets": [{ "name": "Newsletter" }]
+  "presets": [
+    {
+      "name": "Newsletter"
+    }
+  ]
 }
 {% endschema %}

@@ -1,0 +1,210 @@
+<section class="addr container">
+  <header class="addr__header">
+    <a href="{{ routes.account_url }}" class="addr__back">&larr; {{ 'customers.addresses.back' | t }}</a>
+    <h1 class="display addr__title">{{ 'customers.addresses.title' | t }}</h1>
+  </header>
+
+  {%- paginate customer.addresses by 5 -%}
+    <details class="addr__add"{% if customer.new_address.errors.size > 0 %} open{% endif %}>
+      <summary class="btn btn--accent">{{ 'customers.addresses.add' | t }}</summary>
+      {%- assign address = customer.new_address -%}
+      {%- form 'customer_address', customer.new_address, class: 'addr__form' -%}
+        {%- assign form_id = 'new' -%}
+        {%- if form.errors -%}
+          <div class="form-message form-message--error addr__wide" role="alert">
+            <p class="addr__error-title">{{ 'account.error_title' | t }}</p>
+            {{ form.errors | default_errors }}
+          </div>
+        {%- endif -%}
+        <h2 class="addr__form-title addr__wide">{{ 'customers.addresses.add' | t }}</h2>
+        {% render 'customer-address-fields', address: address, form_id: form_id %}
+        <button type="submit" class="btn btn--accent addr__wide addr__submit">{{ 'customers.addresses.save' | t }}</button>
+      {%- endform -%}
+    </details>
+
+    {%- if customer.addresses.size > 0 -%}
+      <ul class="addr__list" role="list">
+        {%- for address in customer.addresses -%}
+          {%- assign form_id = address.id -%}
+          <li class="addr__card">
+            {%- if address == customer.default_address -%}
+              <p class="addr__default pill">{{ 'customers.addresses.default' | t }}</p>
+            {%- endif -%}
+            <address class="addr__address">{{ address | format_address }}</address>
+
+            <div class="addr__actions">
+              <details class="addr__edit">
+                <summary class="btn btn--sm btn--outline">{{ 'customers.addresses.edit' | t }}</summary>
+                {%- form 'customer_address', address, class: 'addr__form' -%}
+                  {%- if form.errors -%}
+                    <div class="form-message form-message--error addr__wide" role="alert">
+                      <p class="addr__error-title">{{ 'account.error_title' | t }}</p>
+                      {{ form.errors | default_errors }}
+                    </div>
+                  {%- endif -%}
+                  {% render 'customer-address-fields', address: address, form_id: form_id %}
+                  <button type="submit" class="btn btn--accent addr__wide addr__submit">{{ 'customers.addresses.update' | t }}</button>
+                {%- endform -%}
+              </details>
+
+              <form method="post" action="{{ address.url }}" class="addr__delete" data-confirm="{{ 'customers.addresses.confirm_delete' | t | escape }}">
+                <input type="hidden" name="_method" value="delete">
+                <button type="submit" class="btn btn--sm">{{ 'customers.addresses.delete' | t }}</button>
+              </form>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+      {% render 'pagination', paginate: paginate %}
+    {%- else -%}
+      <p class="addr__empty">{{ 'customers.addresses.empty' | t }}</p>
+    {%- endif -%}
+  {%- endpaginate -%}
+</section>
+
+<script src="{{ 'addresses.js' | asset_url }}" defer="defer"></script>
+
+{% stylesheet %}
+  .addr {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(24px, 4vw, 40px);
+    padding-block: clamp(40px, 6vw, 96px);
+  }
+
+  .addr__header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .addr__back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 700;
+  }
+
+  .addr__title {
+    margin: 0;
+    font-size: clamp(40px, 6vw, 88px);
+  }
+
+  .addr__add > summary,
+  .addr__edit > summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .addr__add > summary::-webkit-details-marker,
+  .addr__edit > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .addr__form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: 18px;
+    max-width: 720px;
+    margin-top: 20px;
+  }
+
+  .addr__wide {
+    grid-column: 1 / -1;
+  }
+
+  .addr__form-title {
+    margin: 0;
+    font-family: var(--f-mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .addr__form .field label {
+    color: var(--fg);
+    font-family: var(--f-body);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .addr__check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  .addr__check input {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    accent-color: var(--fg);
+  }
+
+  .addr__error-title {
+    margin: 0;
+    font-weight: 800;
+  }
+
+  .addr__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .addr__card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    border: 2px solid var(--fg);
+    border-radius: var(--r-img);
+  }
+
+  .addr__default {
+    align-self: flex-start;
+    margin: 0;
+  }
+
+  .addr__address {
+    font-size: 16px;
+    font-style: normal;
+    line-height: 1.55;
+  }
+
+  .addr__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .addr__edit {
+    flex: 1 1 100%;
+    order: 2;
+  }
+
+  .addr__edit:not([open]) {
+    flex: none;
+    order: 0;
+  }
+
+  .addr__empty {
+    color: var(--muted);
+    font-size: 17px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Addresses"
+}
+{% endschema %}

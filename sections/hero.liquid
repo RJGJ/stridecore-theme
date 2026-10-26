@@ -1,6 +1,9 @@
 {%- liquid
   assign hero_style = section.settings.style
-  assign heading_html = section.settings.heading | escape | replace: '[[', '<span class="highlight hero__loud">' | replace: ']]', '</span>'
+  assign hero_loading = 'lazy'
+  if section.index < 3
+    assign hero_loading = 'eager'
+  endif
   assign primary_url = section.settings.primary_link
   if primary_url == blank
     assign primary_url = routes.all_products_collection_url
@@ -16,15 +19,19 @@
   assign label_image_full = 'home.hero.image_full_label' | t
 -%}
 
-<section class="hero hero--{{ hero_style }}" data-section-id="{{ section.id }}">
+<div
+  class="hero hero--{{ hero_style }} color-{{ section.settings.color_scheme }}"
+  data-section-id="{{ section.id }}"
+  style="--hero-pt: {{ section.settings.padding_top }}; --hero-pb: {{ section.settings.padding_bottom }};"
+>
   {%- if hero_style == 'split' -%}
     <div class="hero__split-text">
       {%- if section.settings.eyebrow != blank -%}
         <span class="eyebrow">{{ section.settings.eyebrow }}</span>
       {%- endif -%}
-      <h1 class="display hero__title">{{ heading_html }}</h1>
+      <h1 class="display hero__title">{{ section.settings.heading }}</h1>
       {%- if section.settings.body != blank -%}
-        <p class="hero__body">{{ section.settings.body }}</p>
+        <div class="hero__body rte">{{ section.settings.body }}</div>
       {%- endif -%}
       <div class="hero__buttons">
         {%- if section.settings.primary_label != blank -%}
@@ -41,7 +48,7 @@
         label: label_image_full,
         tone: 'accent',
         sizes: '(min-width: 960px) 50vw, 100vw',
-        loading: 'eager'
+        loading: hero_loading
       %}
     </div>
   {%- else -%}
@@ -52,11 +59,11 @@
           <span>{{ section.settings.eyebrow }}</span>
         </div>
       {%- endif -%}
-      <h1 class="display hero__title">{{ heading_html }}</h1>
+      <h1 class="display hero__title">{{ section.settings.heading }}</h1>
       <div class="hero__lower">
         <div class="hero__copy">
           {%- if section.settings.body != blank -%}
-            <p class="hero__body">{{ section.settings.body }}</p>
+            <div class="hero__body rte">{{ section.settings.body }}</div>
           {%- endif -%}
           <div class="hero__buttons">
             {%- if section.settings.primary_label != blank -%}
@@ -75,7 +82,7 @@
               label: label_image_1,
               tone: 'surface',
               sizes: '(min-width: 960px) 25vw, 50vw',
-              loading: 'eager'
+              loading: hero_loading
             %}
           </div>
           <div class="hero__img hero__img--2">
@@ -85,7 +92,7 @@
               label: label_image_2,
               tone: 'accent',
               sizes: '(min-width: 960px) 25vw, 50vw',
-              loading: 'eager'
+              loading: hero_loading
             %}
           </div>
           {%- if badge_text != blank or section.settings.badge_number != blank -%}
@@ -101,13 +108,20 @@
       </div>
     </div>
   {%- endif -%}
-</section>
+</div>
 
 {% stylesheet %}
 .hero__title {
   font-size: clamp(60px, 12vw, 190px);
 }
-.hero__loud {
+.hero__title em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  box-shadow: 0 0 0 3px var(--accent-edge);
+  font-style: normal;
   transform: rotate(-2deg);
 }
 .hero__body {
@@ -115,14 +129,23 @@
   line-height: 1.5;
   color: var(--muted);
 }
+.hero__body.rte {
+  max-width: 460px;
+}
 .hero__buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
 }
 .hero--giant-type .hero__inner {
-  padding-top: clamp(32px, 5vw, 64px);
-  padding-bottom: clamp(48px, 6vw, 88px);
+  padding-top: calc(var(--hero-pt) * 0.6px);
+  padding-bottom: calc(var(--hero-pb) * 0.6px);
+}
+@media (min-width: 750px) {
+  .hero--giant-type .hero__inner {
+    padding-top: calc(var(--hero-pt) * 1px);
+    padding-bottom: calc(var(--hero-pb) * 1px);
+  }
 }
 .hero__eyebrow {
   display: flex;
@@ -198,14 +221,14 @@
 .hero--split .hero__title {
   font-size: clamp(52px, 7vw, 112px);
 }
-.hero--split .hero__loud {
+.hero--split .hero__title em {
   transform: none;
 }
 .hero--split .hero__body {
   max-width: 440px;
 }
 .hero__split-text {
-  padding: clamp(40px, 6vw, 96px) clamp(16px, 4vw, 64px);
+  padding: calc(var(--hero-pt) * 0.6px) clamp(16px, 4vw, 64px) calc(var(--hero-pb) * 0.6px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -221,6 +244,12 @@
   min-height: 620px;
   border: 0;
   border-radius: 0;
+}
+@media (min-width: 750px) {
+  .hero__split-text {
+    padding-top: calc(var(--hero-pt) * 1px);
+    padding-bottom: calc(var(--hero-pb) * 1px);
+  }
 }
 @media (max-width: 767px) {
   .hero__split-media {
@@ -242,40 +271,51 @@
     {
       "type": "select",
       "id": "style",
-      "label": "Style",
+      "label": "Layout",
       "options": [
         { "value": "giant-type", "label": "Giant type" },
         { "value": "split", "label": "Split" }
       ],
       "default": "giant-type"
     },
-    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "SS27 / Drop 04 — Available now" },
+    { "type": "text", "id": "eyebrow", "label": "Subheading", "default": "SS27 / Drop 04 — Available now" },
     {
-      "type": "text",
+      "type": "inline_richtext",
       "id": "heading",
       "label": "Heading",
-      "info": "Wrap the highlighted word in double square brackets, e.g. Wear it [[loud]].",
-      "default": "Wear it [[loud]]."
+      "info": "Use italics to highlight a word.",
+      "default": "Wear it <em>loud</em>."
     },
     {
-      "type": "textarea",
+      "type": "richtext",
       "id": "body",
-      "label": "Text",
-      "default": "Heavyweight basics and statement pieces, cut boxy and built to last. Made for the street, the studio and everything after."
+      "label": "Body text",
+      "default": "<p>Heavyweight basics and statement pieces, cut boxy and built to last. Made for the street, the studio and everything after.</p>"
     },
     { "type": "header", "content": "Buttons" },
     { "type": "text", "id": "primary_label", "label": "Primary button label", "default": "Shop the drop" },
-    { "type": "url", "id": "primary_link", "label": "Primary button link" },
+    { "type": "url", "id": "primary_link", "label": "Primary button link", "info": "Links to all products when empty." },
     { "type": "text", "id": "secondary_label", "label": "Secondary button label", "default": "View lookbook" },
-    { "type": "url", "id": "secondary_link", "label": "Secondary button link" },
-    { "type": "header", "content": "Giant type images" },
-    { "type": "image_picker", "id": "image_1", "label": "Image 1 (4:5)" },
-    { "type": "image_picker", "id": "image_2", "label": "Image 2 (4:5)" },
+    { "type": "url", "id": "secondary_link", "label": "Secondary button link", "info": "Links to all products when empty." },
+    { "type": "header", "content": "Giant type layout" },
+    { "type": "image_picker", "id": "image_1", "label": "First image", "info": "4:5 aspect ratio recommended" },
+    { "type": "image_picker", "id": "image_2", "label": "Second image", "info": "4:5 aspect ratio recommended" },
     { "type": "text", "id": "badge_text", "label": "Badge text", "default": "NEW DROP • LIMITED RUN" },
     { "type": "text", "id": "badge_number", "label": "Badge number", "default": "04" },
-    { "type": "header", "content": "Split image" },
-    { "type": "image_picker", "id": "split_image", "label": "Full-bleed image" }
+    { "type": "header", "content": "Split layout" },
+    { "type": "image_picker", "id": "split_image", "label": "Image", "info": "1200 x 1400px .jpg recommended" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 56 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
   ],
-  "presets": [{ "name": "Hero" }]
+  "presets": [
+    {
+      "name": "Hero",
+      "settings": {
+        "heading": "Wear it <em>loud</em>."
+      }
+    }
+  ]
 }
 {% endschema %}

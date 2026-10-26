@@ -20,7 +20,7 @@
 
 {%- if use_recs or upsell_products != blank -%}
   <section
-    class="cart-upsell"
+    class="cart-upsell color-{{ section.settings.color_scheme }}"
     data-cart-upsell
     {%- if use_recs and recommendations.performed == false %} hidden{% endif %}
     {%- if use_recs and first_item != blank %}
@@ -115,6 +115,12 @@
   "name": "Cart upsell",
   "settings": [
     {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
       "type": "text",
       "id": "heading",
       "label": "Heading",
@@ -126,7 +132,7 @@
       "label": "Products",
       "options": [
         { "value": "recommendations", "label": "Recommendations for the first cart item" },
-        { "value": "collection", "label": "Pick a collection" }
+        { "value": "collection", "label": "Selected collection" }
       ],
       "default": "recommendations"
     },
@@ -134,7 +140,7 @@
       "type": "collection",
       "id": "collection",
       "label": "Collection",
-      "info": "Used when Products is set to \"Pick a collection\"."
+      "info": "Used when products is set to selected collection."
     },
     {
       "type": "range",

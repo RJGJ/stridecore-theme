@@ -1,0 +1,189 @@
+<div
+  class="rt color-{{ section.settings.color_scheme }}"
+  style="--rt-pt: {{ section.settings.padding_top }}; --rt-pb: {{ section.settings.padding_bottom }};"
+>
+  <div class="container">
+    <div class="rt__inner rt__inner--{{ section.settings.content_width }} rt__inner--{{ section.settings.text_alignment }}">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'caption' -%}
+            <p class="eyebrow" {{ block.shopify_attributes }}>{{ block.settings.caption }}</p>
+          {%- when 'heading' -%}
+            <h2 class="display rt__heading rt__heading--{{ block.settings.heading_size }}" {{ block.shopify_attributes }}>{{ block.settings.heading }}</h2>
+          {%- when 'text' -%}
+            <div class="rt__text rte" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+          {%- when 'button' -%}
+            {%- if block.settings.button_label != blank -%}
+              {%- assign rt_url = block.settings.button_link -%}
+              <div class="rt__button" {{ block.shopify_attributes }}>
+                <a
+                  {% if rt_url != blank %}href="{{ rt_url }}"{% else %}role="link" aria-disabled="true"{% endif %}
+                  class="btn {% if block.settings.button_style == 'outline' %}btn--outline{% else %}btn--accent{% endif %}"
+                >{{ block.settings.button_label }}</a>
+              </div>
+            {%- endif -%}
+          {%- when '@app' -%}
+            <div class="rt__app" {{ block.shopify_attributes }}>{%- render block -%}</div>
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+.rt {
+  padding-top: calc(var(--rt-pt) * 0.6px);
+  padding-bottom: calc(var(--rt-pb) * 0.6px);
+}
+.rt__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-inline: auto;
+}
+.rt__inner--narrow {
+  max-width: 640px;
+}
+.rt__inner--medium {
+  max-width: 880px;
+}
+.rt__inner--wide {
+  max-width: none;
+}
+.rt__inner--left {
+  align-items: flex-start;
+  text-align: left;
+  margin-inline: 0;
+}
+.rt__inner--center {
+  align-items: center;
+  text-align: center;
+}
+.rt__heading--medium {
+  font-size: clamp(36px, 4.6vw, 64px);
+}
+.rt__heading--large {
+  font-size: clamp(44px, 6.5vw, 104px);
+}
+.rt__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.rt__text {
+  font-size: 19px;
+  line-height: 1.5;
+}
+@media (min-width: 750px) {
+  .rt {
+    padding-top: calc(var(--rt-pt) * 1px);
+    padding-bottom: calc(var(--rt-pb) * 1px);
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Rich text",
+  "tag": "section",
+  "class": "section-rich-text",
+  "settings": [
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "content_width",
+      "label": "Content width",
+      "options": [
+        { "value": "narrow", "label": "Narrow" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "wide", "label": "Wide" }
+      ],
+      "default": "medium"
+    },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
+  ],
+  "blocks": [
+    {
+      "type": "caption",
+      "name": "Subheading",
+      "settings": [
+        { "type": "text", "id": "caption", "label": "Subheading", "default": "Our promise" }
+      ]
+    },
+    {
+      "type": "heading",
+      "name": "Heading",
+      "settings": [
+        { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "Talk about your brand" },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "Heading size",
+          "options": [
+            { "value": "medium", "label": "Medium" },
+            { "value": "large", "label": "Large" }
+          ],
+          "default": "medium"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Body text",
+          "default": "<p>Share information about your brand with your customers. Describe a product, make announcements, or welcome customers to your store.</p>"
+        }
+      ]
+    },
+    {
+      "type": "button",
+      "name": "Button",
+      "settings": [
+        { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop all" },
+        { "type": "url", "id": "button_link", "label": "Button link" },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Button style",
+          "options": [
+            { "value": "accent", "label": "Solid" },
+            { "value": "outline", "label": "Outline" }
+          ],
+          "default": "accent"
+        }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Rich text",
+      "blocks": [
+        { "type": "heading" },
+        { "type": "text" },
+        { "type": "button" }
+      ]
+    }
+  ]
+}
+{% endschema %}

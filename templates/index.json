@@ -5,8 +5,8 @@
       "settings": {
         "style": "giant-type",
         "eyebrow": "SS27 / Drop 04 — Available now",
-        "heading": "Wear it [[loud]].",
-        "body": "Heavyweight basics and statement pieces, cut boxy and built to last. Made for the street, the studio and everything after.",
+        "heading": "Wear it <em>loud</em>.",
+        "body": "<p>Heavyweight basics and statement pieces, cut boxy and built to last. Made for the street, the studio and everything after.</p>",
         "primary_label": "Shop the drop",
         "secondary_label": "View lookbook",
         "badge_text": "NEW DROP • LIMITED RUN",
@@ -16,17 +16,39 @@
     "category-tiles": {
       "type": "category-tiles",
       "blocks": {
-        "tile-1": { "type": "tile", "settings": { "title": "Tops", "tone": "accent" } },
-        "tile-2": { "type": "tile", "settings": { "title": "Bottoms", "tone": "surface" } },
-        "tile-3": { "type": "tile", "settings": { "title": "Outerwear", "tone": "fg" } }
+        "tile-1": {
+          "type": "tile",
+          "settings": {
+            "title": "Tops",
+            "tone": "accent"
+          }
+        },
+        "tile-2": {
+          "type": "tile",
+          "settings": {
+            "title": "Bottoms",
+            "tone": "surface"
+          }
+        },
+        "tile-3": {
+          "type": "tile",
+          "settings": {
+            "title": "Outerwear",
+            "tone": "fg"
+          }
+        }
       },
-      "block_order": ["tile-1", "tile-2", "tile-3"],
+      "block_order": [
+        "tile-1",
+        "tile-2",
+        "tile-3"
+      ],
       "settings": {}
     },
     "featured-products": {
       "type": "featured-products",
       "settings": {
-        "heading": "Fresh off\nthe press",
+        "heading": "Fresh off the press",
         "product_count": 8,
         "show_filters": true,
         "button_label": "View all products"
@@ -34,9 +56,25 @@
     },
     "marquee": {
       "type": "marquee",
-      "settings": {
-        "items": "Built different|Worn louder"
-      }
+      "blocks": {
+        "text-1": {
+          "type": "text",
+          "settings": {
+            "text": "Built different"
+          }
+        },
+        "text-2": {
+          "type": "text",
+          "settings": {
+            "text": "Worn louder"
+          }
+        }
+      },
+      "block_order": [
+        "text-1",
+        "text-2"
+      ],
+      "settings": {}
     },
     "lookbook": {
       "type": "lookbook",
@@ -44,25 +82,54 @@
         "image_side": "left",
         "eyebrow": "Lookbook — Vol. 04",
         "heading": "Made for the after-hours.",
-        "text": "Shot after dark across the city. See how the new drop moves, then shop every look straight from the page.",
+        "text": "<p>Shot after dark across the city. See how the new drop moves, then shop every look straight from the page.</p>",
         "button_label": "Explore the lookbook"
       }
     },
     "perks": {
       "type": "perks",
       "blocks": {
-        "perk-1": { "type": "perk", "settings": { "title": "Heavyweight", "text": "Dense cotton that holds its shape wash after wash." } },
-        "perk-2": { "type": "perk", "settings": { "title": "Boxy fits", "text": "Dropped shoulders, cropped lengths. Size guide on every product." } },
-        "perk-3": { "type": "perk", "settings": { "title": "Easy returns", "text": "{return_window} days to change your mind, no questions." } },
-        "perk-4": { "type": "perk", "settings": { "title": "Limited runs", "text": "Small batches. When a drop is gone, it is gone." } }
+        "perk-1": {
+          "type": "perk",
+          "settings": {
+            "title": "Heavyweight",
+            "text": "<p>Dense cotton that holds its shape wash after wash.</p>"
+          }
+        },
+        "perk-2": {
+          "type": "perk",
+          "settings": {
+            "title": "Boxy fits",
+            "text": "<p>Dropped shoulders, cropped lengths. Size guide on every product.</p>"
+          }
+        },
+        "perk-3": {
+          "type": "perk",
+          "settings": {
+            "title": "Easy returns",
+            "text": "<p>Changed your mind? Send it back, no questions asked.</p>"
+          }
+        },
+        "perk-4": {
+          "type": "perk",
+          "settings": {
+            "title": "Limited runs",
+            "text": "<p>Small batches. When a drop is gone, it is gone.</p>"
+          }
+        }
       },
-      "block_order": ["perk-1", "perk-2", "perk-3", "perk-4"],
+      "block_order": [
+        "perk-1",
+        "perk-2",
+        "perk-3",
+        "perk-4"
+      ],
       "settings": {}
     },
     "newsletter": {
       "type": "newsletter",
       "settings": {
-        "heading": "Get the drop first.",
+        "heading": "Get the drop <em>first</em>.",
         "label": "Early access, restocks, no spam",
         "button_label": "Subscribe"
       }

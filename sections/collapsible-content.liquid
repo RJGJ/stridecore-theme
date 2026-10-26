@@ -1,0 +1,204 @@
+<div
+  class="cc color-{{ section.settings.color_scheme }}"
+  style="--cc-pt: {{ section.settings.padding_top }}; --cc-pb: {{ section.settings.padding_bottom }};"
+>
+  <div class="container">
+    <div class="cc__inner">
+      {%- if section.settings.caption != blank or section.settings.heading != blank or section.settings.text != blank -%}
+        <div class="cc__intro">
+          {%- if section.settings.caption != blank -%}
+            <p class="eyebrow">{{ section.settings.caption }}</p>
+          {%- endif -%}
+          {%- if section.settings.heading != blank -%}
+            <h2 class="display display--md cc__heading">{{ section.settings.heading }}</h2>
+          {%- endif -%}
+          {%- if section.settings.text != blank -%}
+            <div class="cc__text rte">{{ section.settings.text }}</div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      <div class="cc__rows">
+        {%- for block in section.blocks -%}
+          {%- if block.type == '@app' -%}
+            <div class="cc__app" {{ block.shopify_attributes }}>{%- render block -%}</div>
+          {%- else -%}
+            <details class="cc__row" {{ block.shopify_attributes }}{% if section.settings.open_first_row and forloop.first %} open{% endif %}>
+              <summary class="cc__summary">
+                <span class="cc__question">{{ block.settings.heading }}</span>
+                <span class="cc__icon" aria-hidden="true"></span>
+              </summary>
+              <div class="cc__answer rte">{{ block.settings.row_content }}</div>
+            </details>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+.cc {
+  padding-top: calc(var(--cc-pt) * 0.6px);
+  padding-bottom: calc(var(--cc-pb) * 0.6px);
+}
+.cc__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  max-width: 900px;
+  margin-inline: auto;
+}
+.cc__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cc__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.cc__text {
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.5;
+}
+.cc__rows {
+  border-top: 2px solid var(--fg);
+}
+.cc__row {
+  border-bottom: 2px solid var(--fg);
+}
+.cc__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 64px;
+  padding: 12px 0;
+  list-style: none;
+  cursor: pointer;
+}
+.cc__summary::-webkit-details-marker {
+  display: none;
+}
+.cc__question {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.cc__icon {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.cc__icon::before,
+.cc__icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 20px;
+  height: 2px;
+  background: currentColor;
+  transition: transform 0.2s;
+}
+.cc__icon::after {
+  transform: rotate(90deg);
+}
+.cc__row[open] .cc__icon::after {
+  transform: rotate(0deg);
+}
+.cc__answer {
+  padding: 0 0 24px;
+  max-width: 720px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+@media (min-width: 750px) {
+  .cc {
+    padding-top: calc(var(--cc-pt) * 1px);
+    padding-bottom: calc(var(--cc-pb) * 1px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc__icon::before,
+  .cc__icon::after {
+    transition: none;
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collapsible content",
+  "tag": "section",
+  "class": "section-collapsible-content",
+  "settings": [
+    { "type": "text", "id": "caption", "label": "Subheading", "default": "Good to know" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "Questions, answered" },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Body text",
+      "default": "<p>Everything you need to know about orders, sizing and care.</p>"
+    },
+    { "type": "checkbox", "id": "open_first_row", "label": "Open first row", "default": false },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
+  ],
+  "blocks": [
+    {
+      "type": "row",
+      "name": "Collapsible row",
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Row heading" },
+        {
+          "type": "richtext",
+          "id": "row_content",
+          "label": "Row content",
+          "default": "<p>Add the answer, a policy summary or any detail customers often ask about.</p>"
+        }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Collapsible content",
+      "blocks": [
+        {
+          "type": "row",
+          "settings": {
+            "heading": "How long does shipping take?",
+            "row_content": "<p>Orders leave our warehouse within a few business days. You will get a tracking link as soon as your parcel is on its way.</p>"
+          }
+        },
+        {
+          "type": "row",
+          "settings": {
+            "heading": "What is your return policy?",
+            "row_content": "<p>Unworn items in their original packaging can be returned for a refund or exchange. See our returns page for the full details.</p>"
+          }
+        },
+        {
+          "type": "row",
+          "settings": {
+            "heading": "How should I care for my pieces?",
+            "row_content": "<p>Wash cold with similar colors and hang dry to keep heavyweight fabrics in shape.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

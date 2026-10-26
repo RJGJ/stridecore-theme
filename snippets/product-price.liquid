@@ -1,0 +1,117 @@
+{%- doc -%}
+  Price block for the buy box: variant price, compare-at price, unit price,
+  optional price range, free shipping tag and the tax-included note. The
+  [data-*] hooks are updated by <product-form> when a variant changes.
+
+  @param {product} product
+  @param {variant} variant - currently selected variant
+  @param {boolean} [show_range] - show the product price range when prices vary
+  @param {boolean} [show_free_shipping] - show the free shipping tag when the price passes the threshold
+
+  @example
+  {% render 'product-price', product: product, variant: current, show_range: true %}
+{%- enddoc -%}
+
+{%- liquid
+  assign threshold_cents = settings.free_shipping_threshold | default: 0 | times: 100
+  assign free_ship = false
+  if show_free_shipping and threshold_cents > 0 and variant.price >= threshold_cents
+    assign free_ship = true
+  endif
+
+  assign on_sale = false
+  if variant.compare_at_price > variant.price
+    assign on_sale = true
+  endif
+
+  assign unit_text = ''
+  if variant.unit_price_measurement
+    assign unit_amount = variant.unit_price | money
+    assign unit_ref_value = variant.unit_price_measurement.reference_value
+    assign unit_ref_unit = variant.unit_price_measurement.reference_unit
+    if unit_ref_value == 1
+      assign unit_text = unit_amount | append: ' / ' | append: unit_ref_unit
+    else
+      assign unit_text = unit_amount | append: ' / ' | append: unit_ref_value | append: ' ' | append: unit_ref_unit
+    endif
+  endif
+
+  assign range_min = product.price_min | money
+  assign range_max = product.price_max | money
+-%}
+
+<div class="pp" data-price-block>
+  <div class="pp__row">
+    <span class="visually-hidden">{% if on_sale %}{{ 'pdp.sale_price' | t }}{% else %}{{ 'pdp.regular_price' | t }}{% endif %}</span>
+    <span class="pp__price" data-price>{{ variant.price | money }}</span>
+    <span class="visually-hidden" data-compare-label{% unless on_sale %} hidden{% endunless %}>{{ 'pdp.regular_price' | t }}</span>
+    <s class="pp__compare" data-compare{% unless on_sale %} hidden{% endunless %}>{{ variant.compare_at_price | money }}</s>
+    <span class="pp__tag" data-free-shipping{% unless free_ship %} hidden{% endunless %}>{{ 'product.free_shipping' | t }}</span>
+  </div>
+
+  <p class="pp__unit" data-unit{% if unit_text == blank %} hidden{% endif %}>
+    <span class="visually-hidden">{{ 'pdp.unit_price' | t }}</span>
+    <span data-unit-text>{{ unit_text }}</span>
+  </p>
+
+  {%- if show_range and product.price_varies -%}
+    <p class="pp__range">{{ 'pdp.price_range' | t: min: range_min, max: range_max }}</p>
+  {%- endif -%}
+
+  {%- if cart.taxes_included or shop.shipping_policy.body != blank -%}
+    <p class="pp__note">
+      {%- if cart.taxes_included -%}
+        {{ 'pdp.taxes_included' | t }}
+      {%- endif -%}
+      {%- if shop.shipping_policy.body != blank %}
+        {{ 'pdp.shipping_policy_html' | t: link: shop.shipping_policy.url }}
+      {%- endif -%}
+    </p>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .pp {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pp__row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .pp__price {
+    font-family: var(--f-mono);
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .pp__compare {
+    font-family: var(--f-mono);
+    font-size: 18px;
+    color: var(--muted);
+  }
+  .pp__tag {
+    padding: 4px 10px;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 0 0 2px var(--accent-edge);
+    border-radius: var(--r-pill);
+    font-family: var(--f-mono);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .pp__unit,
+  .pp__range,
+  .pp__note {
+    margin: 0;
+    font-family: var(--f-mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .pp__note a {
+    text-decoration: underline;
+  }
+{% endstylesheet %}

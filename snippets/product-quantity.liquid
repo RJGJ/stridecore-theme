@@ -1,0 +1,107 @@
+{%- doc -%}
+  Quantity selector honoring variant.quantity_rule (minimum, maximum,
+  increment). The input is attached to the product form with the HTML
+  `form` attribute so it can live in its own block.
+
+  @param {variant} variant - currently selected variant
+  @param {string} form_id - id of the product form this input belongs to
+  @param {string} section_id
+
+  @example
+  {% render 'product-quantity', variant: current, form_id: form_id, section_id: section.id %}
+{%- enddoc -%}
+
+{%- liquid
+  assign rule = variant.quantity_rule
+  assign qty_min = rule.min | default: 1
+  assign qty_step = rule.increment | default: 1
+  assign qty_id = 'quantity-' | append: section_id
+-%}
+<div class="qb" data-quantity-block>
+  <label class="visually-hidden" for="{{ qty_id }}">{{ 'product.quantity' | t }}</label>
+  <div class="qb__control">
+    <button type="button" class="qb__btn" data-qty-dec aria-label="{{ 'product.decrease_quantity' | t }}">−</button>
+    <input
+      type="number"
+      id="{{ qty_id }}"
+      class="qb__input"
+      name="quantity"
+      form="{{ form_id }}"
+      value="{{ qty_min }}"
+      min="{{ qty_min }}"
+      {% if rule.max != nil %}max="{{ rule.max }}"{% endif %}
+      step="{{ qty_step }}"
+      inputmode="numeric"
+      data-qty
+    >
+    <button type="button" class="qb__btn" data-qty-inc aria-label="{{ 'product.increase_quantity' | t }}">+</button>
+  </div>
+  <p class="qb__rules" data-qty-rules{% if qty_min == 1 and qty_step == 1 and rule.max == nil %} hidden{% endif %}>
+    {%- if qty_min > 1 -%}
+      <span>{{ 'pdp.qty_min' | t: quantity: qty_min }}</span>
+    {%- endif -%}
+    {%- if rule.max != nil -%}
+      <span>{{ 'pdp.qty_max' | t: quantity: rule.max }}</span>
+    {%- endif -%}
+    {%- if qty_step > 1 -%}
+      <span>{{ 'pdp.qty_step' | t: quantity: qty_step }}</span>
+    {%- endif -%}
+  </p>
+</div>
+
+{% stylesheet %}
+  .qb {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .qb__control {
+    display: flex;
+    align-items: center;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+  }
+  .qb__btn {
+    width: 52px;
+    height: 56px;
+    background: none;
+    border: 0;
+    color: inherit;
+    font-size: 22px;
+    cursor: pointer;
+  }
+  .qb__btn:focus-visible,
+  .qb__input:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 2px;
+  }
+  .qb__input {
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: center;
+    font-family: var(--f-mono);
+    font-weight: 700;
+    font-size: 17px;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .qb__input::-webkit-outer-spin-button,
+  .qb__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .qb__rules {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+{% endstylesheet %}

@@ -1,0 +1,153 @@
+{%- doc -%}
+  Selling plan (subscription) selector. Writes the chosen plan to the
+  `selling_plan` input of the product form. Plans that are not allocated to
+  the selected variant are hidden by <product-form>.
+
+  @param {product} product
+  @param {variant} variant - currently selected variant
+  @param {string} form_id - id of the product form these inputs belong to
+  @param {string} section_id
+
+  @example
+  {% render 'product-selling-plans', product: product, variant: current, form_id: form_id, section_id: section.id %}
+{%- enddoc -%}
+
+{%- if product.selling_plan_groups.size > 0 -%}
+  {%- liquid
+    assign allocation_ids = ''
+    for allocation in variant.selling_plan_allocations
+      assign allocation_ids = allocation_ids | append: '|' | append: allocation.selling_plan.id | append: '|'
+    endfor
+  -%}
+  <fieldset class="sp" data-selling-plans>
+    <legend class="sp__legend">{{ 'pdp.purchase_options' | t }}</legend>
+
+    {%- unless product.requires_selling_plan -%}
+      <label class="sp__option" for="selling-plan-{{ section_id }}-once">
+        <input
+          type="radio"
+          id="selling-plan-{{ section_id }}-once"
+          name="selling_plan"
+          form="{{ form_id }}"
+          value=""
+          data-selling-plan-input
+          checked
+        >
+        <span class="sp__text">
+          <span class="sp__name">{{ 'pdp.one_time_purchase' | t }}</span>
+        </span>
+      </label>
+    {%- endunless -%}
+
+    {%- for group in product.selling_plan_groups -%}
+      <div class="sp__group" role="group" aria-label="{{ group.name | escape }}">
+        <p class="sp__group-name">{{ group.name }}</p>
+        {%- for plan in group.selling_plans -%}
+          {%- liquid
+            assign plan_key = '|' | append: plan.id | append: '|'
+            assign plan_available = false
+            if allocation_ids contains plan_key
+              assign plan_available = true
+            endif
+            assign plan_checked = false
+            if product.requires_selling_plan and forloop.first and forloop.parentloop.first
+              assign plan_checked = true
+            endif
+          -%}
+          <label class="sp__option" for="selling-plan-{{ section_id }}-{{ plan.id }}" data-plan-id="{{ plan.id }}"{% unless plan_available %} hidden{% endunless %}>
+            <input
+              type="radio"
+              id="selling-plan-{{ section_id }}-{{ plan.id }}"
+              name="selling_plan"
+              form="{{ form_id }}"
+              value="{{ plan.id }}"
+              data-selling-plan-input
+              {% if plan_checked %}checked{% endif %}
+            >
+            <span class="sp__text">
+              <span class="sp__name">{{ plan.name }}</span>
+              {%- if plan.description != blank -%}
+                <span class="sp__desc">{{ plan.description }}</span>
+              {%- endif -%}
+            </span>
+            <span class="sp__price" data-plan-price></span>
+          </label>
+        {%- endfor -%}
+      </div>
+    {%- endfor -%}
+  </fieldset>
+{%- endif -%}
+
+{% stylesheet %}
+  .sp {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .sp__legend {
+    padding: 0;
+    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .sp__group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sp__group-name {
+    margin: 0;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .sp__option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 10px 16px;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+    cursor: pointer;
+  }
+  .sp__option:has(input:checked) {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .sp__option:has(input:focus-visible) {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+  .sp__option input {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    accent-color: var(--accent);
+  }
+  .sp__text {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .sp__name {
+    font-weight: 700;
+  }
+  .sp__desc {
+    font-size: 13px;
+    opacity: 0.8;
+  }
+  .sp__price {
+    font-family: var(--f-mono);
+    font-weight: 700;
+  }
+{% endstylesheet %}

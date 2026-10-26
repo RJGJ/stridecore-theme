@@ -1,0 +1,66 @@
+{%- doc -%}
+  Active filter chips with a "clear all" link. Each chip is a link that removes
+  that one filter, so it works without JavaScript. Renders nothing when no
+  filter is active.
+
+  @param {object} filters - collection.filters or search.filters
+  @param {string} clear_url - URL that removes every filter
+
+  @example
+  {% render 'facet-chips', filters: collection.filters, clear_url: clear_url %}
+{%- enddoc -%}
+
+{%- liquid
+  assign chips_active = false
+  for filter in filters
+    if filter.type == 'price_range'
+      if filter.min_value.value != nil or filter.max_value.value != nil
+        assign chips_active = true
+      endif
+    elsif filter.active_values.size > 0
+      assign chips_active = true
+    endif
+  endfor
+-%}
+
+{%- if chips_active -%}
+  <div class="facet-chips" role="group" aria-label="{{ 'collection.active_filters' | t }}">
+    {%- for filter in filters -%}
+      {%- if filter.type == 'price_range' -%}
+        {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
+          {%- liquid
+            assign chip_min = 0 | money
+            if filter.min_value.value != nil
+              assign chip_min = filter.min_value.value | money
+            endif
+            assign chip_max = filter.range_max | money
+            if filter.max_value.value != nil
+              assign chip_max = filter.max_value.value | money
+            endif
+            assign chip_label = chip_min | append: ' - ' | append: chip_max
+            assign chip_aria = 'collection.remove_filter' | t: label: chip_label
+          -%}
+          <a href="{{ filter.url_to_remove }}" class="facet-chip" aria-label="{{ chip_aria }}" data-facet-link>
+            {{- chip_label }}
+            <span aria-hidden="true">&times;</span>
+          </a>
+        {%- endif -%}
+      {%- else -%}
+        {%- for value in filter.active_values -%}
+          {%- assign chip_aria = 'collection.remove_filter' | t: label: value.label -%}
+          <a href="{{ value.url_to_remove }}" class="facet-chip" aria-label="{{ chip_aria }}" data-facet-link>
+            {{- value.label }}
+            <span aria-hidden="true">&times;</span>
+          </a>
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endfor -%}
+    <a href="{{ clear_url }}" class="facet-clear" data-facet-link>{{ 'collection.clear_all' | t }}</a>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .facet-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .facet-chip { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; background: var(--accent); color: var(--on-accent); border: 2px solid var(--fg); border-radius: var(--r-pill); font-family: var(--f-mono); font-size: 13px; font-weight: 700; text-decoration: none; }
+  .facet-clear { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 700; text-decoration: underline; }
+{% endstylesheet %}

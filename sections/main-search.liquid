@@ -4,54 +4,49 @@
     assign search_types = 'product,page,article'
   endif
   assign popular = section.settings.popular_terms | split: ','
-  assign has_terms = false
-  if search.terms != blank
-    assign has_terms = true
+  assign terms_encoded = search.terms | url_encode
+  assign types_encoded = search_types | url_encode
+  assign current_sort = search.sort_by | default: 'relevance'
+
+  assign has_filters = false
+  if search.filters.size > 0
+    assign has_filters = true
+  endif
+
+  assign has_active = false
+  for filter in search.filters
+    if filter.type == 'price_range'
+      if filter.min_value.value != nil or filter.max_value.value != nil
+        assign has_active = true
+      endif
+    elsif filter.active_values.size > 0
+      assign has_active = true
+    endif
+  endfor
+
+  assign clear_url = routes.search_url | append: '?q=' | append: terms_encoded | append: '&type=' | append: types_encoded | append: '&options%5Bprefix%5D=last'
+  if search.sort_by != blank and search.sort_by != 'relevance'
+    assign clear_url = clear_url | append: '&sort_by=' | append: search.sort_by
+  endif
+
+  assign show_sidebar = false
+  assign show_toolbar = false
+  if search.performed
+    if search.results_count > 0 or has_active
+      assign show_toolbar = true
+      if has_filters
+        assign show_sidebar = true
+      endif
+    endif
   endif
 -%}
 
-<script src="{{ 'predictive-search.js' | asset_url }}" defer></script>
+<script src="{{ 'facets.js' | asset_url }}" defer></script>
 
 <section class="srch-bar">
   <div class="container srch-bar__inner">
-    <predictive-search
-      class="srch-predictive"
-      data-section-id="predictive-search"
-      data-url="{{ routes.predictive_search_url }}"
-    >
-      <form action="{{ routes.search_url }}" method="get" role="search" class="srch-form">
-        <label for="SearchInput-{{ section.id }}" class="eyebrow srch-label">{{ 'search.label' | t }}</label>
-        <div class="srch-field">
-          {% render 'icon', name: 'search', size: 44, stroke: 2.4 %}
-          <input
-            id="SearchInput-{{ section.id }}"
-            class="srch-input"
-            type="search"
-            name="q"
-            value="{{ search.terms | escape }}"
-            placeholder="{{ section.settings.placeholder | escape }}"
-            enterkeyhint="search"
-          >
-          <input type="hidden" name="type" value="{{ search_types }}">
-          <input type="hidden" name="options[prefix]" value="last">
-          {%- if has_terms -%}
-            <a href="{{ routes.search_url }}" class="srch-clear" aria-label="{{ 'search.clear' | t }}">
-              {% render 'icon', name: 'close', size: 24, stroke: 2.5 %}
-            </a>
-          {%- endif -%}
-          <button type="submit" class="visually-hidden">{{ 'search.submit' | t }}</button>
-        </div>
-        <div
-          id="PredictivePanel-{{ section.id }}"
-          class="ps-panel"
-          role="listbox"
-          aria-label="{{ 'search.suggestions' | t }}"
-          data-predictive-panel
-          hidden
-        ></div>
-        <p class="visually-hidden" role="status" aria-live="polite" data-predictive-live></p>
-      </form>
-    </predictive-search>
+    <h1 class="visually-hidden">{{ 'search.label' | t }}</h1>
+    {% render 'search-form', id: section.id, placeholder: section.settings.placeholder, types: search_types, show_clear: true %}
 
     {%- if popular.size > 0 -%}
       <div class="srch-popular">
@@ -60,7 +55,7 @@
           {%- assign term_clean = term | strip -%}
           {%- if term_clean != blank -%}
             {%- assign term_encoded = term_clean | url_encode -%}
-            <a href="{{ routes.search_url }}?q={{ term_encoded }}&type={{ search_types | url_encode }}" class="pill srch-pill">{{ term_clean }}</a>
+            <a href="{{ routes.search_url }}?q={{ term_encoded }}&type={{ types_encoded }}" class="pill srch-pill">{{ term_clean }}</a>
           {%- endif -%}
         {%- endfor -%}
       </div>
@@ -68,131 +63,244 @@
   </div>
 </section>
 
-<section class="container srch-results">
+<facet-form
+  class="srch-facets"
+  data-section-id="{{ section.id }}"
+  data-label-show="{{ 'collection.show_filters' | t | escape }}"
+  data-label-hide="{{ 'collection.hide_filters' | t | escape }}"
+>
   {%- paginate search.results by section.settings.per_page -%}
-    {%- if search.performed -%}
-      <p class="srch-summary" role="status">
-        {{- 'search.results_for' | t: count: search.results_count, terms: search.terms -}}
-      </p>
-    {%- endif -%}
+    <form
+      id="FacetForm-{{ section.id }}"
+      class="sf-form"
+      method="get"
+      action="{{ routes.search_url }}"
+      data-facet-form
+    >
+      <input type="hidden" name="q" value="{{ search.terms | escape }}">
+      <input type="hidden" name="type" value="{{ search_types }}">
+      <input type="hidden" name="options[prefix]" value="last">
 
-    {%- if search.performed and search.results_count > 0 -%}
-      {%- assign has_products = false -%}
-      {%- assign has_content = false -%}
-      {%- for item in search.results -%}
-        {%- if item.object_type == 'product' -%}
-          {%- assign has_products = true -%}
-        {%- else -%}
-          {%- assign has_content = true -%}
-        {%- endif -%}
-      {%- endfor -%}
-
-      {%- if has_products -%}
-        <div class="product-grid srch-grid">
-          {%- for item in search.results -%}
-            {%- if item.object_type == 'product' -%}
-              {% render 'product-card', product: item, sizes: '(min-width: 1024px) 25vw, (min-width: 640px) 45vw, 100vw' %}
+      {%- if show_toolbar -%}
+        <div class="sf-toolbar">
+          <div class="container sf-toolbar__inner">
+            {%- if has_filters -%}
+              <button
+                type="button"
+                class="sf-toggle"
+                data-facet-toggle
+                aria-expanded="{{ section.settings.filters_open }}"
+                aria-controls="FacetSidebar-{{ section.id }}"
+              >
+                {% render 'icon', name: 'menu', size: 18 %}
+                <span data-facet-toggle-label>
+                  {%- if section.settings.filters_open -%}
+                    {{- 'collection.hide_filters' | t -}}
+                  {%- else -%}
+                    {{- 'collection.show_filters' | t -}}
+                  {%- endif -%}
+                </span>
+              </button>
             {%- endif -%}
-          {%- endfor -%}
+
+            <p class="sf-count mono" data-facet-swap="count-toolbar">
+              {{- 'search.results_for' | t: count: search.results_count, terms: search.terms -}}
+            </p>
+
+            {%- if search.sort_options.size > 0 -%}
+              <div class="sf-sort">
+                <label for="SortBy-{{ section.id }}">{{ 'collection.sort_by' | t }}</label>
+                <select id="SortBy-{{ section.id }}" name="sort_by" class="sf-select" data-facet-sort>
+                  {%- for option in search.sort_options -%}
+                    <option value="{{ option.value | escape }}" {% if option.value == current_sort %}selected{% endif %}>
+                      {{- option.name -}}
+                    </option>
+                  {%- endfor -%}
+                </select>
+              </div>
+            {%- endif -%}
+
+            <button type="submit" class="btn btn--sm sf-apply" data-facet-apply>
+              {{- 'collection.apply' | t -}}
+            </button>
+          </div>
         </div>
       {%- endif -%}
 
-      {%- if has_content -%}
-        <ul class="srch-list">
-          {%- for item in search.results -%}
-            {%- if item.object_type != 'product' -%}
-              {%- liquid
-                assign item_body = item.content | strip_html | truncate: 140
-                if item.object_type == 'article' and item.excerpt != blank
-                  assign item_body = item.excerpt | strip_html | truncate: 140
-                endif
-              -%}
-              <li>
-                <a href="{{ item.url }}" class="srch-item">
-                  <span class="srch-item__text">
-                    <span class="srch-item__title">{{ item.title }}</span>
-                    {%- if item_body != blank -%}
-                      <span class="muted">{{ item_body }}</span>
-                    {%- endif -%}
-                  </span>
-                  {% render 'icon', name: 'arrow-right', size: 24 %}
-                </a>
-              </li>
-            {%- endif -%}
-          {%- endfor -%}
-        </ul>
-      {%- endif -%}
+      <div class="container srch-results sf-body">
+        {%- if show_sidebar -%}
+          <aside
+            id="FacetSidebar-{{ section.id }}"
+            class="sf-filters"
+            aria-label="{{ 'collection.filters' | t }}"
+            data-facet-sidebar
+            {% unless section.settings.filters_open %}
+              hidden
+            {% endunless %}
+          >
+            <div class="sf-filters__inner" data-facet-swap="sidebar">
+              {% render 'facet-filters', filters: search.filters, id_prefix: section.id %}
 
-      {% render 'pagination', paginate: paginate %}
-    {%- elsif search.performed -%}
-      <div class="srch-empty">
-        <h2 class="display display--md">
-          {{- 'search.empty_title_before' | t }}
-          <span class="highlight">{{ 'search.empty_title_highlight' | t }}</span>.
-        </h2>
-        <p class="muted">{{ 'search.empty_text' | t }}</p>
-        {%- if popular.size > 0 -%}
-          <ul class="srch-suggest">
-            {%- for term in popular -%}
-              {%- assign term_clean = term | strip -%}
-              {%- if term_clean != blank -%}
-                {%- assign term_encoded = term_clean | url_encode -%}
-                <li><a href="{{ routes.search_url }}?q={{ term_encoded }}&type={{ search_types | url_encode }}" class="pill">{{ term_clean }}</a></li>
+              {%- if has_active -%}
+                <a href="{{ clear_url }}" class="sf-clear" data-facet-link>{{ 'collection.clear_all' | t }}</a>
               {%- endif -%}
-            {%- endfor -%}
-          </ul>
+            </div>
+          </aside>
         {%- endif -%}
-        <a href="{{ routes.all_products_collection_url }}" class="btn btn--accent">{{ 'search.browse_all' | t }}</a>
+
+        <div class="sf-results">
+          <p class="visually-hidden" role="status" aria-live="polite" data-facet-status></p>
+
+          <div data-facet-swap="results" class="sf-results__inner">
+            {% render 'facet-chips', filters: search.filters, clear_url: clear_url %}
+
+            {%- if search.performed and search.results_count > 0 -%}
+              {%- assign has_products = false -%}
+              {%- assign has_content = false -%}
+              {%- for item in search.results -%}
+                {%- if item.object_type == 'product' -%}
+                  {%- assign has_products = true -%}
+                {%- else -%}
+                  {%- assign has_content = true -%}
+                {%- endif -%}
+              {%- endfor -%}
+
+              {%- if has_products -%}
+                <div class="product-grid srch-grid">
+                  {%- for item in search.results -%}
+                    {%- if item.object_type == 'product' -%}
+                      {% render 'product-card', product: item, sizes: '(min-width: 1024px) 25vw, (min-width: 640px) 45vw, 100vw' %}
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+
+              {%- if has_content -%}
+                <ul class="srch-list">
+                  {%- for item in search.results -%}
+                    {%- if item.object_type != 'product' -%}
+                      {%- liquid
+                        assign item_body = item.content | strip_html | truncate: 140
+                        assign item_image = nil
+                        case item.object_type
+                          when 'article'
+                            assign type_label = 'site.search.type_article' | t
+                            assign item_image = item.image
+                            if item.excerpt != blank
+                              assign item_body = item.excerpt | strip_html | truncate: 140
+                            endif
+                          when 'page'
+                            assign type_label = 'site.search.type_page' | t
+                          else
+                            assign type_label = item.object_type
+                        endcase
+                      -%}
+                      <li>
+                        <a href="{{ item.url }}" class="srch-item">
+                          {%- if item_image != blank -%}
+                            <span class="srch-item__thumb">
+                              {% render 'placeholder-media', image: item_image, ratio: '1 / 1', label: '', sizes: '96px', widths: '96,192' %}
+                            </span>
+                          {%- endif -%}
+                          <span class="srch-item__text">
+                            <span class="eyebrow">{{ type_label }}</span>
+                            <span class="srch-item__title">{{ item.title }}</span>
+                            {%- if item_body != blank -%}
+                              <span class="muted">{{ item_body }}</span>
+                            {%- endif -%}
+                          </span>
+                          {% render 'icon', name: 'arrow-right', size: 24 %}
+                        </a>
+                      </li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
+
+              {% render 'pagination', paginate: paginate %}
+            {%- elsif search.performed -%}
+              <div class="srch-empty">
+                <h2 class="display display--md">
+                  {{- 'search.empty_title_before' | t }}
+                  <span class="highlight">{{ 'search.empty_title_highlight' | t }}</span>.
+                </h2>
+                <p class="muted">{{ 'search.empty_text' | t }}</p>
+                {%- if popular.size > 0 -%}
+                  <p class="eyebrow">{{ 'site.search.try_instead' | t }}</p>
+                  <ul class="srch-suggest">
+                    {%- for term in popular -%}
+                      {%- assign term_clean = term | strip -%}
+                      {%- if term_clean != blank -%}
+                        {%- assign term_encoded = term_clean | url_encode -%}
+                        <li><a href="{{ routes.search_url }}?q={{ term_encoded }}&type={{ types_encoded }}" class="pill">{{ term_clean }}</a></li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+                {%- endif -%}
+                {%- if has_active -%}
+                  <a href="{{ clear_url }}" class="btn btn--accent" data-facet-link>{{ 'collection.clear_all' | t }}</a>
+                {%- else -%}
+                  <a href="{{ routes.all_products_collection_url }}" class="btn btn--accent">{{ 'search.browse_all' | t }}</a>
+                {%- endif -%}
+              </div>
+            {%- else -%}
+              <p class="srch-summary muted">{{ 'search.prompt' | t }}</p>
+            {%- endif -%}
+          </div>
+        </div>
       </div>
-    {%- else -%}
-      <p class="srch-summary muted">{{ 'search.prompt' | t }}</p>
-    {%- endif -%}
+    </form>
   {%- endpaginate -%}
-</section>
+</facet-form>
+
+<noscript>
+  <style>
+    .sf-filters[hidden] { display: block !important; }
+    .sf-toggle { display: none; }
+  </style>
+</noscript>
 
 {% stylesheet %}
   .srch-bar { border-bottom: 2px solid var(--fg); }
   .srch-bar__inner { display: flex; flex-direction: column; gap: 24px; padding-top: clamp(32px, 5vw, 72px); padding-bottom: clamp(28px, 4vw, 48px); }
-  .srch-predictive { display: block; position: relative; }
-  .srch-form { position: relative; display: flex; flex-direction: column; gap: 24px; }
-  .srch-field { display: flex; align-items: center; gap: 16px; border-bottom: 4px solid var(--fg); padding-bottom: 8px; }
-  .srch-field > svg { flex: none; width: clamp(28px, 4vw, 44px); height: clamp(28px, 4vw, 44px); }
-  .srch-input { flex: 1; min-width: 0; padding: 0; background: transparent; border: 0; border-radius: 0; color: var(--fg); font-family: var(--f-display); font-weight: var(--d-weight); font-stretch: var(--d-stretch); font-size: clamp(36px, 6vw, 88px); letter-spacing: var(--d-track); text-transform: var(--h-case); outline-offset: 6px; -webkit-appearance: none; appearance: none; }
-  .srch-input::placeholder { color: var(--muted); opacity: 0.6; }
-  .srch-input::-webkit-search-cancel-button { display: none; }
-  .srch-clear { flex: none; display: grid; place-items: center; width: 52px; height: 52px; background: var(--fg); color: var(--bg); border-radius: var(--r-pill); text-decoration: none; }
   .srch-popular { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
   .srch-pill { text-transform: uppercase; letter-spacing: 0.04em; }
 
+  .srch-facets { display: block; }
   .srch-results { padding-top: 32px; padding-bottom: clamp(64px, 8vw, 112px); }
   .srch-summary { margin-bottom: 32px; font-size: 18px; font-weight: 700; }
   .srch-grid { grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 40px 20px; }
-  .srch-list { margin: 40px 0 0; padding: 0; list-style: none; border-top: 2px solid var(--fg); }
+  .srch-list { margin: 0; padding: 0; list-style: none; border-top: 2px solid var(--fg); }
   .srch-list li { border-bottom: 1px solid var(--line); }
   .srch-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 44px; padding: 24px 0; text-decoration: none; }
-  .srch-item__text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .srch-item__thumb { flex: none; width: 72px; }
+  .srch-item__text { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; }
   .srch-item__title { font-weight: 800; font-size: 20px; text-transform: uppercase; }
   .srch-empty { display: flex; flex-direction: column; align-items: start; gap: 20px; padding: clamp(24px, 4vw, 56px) 0; }
   .srch-empty p { max-width: 480px; font-size: 17px; line-height: 1.5; }
   .srch-suggest { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
 
-  /* Predictive dropdown (markup from sections/predictive-search.liquid) */
-  .ps-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30; max-height: min(70vh, 640px); overflow-y: auto; background: var(--bg); color: var(--fg); border: 2px solid var(--fg); border-radius: var(--r); box-shadow: var(--shadow); }
-  .ps-panel[hidden] { display: none; }
-  .ps-group { padding: 12px 0 4px; }
-  .ps-heading { margin: 0; padding: 0 20px 6px; font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
-  .ps-list { margin: 0; padding: 0; list-style: none; }
-  .ps-link { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 6px 20px; text-decoration: none; font-size: 16px; font-weight: 700; }
-  .ps-link:hover { opacity: 1; }
-  .ps-link.is-active, .ps-link:hover, .ps-all.is-active, .ps-all:hover { background: var(--fg); color: var(--bg); }
-  .ps-link__title { flex: 1; min-width: 0; text-transform: uppercase; overflow-wrap: anywhere; }
-  .ps-link__price { flex: none; font-size: 14px; }
-  .ps-thumb { flex: none; width: 56px; }
-  .ps-thumb .media { border-radius: var(--r-img); }
-  .ps-thumb .media--placeholder > span { display: none; }
-  .ps-all { display: flex; justify-content: space-between; align-items: center; min-height: 52px; padding: 0 20px; border-top: 2px solid var(--fg); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 14px; text-decoration: none; }
-  .ps-all:hover { opacity: 1; }
-  .ps-empty { margin: 0; padding: 20px; color: var(--muted); }
+  .sf-toolbar { border-bottom: 1px solid var(--line); }
+  .sf-toolbar__inner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-top: 14px; padding-bottom: 14px; }
+  .sf-toggle { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; padding: 0 18px; background: none; color: inherit; border: 2px solid var(--fg); border-radius: var(--r); font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; }
+  .sf-count { margin: 0 auto 0 0; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sf-sort { display: flex; align-items: center; gap: 12px; }
+  .sf-sort label { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .sf-select { min-height: 44px; padding: 0 14px; background: var(--bg); color: var(--fg); border: 2px solid var(--fg); border-radius: var(--r); font-size: 15px; font-weight: 600; max-width: 100%; }
+
+  .sf-body { display: flex; flex-wrap: wrap; gap: 40px; align-items: start; }
+  .sf-filters { flex: 1 1 240px; max-width: 100%; }
+  .sf-filters__inner { display: flex; flex-direction: column; gap: 32px; }
+  .sf-clear { align-self: start; display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 700; text-decoration: underline; }
+
+  .sf-results { flex: 999 1 560px; min-width: 0; }
+  .sf-results__inner { display: flex; flex-direction: column; gap: 28px; transition: opacity 0.2s; }
+  .sf-results__inner.is-loading { opacity: 0.45; pointer-events: none; }
+  .sf-results__inner .pagination { margin-top: 24px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sf-results__inner { transition: none; }
+  }
 {% endstylesheet %}
 
 {% schema %}
@@ -202,9 +310,10 @@
   "class": "section-main-search",
   "settings": [
     { "type": "text", "id": "placeholder", "label": "Search placeholder", "default": "Hoodies, cargo, caps…" },
-    { "type": "text", "id": "popular_terms", "label": "Popular searches", "info": "Comma separated.", "default": "Hoodie, Cargo, Tee, Cap, Jacket" },
-    { "type": "checkbox", "id": "include_content", "label": "Include pages and articles in results", "default": false },
-    { "type": "range", "id": "per_page", "label": "Results per page", "min": 4, "max": 48, "step": 4, "default": 12 }
+    { "type": "text", "id": "popular_terms", "label": "Popular searches", "info": "Separate terms with commas.", "default": "Hoodie, Cargo, Tee, Cap, Jacket" },
+    { "type": "checkbox", "id": "include_content", "label": "Include pages and articles in results", "default": true },
+    { "type": "range", "id": "per_page", "label": "Results per page", "min": 4, "max": 48, "step": 4, "default": 12 },
+    { "type": "checkbox", "id": "filters_open", "label": "Show filters by default", "default": true }
   ],
   "presets": [
     { "name": "Search page" }

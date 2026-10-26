@@ -1,0 +1,171 @@
+<div
+  class="ci color-{{ section.settings.color_scheme }}"
+  style="--ci-pt: {{ section.settings.padding_top }}; --ci-pb: {{ section.settings.padding_bottom }};"
+>
+  <div class="container">
+    <div class="ci__inner">
+      {%- if section.settings.heading != blank or section.settings.text != blank -%}
+        <div class="ci__intro">
+          {%- if section.settings.heading != blank -%}
+            <h2 class="display display--md ci__heading">{{ section.settings.heading }}</h2>
+          {%- endif -%}
+          {%- if section.settings.text != blank -%}
+            <div class="ci__text rte">{{ section.settings.text }}</div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      <dl class="ci__list">
+        {%- if section.settings.show_address and settings.store_address != blank -%}
+          <div class="ci__item">
+            <dt class="eyebrow">{{ 'sections.contact_info.address' | t }}</dt>
+            <dd class="ci__value">{{ settings.store_address | escape | newline_to_br }}</dd>
+          </div>
+        {%- endif -%}
+        {%- if section.settings.show_email and settings.support_email != blank -%}
+          <div class="ci__item">
+            <dt class="eyebrow">{{ 'sections.contact_info.email' | t }}</dt>
+            <dd class="ci__value"><a href="mailto:{{ settings.support_email | escape }}">{{ settings.support_email | escape }}</a></dd>
+          </div>
+        {%- endif -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'detail' -%}
+            <div class="ci__item" {{ block.shopify_attributes }}>
+              <dt class="eyebrow">{{ block.settings.label }}</dt>
+              <dd class="ci__value">{{ block.settings.text | escape | newline_to_br }}</dd>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </dl>
+
+      {%- for block in section.blocks -%}
+        {%- if block.type == '@app' -%}
+          <div class="ci__app" {{ block.shopify_attributes }}>{%- render block -%}</div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+.ci {
+  padding-top: calc(var(--ci-pt) * 0.6px);
+  padding-bottom: calc(var(--ci-pb) * 0.6px);
+}
+.ci__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+}
+.ci__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+.ci__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.ci__text {
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.5;
+}
+.ci__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 0;
+  margin: 0;
+  border: 2px solid var(--fg);
+  border-radius: var(--r-img);
+  overflow: hidden;
+}
+.ci__item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.ci__item dt,
+.ci__item dd {
+  margin: 0;
+}
+.ci__value {
+  font-size: 18px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.ci__value a {
+  display: inline-block;
+  min-height: 24px;
+  text-underline-offset: 3px;
+}
+@media (min-width: 750px) {
+  .ci {
+    padding-top: calc(var(--ci-pt) * 1px);
+    padding-bottom: calc(var(--ci-pb) * 1px);
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Contact info",
+  "tag": "section",
+  "class": "section-contact-info",
+  "settings": [
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "Get in touch" },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Body text",
+      "default": "<p>Questions about an order, sizing or a collaboration? Reach out and we will reply as soon as we can.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_address",
+      "label": "Show store address",
+      "info": "Set the address in theme settings.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_email",
+      "label": "Show support email",
+      "info": "Set the email in theme settings.",
+      "default": true
+    },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
+  ],
+  "blocks": [
+    {
+      "type": "detail",
+      "name": "Detail",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Hours" },
+        { "type": "textarea", "id": "text", "label": "Text", "default": "Monday to Friday, 9am to 5pm" }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Contact info",
+      "blocks": [
+        { "type": "detail" }
+      ]
+    }
+  ]
+}
+{% endschema %}

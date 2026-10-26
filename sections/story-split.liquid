@@ -15,10 +15,10 @@
   </div>
   <div class="story-split__text">
     {%- if section.settings.text_primary != blank -%}
-      <div class="story-split__primary">{{ section.settings.text_primary }}</div>
+      <div class="story-split__primary rte">{{ section.settings.text_primary }}</div>
     {%- endif -%}
     {%- if section.settings.text_secondary != blank -%}
-      <div class="story-split__secondary">{{ section.settings.text_secondary }}</div>
+      <div class="story-split__secondary rte">{{ section.settings.text_secondary }}</div>
     {%- endif -%}
     {%- if section.settings.button_label != blank -%}
       {%- assign story_link = section.settings.button_link | default: routes.all_products_collection_url -%}

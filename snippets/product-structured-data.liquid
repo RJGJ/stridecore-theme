@@ -1,0 +1,62 @@
+{%- doc -%}
+  JSON-LD structured data (schema.org Product) for the product page:
+  name, images, description, sku, brand and one Offer per variant with
+  price, currency and availability.
+
+  @param {product} product
+  @param {variant} [variant] - currently selected variant (used for sku and the top-level url)
+
+  @example
+  {% render 'product-structured-data', product: product, variant: current %}
+{%- enddoc -%}
+
+{%- liquid
+  assign selected = variant | default: product.selected_or_first_available_variant
+  assign scheme = request.origin | split: '//' | first
+  assign product_description = product.description | strip_html | strip_newlines | truncate: 5000
+-%}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": {{ product.title | json }},
+    "url": {{ request.origin | append: product.url | json }},
+    {%- if product_description != blank %}
+    "description": {{ product_description | json }},
+    {%- endif %}
+    {%- if product.images.size > 0 %}
+    "image": [
+      {%- for image in product.images limit: 6 -%}
+        {%- assign image_src = image | image_url: width: 1600 | prepend: scheme -%}
+        {{ image_src | json }}{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ],
+    {%- endif %}
+    {%- if selected.sku != blank %}
+    "sku": {{ selected.sku | json }},
+    {%- endif %}
+    {%- if selected.barcode != blank %}
+    "gtin": {{ selected.barcode | json }},
+    {%- endif %}
+    "brand": {
+      "@type": "Brand",
+      "name": {{ product.vendor | default: shop.name | json }}
+    },
+    "offers": [
+      {%- for v in product.variants -%}
+        {
+          "@type": "Offer",
+          "name": {{ v.title | json }},
+          "url": {{ request.origin | append: v.url | json }},
+          "price": {{ v.price | divided_by: 100.0 | json }},
+          "priceCurrency": {{ cart.currency.iso_code | json }},
+          {%- if v.sku != blank %}
+          "sku": {{ v.sku | json }},
+          {%- endif %}
+          "availability": "https://schema.org/{% if v.available %}InStock{% else %}OutOfStock{% endif %}",
+          "itemCondition": "https://schema.org/NewCondition"
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  }
+</script>

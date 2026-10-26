@@ -1,20 +1,19 @@
-/* KINETIC cart drawer: <cart-drawer> custom element. Renders from cart JSON. */
+/**
+ * KINETIC cart drawer: <cart-drawer> custom element.
+ *
+ * The drawer is rendered by Liquid (sections/cart-drawer.liquid) so it shows line
+ * prices, unit prices, discounts, selling plans, quantity rules and accelerated
+ * checkout buttons. After any cart change (kinetic:cart:updated) the section is
+ * re-fetched from the Section Rendering API and the whole content region is swapped,
+ * so every line and the total are always in sync.
+ *
+ * Hooks: [data-drawer-close], [data-drawer-panel], [data-drawer-title],
+ * [data-drawer-content], [data-drawer-error], [data-drawer-live], [data-line-key],
+ * [data-qty-step], [data-qty], [data-remove], [data-bar-fill].
+ */
 (() => {
   if (customElements.get('cart-drawer')) return;
   const K = (window.KINETIC = window.KINETIC || {});
-
-  const esc = (value) =>
-    String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-
-  const sized = (src, width) => {
-    try {
-      const url = new URL(src, location.origin);
-      url.searchParams.set('width', width);
-      return url.toString();
-    } catch (_) {
-      return src;
-    }
-  };
 
   const FOCUSABLE =
     'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -22,26 +21,38 @@
   class CartDrawer extends HTMLElement {
     connectedCallback() {
       this.panel = this.querySelector('[data-drawer-panel]');
-      this.body = this.querySelector('[data-drawer-body]');
-      this.foot = this.querySelector('[data-drawer-foot]');
       this.live = this.querySelector('[data-drawer-live]');
-      this.strings = JSON.parse(this.querySelector('[data-drawer-strings]').textContent);
-      this.cart = null;
+      this.sectionId = this.dataset.sectionId;
+      this.seq = 0;
       this.lastFocus = null;
 
-      this.onUpdated = (event) => this.render(event.detail);
+      this.onUpdated = () => {
+        this.showError('');
+        this.refresh();
+      };
+      this.onError = (event) => this.showError(event.detail?.message || this.dataset.msgError);
       this.onOpen = () => this.open();
       this.onKeydown = (event) => this.keydown(event);
       K.on?.('cart:updated', this.onUpdated);
       K.on?.('cart:open', this.onOpen);
+      K.on?.('cart:error', this.onError);
 
       this.addEventListener('click', (event) => {
         if (event.target.closest('[data-drawer-close]')) {
           this.close();
           return;
         }
-        const action = event.target.closest('[data-action]');
-        if (action) this.handleAction(action);
+        this.handleClick(event);
+      });
+      this.addEventListener('change', (event) => this.handleChange(event));
+      this.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && event.target.matches('[data-qty]')) {
+          event.preventDefault();
+          event.target.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+      this.addEventListener('submit', (event) => {
+        if (!event.submitter || event.submitter.name !== 'checkout') event.preventDefault();
       });
 
       if (!CartDrawer.bound) {
@@ -54,15 +65,18 @@
           K.emit('cart:open');
         });
       }
-
-      K.cart?.get().then((cart) => this.render(cart)).catch(() => {});
     }
 
     disconnectedCallback() {
       K.off?.('cart:updated', this.onUpdated);
       K.off?.('cart:open', this.onOpen);
+      K.off?.('cart:error', this.onError);
       document.removeEventListener('keydown', this.onKeydown);
       document.body.classList.remove('cart-drawer-open');
+    }
+
+    get content() {
+      return this.querySelector('[data-drawer-content]');
     }
 
     open() {
@@ -77,7 +91,7 @@
         const first = this.panel.querySelector('[data-drawer-close].icon-btn') || this.panel;
         first.focus();
       });
-      K.cart?.get().then((cart) => this.render(cart)).catch(() => {});
+      this.refresh();
     }
 
     close() {
@@ -118,104 +132,178 @@
       }
     }
 
-    async handleAction(button) {
-      const item = button.closest('[data-key]');
-      if (!item) return;
-      const key = item.dataset.key;
-      const qty = Number(item.dataset.qty);
-      const action = button.dataset.action;
-      const next = action === 'inc' ? qty + 1 : action === 'dec' ? qty - 1 : 0;
-      const focusKey = action === 'remove' ? null : `${key}:${action}`;
-      item.classList.add('is-busy');
-      try {
-        await K.cart.change(key, Math.max(0, next));
-        if (focusKey) {
-          const [k, a] = focusKey.split(':');
-          const el = this.querySelector(`[data-key="${CSS.escape(k)}"] [data-action="${a}"]`);
-          el?.focus();
-        } else {
-          this.panel.focus();
-        }
-      } catch (_) {
-        item.classList.remove('is-busy');
-        this.announce(this.strings.error);
-      }
-    }
-
     announce(text) {
+      if (!this.live || !text) return;
       this.live.textContent = '';
-      requestAnimationFrame(() => (this.live.textContent = text));
+      requestAnimationFrame(() => {
+        this.live.textContent = text;
+      });
     }
 
-    render(cart) {
-      if (!cart) return;
-      this.cart = cart;
-      const s = this.strings;
-      const count = cart.item_count;
-      this.querySelector('[data-drawer-title]').textContent = s.title.replace('__COUNT__', count);
-
-      this.renderShipping(cart);
-
-      if (!cart.items.length) {
-        this.body.innerHTML = '';
-        this.body.append(this.querySelector('[data-drawer-empty]').content.cloneNode(true));
-        this.foot.hidden = true;
-        this.announce(s.updated);
-        return;
+    showError(message) {
+      const box = this.querySelector('[data-drawer-error]');
+      if (box) {
+        box.textContent = message || '';
+        box.hidden = !message;
       }
-
-      const placeholder = this.querySelector('[data-drawer-placeholder]').innerHTML;
-      const items = cart.items
-        .map((item) => {
-          const title = esc(item.product_title);
-          const media = item.featured_image && item.featured_image.url
-            ? `<div class="media" style="aspect-ratio:4 / 5"><img src="${esc(sized(item.featured_image.url, 240))}" alt="${esc(item.featured_image.alt || item.product_title)}" width="96" height="120" loading="lazy"></div>`
-            : placeholder;
-          const variant = item.variant_title && item.variant_title !== 'Default Title'
-            ? `<span class="cart-drawer__meta">${esc(item.variant_title)}</span>`
-            : '';
-          const unit = `<span class="cart-drawer__meta mono">${esc(s.each.replace('__PRICE__', K.money(item.final_price)))}</span>`;
-          return `<li class="cart-drawer__item" data-key="${esc(item.key)}" data-qty="${item.quantity}">
-  <a href="${esc(item.url)}" class="cart-drawer__thumb" tabindex="-1" aria-hidden="true">${media}</a>
-  <div class="cart-drawer__info">
-    <div class="cart-drawer__row">
-      <div><a href="${esc(item.url)}" class="cart-drawer__name">${title}</a>${variant}${unit}</div>
-      <span class="cart-drawer__line">${esc(K.money(item.final_line_price))}</span>
-    </div>
-    <div class="cart-drawer__controls">
-      <div class="cart-drawer__qty" role="group" aria-label="${esc(s.quantity)}">
-        <button type="button" data-action="dec" aria-label="${esc(s.decrease.replace('__TITLE__', item.product_title))}">&minus;</button>
-        <span class="cart-drawer__qty-value" aria-live="polite">${item.quantity}</span>
-        <button type="button" data-action="inc" aria-label="${esc(s.increase.replace('__TITLE__', item.product_title))}">+</button>
-      </div>
-      <button type="button" class="cart-drawer__remove" data-action="remove" aria-label="${esc(s.removeItem.replace('__TITLE__', item.product_title))}">${esc(s.remove)}</button>
-    </div>
-  </div>
-</li>`;
-        })
-        .join('');
-      this.body.innerHTML = `<ul class="cart-drawer__list">${items}</ul>`;
-      this.querySelector('[data-drawer-subtotal]').textContent = K.money(cart.total_price);
-      this.foot.hidden = false;
-      this.announce(s.updated);
+      if (message) this.announce(message);
     }
 
-    renderShipping(cart) {
-      const wrap = this.querySelector('[data-drawer-shipping]');
-      const threshold = Number(K.freeShippingThreshold) || 0;
-      if (!threshold || !cart.items.length) {
-        wrap.hidden = true;
+    /* Clamp a typed quantity to the variant quantity rule. 0 removes the line. */
+    normalize(input, value) {
+      const min = Number(input.dataset.min) || 1;
+      const step = Number(input.dataset.step) || 1;
+      const max = input.dataset.max ? Number(input.dataset.max) : Infinity;
+      if (!value || value <= 0) return 0;
+      if (value < min) return min;
+      let next = min + Math.round((value - min) / step) * step;
+      if (next > max) next = min + Math.floor((max - min) / step) * step;
+      return Math.max(min, next);
+    }
+
+    handleClick(event) {
+      const step = event.target.closest('[data-qty-step]');
+      if (step) {
+        const line = step.closest('[data-line-key]');
+        const input = line.querySelector('[data-qty]');
+        const current = parseInt(input.value, 10) || 0;
+        const stepSize = Number(input.dataset.step) || 1;
+        const direction = Number(step.dataset.qtyStep);
+        const min = Number(input.dataset.min) || 1;
+        let next = current + direction * stepSize;
+        if (direction < 0 && next < min) next = 0;
+        if (direction > 0 && input.dataset.max && next > Number(input.dataset.max)) next = current;
+        if (next === current) {
+          this.showError(this.dataset.msgMax || '');
+          return;
+        }
+        input.value = next;
+        this.update(line, next);
         return;
       }
-      const msg = wrap.querySelector('[data-drawer-shipping-msg]');
-      msg.id = 'cart-drawer-shipping-msg';
-      const left = Math.max(0, threshold - cart.total_price);
-      const pct = Math.min(100, Math.round((cart.total_price / threshold) * 100));
-      msg.textContent = left > 0 ? this.strings.away.replace('__AMOUNT__', K.money(left)) : this.strings.unlocked;
-      const bar = wrap.querySelector('[data-drawer-bar]');
-      bar.setAttribute('aria-valuenow', pct);
-      wrap.querySelector('[data-drawer-bar-fill]').style.width = `${pct}%`;
-      wrap.hidden = false;
+      const remove = event.target.closest('[data-remove]');
+      if (remove) {
+        event.preventDefault();
+        this.update(remove.closest('[data-line-key]'), 0);
+      }
+    }
+
+    handleChange(event) {
+      const input = event.target;
+      if (input.matches('[data-qty]')) {
+        const next = this.normalize(input, parseInt(input.value, 10) || 0);
+        input.value = next;
+        this.update(input.closest('[data-line-key]'), next);
+      } else if (input.matches('textarea[name="note"]')) {
+        K.fetchJSON(`${K.routes?.cartUpdate || '/cart/update'}.js`, {
+          method: 'POST',
+          body: JSON.stringify({ note: input.value }),
+        }).catch(() => {});
+      }
+    }
+
+    async update(line, quantity) {
+      if (!line || !K.cart) return;
+      line.setAttribute('aria-busy', 'true');
+      try {
+        await K.cart.change(line.dataset.lineKey, quantity);
+        // refresh() runs from the kinetic:cart:updated listener.
+      } catch (_) {
+        // The message arrives through kinetic:cart:error; resync the markup.
+        this.refresh();
+      }
+    }
+
+    focusToken() {
+      const active = document.activeElement;
+      if (!active || !this.content || !this.content.contains(active)) return null;
+      const line = active.closest('[data-line-key]');
+      if (!line) return active.id ? { id: active.id } : null;
+      const control = active.hasAttribute('data-remove')
+        ? 'remove'
+        : active.dataset.qtyStep
+          ? `step${active.dataset.qtyStep}`
+          : 'qty';
+      return { key: line.dataset.lineKey, control, index: Number(line.dataset.line) };
+    }
+
+    restoreFocus(token) {
+      if (!token) return;
+      let target = null;
+      if (token.id) {
+        target = this.querySelector(`#${CSS.escape(token.id)}`);
+      } else {
+        const lines = [...this.querySelectorAll('[data-line-key]')];
+        const line = lines.find((el) => el.dataset.lineKey === token.key);
+        if (line) {
+          target =
+            token.control === 'remove'
+              ? line.querySelector('[data-remove]')
+              : token.control === 'qty'
+                ? line.querySelector('[data-qty]')
+                : line.querySelector(`[data-qty-step="${token.control.slice(4)}"]`);
+        } else {
+          const neighbour = lines[Math.min(token.index - 1, lines.length - 1)];
+          target = neighbour?.querySelector('[data-remove]') || this.panel;
+        }
+      }
+      target?.focus({ preventScroll: true });
+    }
+
+    async refresh() {
+      const seq = ++this.seq;
+      const token = this.focusToken();
+      const content = this.content;
+      if (!content) return;
+      const note = this.querySelector('textarea[name="note"]');
+      const noteValue = note && document.activeElement === note ? note.value : null;
+      const oldFill = this.querySelector('[data-bar-fill]');
+      const oldWidth = oldFill ? oldFill.style.width : null;
+      const cartUrl = K.routes?.cart || '/cart';
+
+      try {
+        const res = await fetch(`${cartUrl}?sections=${encodeURIComponent(this.sectionId)}`, {
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) throw new Error(`Section request failed (${res.status})`);
+        const sections = await res.json();
+        if (seq !== this.seq) return; // a newer refresh superseded this one
+
+        const html = sections[this.sectionId];
+        if (!html) throw new Error('Missing cart drawer markup');
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const freshContent = doc.querySelector('[data-drawer-content]');
+        if (!freshContent) throw new Error('Missing cart drawer markup');
+
+        content.innerHTML = freshContent.innerHTML;
+        const title = this.querySelector('[data-drawer-title]');
+        const freshTitle = doc.querySelector('[data-drawer-title]');
+        if (title && freshTitle) title.textContent = freshTitle.textContent;
+
+        if (noteValue !== null) {
+          const freshNote = this.querySelector('textarea[name="note"]');
+          if (freshNote) freshNote.value = noteValue;
+        }
+
+        const fill = this.querySelector('[data-bar-fill]');
+        if (fill && oldWidth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          const target = fill.style.width;
+          fill.style.width = oldWidth;
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+              fill.style.width = target;
+            })
+          );
+        }
+
+        this.restoreFocus(token);
+        this.announce(this.dataset.msgUpdated);
+      } catch (_) {
+        this.showError(this.dataset.msgError);
+        content.querySelectorAll('[aria-busy]').forEach((el) => el.removeAttribute('aria-busy'));
+      }
     }
   }
 

@@ -13,17 +13,22 @@
           }
         }
       },
-      "block_order": ["promo"],
+      "block_order": [
+        "promo"
+      ],
       "settings": {
         "per_page": 12,
         "card_size": "medium",
         "filters_open": true,
         "show_description": true,
-        "show_image": false,
+        "show_image": true,
         "show_promo": true,
-        "promo_position": 5
+        "promo_position": 5,
+        "image_ratio": "portrait"
       }
     }
   },
-  "order": ["main"]
+  "order": [
+    "main"
+  ]
 }

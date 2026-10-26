@@ -1,0 +1,242 @@
+{%- liquid
+  assign fcs_columns = section.settings.columns_desktop
+  assign fcs_vw = 100 | divided_by: fcs_columns
+  assign fcs_sizes = '(min-width: 1024px) ' | append: fcs_vw | append: 'vw, (min-width: 750px) 50vw, 100vw'
+  assign fcs_ratio = section.settings.image_ratio
+-%}
+
+<div
+  class="fcs color-{{ section.settings.color_scheme }}"
+  style="--fcs-pt: {{ section.settings.padding_top }}; --fcs-pb: {{ section.settings.padding_bottom }}; --fcs-cols: {{ fcs_columns }};"
+>
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="display display--md fcs__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <ul class="fcs__grid" role="list">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'collection' -%}
+          {%- liquid
+            assign fcs_collection = block.settings.collection
+            assign fcs_image = block.settings.image | default: fcs_collection.featured_image
+            assign fcs_title = fcs_collection.title
+            if fcs_title == blank
+              assign fcs_title = 'sections.featured_collections.placeholder_title' | t
+            endif
+            assign focal_style = 'object-position:' | append: fcs_image.presentation.focal_point
+            assign fcs_url = fcs_collection.url
+            assign fcs_tag = 'div'
+            if fcs_url != blank
+              assign fcs_tag = 'a'
+            endif
+            assign fcs_loading = 'lazy'
+            if section.index == 1 and forloop.first
+              assign fcs_loading = 'eager'
+            endif
+            assign placeholder_name = 'collection-' | append: forloop.index
+            assign fcs_alt = fcs_image.alt | default: fcs_title
+          -%}
+          <li class="fcs__item" {{ block.shopify_attributes }}>
+            <{{ fcs_tag }}{% if fcs_url != blank %} href="{{ fcs_url }}"{% endif %} class="fcs__card">
+              <div class="fcs__media" style="aspect-ratio: {{ fcs_ratio }}">
+                {%- if fcs_image != blank -%}
+                  {{
+                    fcs_image
+                    | image_url: width: 1000
+                    | image_tag: loading: fcs_loading, sizes: fcs_sizes, widths: '400,600,800,1000', alt: fcs_alt, style: focal_style
+                  }}
+                {%- else -%}
+                  {{ placeholder_name | placeholder_svg_tag: 'fcs__placeholder' }}
+                {%- endif -%}
+              </div>
+              <div class="fcs__info">
+                <span class="fcs__title">{{ fcs_title }}</span>
+                {%- if fcs_collection != blank and section.settings.show_count -%}
+                  <span class="fcs__count">{{ 'collection.products_count' | t: count: fcs_collection.products_count }}</span>
+                {%- endif -%}
+                <span class="fcs__arrow">{% render 'icon', name: 'arrow-up-right', size: 20, stroke: 2.5 %}</span>
+              </div>
+            </{{ fcs_tag }}>
+          </li>
+        {%- elsif block.type == '@app' -%}
+          <li class="fcs__item" {{ block.shopify_attributes }}>
+            {%- render block -%}
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+
+    {%- if section.settings.show_view_all and section.settings.button_label != blank -%}
+      <div class="fcs__more">
+        <a href="{{ routes.collections_url }}" class="btn btn--outline">{{ section.settings.button_label }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+.fcs {
+  padding-top: calc(var(--fcs-pt) * 0.6px);
+  padding-bottom: calc(var(--fcs-pb) * 0.6px);
+}
+.fcs__heading {
+  margin-bottom: 32px;
+}
+.fcs__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.fcs__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fcs__item {
+  min-width: 0;
+}
+.fcs__card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-decoration: none;
+}
+.fcs__media {
+  overflow: hidden;
+  border: 2px solid var(--fg);
+  border-radius: var(--r-img);
+  background: var(--surface);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fcs__media img,
+.fcs__placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fcs__placeholder {
+  fill: currentColor;
+  color: var(--muted);
+}
+a.fcs__card:hover {
+  opacity: 1;
+}
+a.fcs__card:hover .fcs__media {
+  transform: translate(-6px, -6px);
+}
+.fcs__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+.fcs__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--f-display);
+  font-weight: var(--d-weight);
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: var(--d-lead);
+  letter-spacing: var(--d-track);
+  text-transform: var(--h-case);
+  overflow-wrap: break-word;
+}
+.fcs__count {
+  order: 3;
+  flex-basis: 100%;
+  font-size: 14px;
+  color: var(--muted);
+}
+.fcs__arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+.fcs__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+@media (min-width: 750px) {
+  .fcs {
+    padding-top: calc(var(--fcs-pt) * 1px);
+    padding-bottom: calc(var(--fcs-pb) * 1px);
+  }
+  .fcs__grid {
+    grid-template-columns: repeat(min(var(--fcs-cols), 2), minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .fcs__grid {
+    grid-template-columns: repeat(var(--fcs-cols), minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fcs__media {
+    transition: none;
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Featured collections",
+  "tag": "section",
+  "class": "section-featured-collections",
+  "settings": [
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "Shop by collection" },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 4, "step": 1, "label": "Columns on desktop", "default": 3 },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "3 / 4", "label": "Portrait" },
+        { "value": "1 / 1", "label": "Square" },
+        { "value": "4 / 3", "label": "Landscape" }
+      ],
+      "default": "3 / 4"
+    },
+    { "type": "checkbox", "id": "show_count", "label": "Show product count", "default": true },
+    { "type": "checkbox", "id": "show_view_all", "label": "Show button", "default": false },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "View all collections" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "Uses the collection image when empty." }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Featured collections",
+      "blocks": [
+        { "type": "collection" },
+        { "type": "collection" },
+        { "type": "collection" }
+      ]
+    }
+  ]
+}
+{% endschema %}

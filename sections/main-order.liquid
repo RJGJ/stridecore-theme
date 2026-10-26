@@ -1,0 +1,371 @@
+{%- liquid
+  assign placed_date = order.created_at | time_tag: format: 'date'
+  assign cancelled_date = order.cancelled_at | time_tag: format: 'date'
+  assign track_label = 'customers.order.track' | t
+-%}
+<section class="ord container">
+  <header class="ord__header">
+    <a href="{{ routes.account_url }}" class="ord__back">&larr; {{ 'customers.order.back' | t }}</a>
+    <h1 class="display ord__title">{{ 'customers.order.title' | t: name: order.name }}</h1>
+    <p class="ord__meta mono">
+      {{ 'customers.order.placed_on' | t: date: placed_date }}
+    </p>
+    {%- if order.cancelled -%}
+      <p class="form-message form-message--error" role="status">
+        {{ 'customers.order.cancelled' | t: date: cancelled_date }}
+        {{ order.cancel_reason_label }}
+      </p>
+    {%- endif -%}
+  </header>
+
+  <div class="ord__layout">
+    <div class="ord__items">
+      <h2 class="ord__subtitle">{{ 'customers.order.items' | t }}</h2>
+      <div class="ord__table-wrap">
+        <table class="ord__table">
+          <caption class="visually-hidden">{{ 'customers.order.items' | t }}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'customers.order.product' | t }}</th>
+              <th scope="col">{{ 'customers.order.sku' | t }}</th>
+              <th scope="col" class="ord__num">{{ 'customers.order.price' | t }}</th>
+              <th scope="col" class="ord__num">{{ 'customers.order.quantity' | t }}</th>
+              <th scope="col" class="ord__num">{{ 'customers.order.total' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {%- for line_item in order.line_items -%}
+              <tr>
+                <td>
+                  <div class="ord__product">
+                    {%- if line_item.image -%}
+                      <div class="ord__thumb">
+                        {{ line_item.image | image_url: width: 160 | image_tag: alt: line_item.image.alt, widths: '80,160', sizes: '64px', loading: 'lazy' }}
+                      </div>
+                    {%- endif -%}
+                    <div class="ord__product-info">
+                      {%- if line_item.product.url != blank -%}
+                        <a href="{{ line_item.product.url }}" class="ord__product-title">{{ line_item.title | escape }}</a>
+                      {%- else -%}
+                        <span class="ord__product-title">{{ line_item.title | escape }}</span>
+                      {%- endif -%}
+                      {%- unless line_item.product.has_only_default_variant -%}
+                        {%- if line_item.variant.title != blank -%}
+                          <span class="ord__variant">{{ line_item.variant.title }}</span>
+                        {%- endif -%}
+                      {%- endunless -%}
+                      {%- if line_item.selling_plan_allocation -%}
+                        <span class="ord__variant">{{ line_item.selling_plan_allocation.selling_plan.name }}</span>
+                      {%- endif -%}
+                      {%- for property in line_item.properties -%}
+                        {%- assign property_first_char = property.first | slice: 0 -%}
+                        {%- if property.last != blank and property_first_char != '_' -%}
+                          <span class="ord__variant">{{ property.first }}: {{ property.last }}</span>
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- if line_item.line_level_discount_allocations.size > 0 -%}
+                        <ul class="ord__discounts" role="list">
+                          {%- for discount_allocation in line_item.line_level_discount_allocations -%}
+                            <li>{{ discount_allocation.discount_application.title }} (-{{ discount_allocation.amount | money }})</li>
+                          {%- endfor -%}
+                        </ul>
+                      {%- endif -%}
+                      {%- if line_item.fulfillment -%}
+                        {%- assign fulfilled_date = line_item.fulfillment.created_at | time_tag: format: 'date' -%}
+                        <span class="ord__variant">
+                          {{ 'customers.order.fulfilled_on' | t: date: fulfilled_date }}
+                          {%- if line_item.fulfillment.tracking_url != blank %}
+                            <a href="{{ line_item.fulfillment.tracking_url }}" rel="nofollow noopener">{{ line_item.fulfillment.tracking_company | default: track_label }}</a>
+                          {%- endif -%}
+                        </span>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                </td>
+                <td>{{ line_item.sku }}</td>
+                <td class="ord__num">
+                  {%- if line_item.original_price != line_item.final_price -%}
+                    <s>{{ line_item.original_price | money }}</s>
+                  {%- endif -%}
+                  {{ line_item.final_price | money }}
+                </td>
+                <td class="ord__num">{{ line_item.quantity }}</td>
+                <td class="ord__num">{{ line_item.final_line_price | money }}</td>
+              </tr>
+            {%- endfor -%}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <aside class="ord__side">
+      <section class="ord__box" aria-labelledby="OrderSummary">
+        <h2 class="ord__subtitle" id="OrderSummary">{{ 'customers.order.summary' | t }}</h2>
+        <dl class="ord__totals">
+          {%- if order.cart_level_discount_applications.size > 0 -%}
+            <div>
+              <dt>{{ 'customers.order.discount' | t }}</dt>
+              <dd>
+                <ul class="ord__discounts" role="list">
+                  {%- for discount_application in order.cart_level_discount_applications -%}
+                    <li>{{ discount_application.title }} (-{{ discount_application.total_allocated_amount | money }})</li>
+                  {%- endfor -%}
+                </ul>
+              </dd>
+            </div>
+          {%- endif -%}
+          <div>
+            <dt>{{ 'customers.order.subtotal' | t }}</dt>
+            <dd>{{ order.line_items_subtotal_price | money }}</dd>
+          </div>
+          {%- for shipping_method in order.shipping_methods -%}
+            <div>
+              <dt>{{ 'customers.order.shipping' | t }} ({{ shipping_method.title }})</dt>
+              <dd>{{ shipping_method.price | money }}</dd>
+            </div>
+          {%- endfor -%}
+          {%- for tax_line in order.tax_lines -%}
+            <div>
+              <dt>{{ tax_line.title }} ({{ tax_line.rate | times: 100 }}%)</dt>
+              <dd>{{ tax_line.price | money }}</dd>
+            </div>
+          {%- endfor -%}
+          <div class="ord__grand">
+            <dt>{{ 'customers.order.total' | t }}</dt>
+            <dd>{{ order.total_price | money_with_currency }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="ord__box" aria-labelledby="OrderStatus">
+        <h2 class="ord__subtitle" id="OrderStatus">{{ 'customers.order.status' | t }}</h2>
+        <dl class="ord__totals">
+          <div>
+            <dt>{{ 'customers.order.payment' | t }}</dt>
+            <dd>{{ order.financial_status_label }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'customers.order.fulfillment' | t }}</dt>
+            <dd>{{ order.fulfillment_status_label }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <div class="ord__addresses">
+        <section class="ord__box" aria-labelledby="OrderShipping">
+          <h2 class="ord__subtitle" id="OrderShipping">{{ 'customers.order.shipping_address' | t }}</h2>
+          {%- if order.shipping_address -%}
+            <address class="ord__address">{{ order.shipping_address | format_address }}</address>
+          {%- else -%}
+            <p class="ord__none">{{ 'customers.order.no_address' | t }}</p>
+          {%- endif -%}
+        </section>
+        <section class="ord__box" aria-labelledby="OrderBilling">
+          <h2 class="ord__subtitle" id="OrderBilling">{{ 'customers.order.billing_address' | t }}</h2>
+          {%- if order.billing_address -%}
+            <address class="ord__address">{{ order.billing_address | format_address }}</address>
+          {%- else -%}
+            <p class="ord__none">{{ 'customers.order.no_address' | t }}</p>
+          {%- endif -%}
+        </section>
+      </div>
+    </aside>
+  </div>
+</section>
+
+{% stylesheet %}
+  .ord {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(24px, 4vw, 48px);
+    padding-block: clamp(40px, 6vw, 96px);
+  }
+
+  .ord__header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ord__back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 700;
+  }
+
+  .ord__title {
+    margin: 0;
+    font-size: clamp(40px, 6vw, 88px);
+  }
+
+  .ord__meta {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .ord__layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+    gap: clamp(24px, 4vw, 56px);
+    align-items: start;
+  }
+
+  .ord__items {
+    min-width: 0;
+  }
+
+  .ord__subtitle {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-family: var(--f-mono);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .ord__table-wrap {
+    overflow-x: auto;
+    border-top: 2px solid var(--fg);
+  }
+
+  .ord__table {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .ord__table th,
+  .ord__table td {
+    padding: 16px 12px 16px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+    vertical-align: top;
+  }
+
+  .ord__table thead th {
+    color: var(--muted);
+    font-family: var(--f-mono);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .ord__num {
+    text-align: right;
+    font-family: var(--f-mono);
+  }
+
+  .ord__table .ord__num:last-child {
+    padding-right: 0;
+  }
+
+  .ord__product {
+    display: flex;
+    gap: 14px;
+  }
+
+  .ord__thumb {
+    flex: none;
+    width: 64px;
+    overflow: hidden;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+  }
+
+  .ord__thumb img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .ord__product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ord__product-title {
+    font-weight: 800;
+  }
+
+  .ord__variant {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .ord__discounts {
+    margin: 0;
+    padding: 0;
+    color: var(--muted);
+    font-size: 14px;
+    list-style: none;
+  }
+
+  .ord__side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .ord__box {
+    padding: 20px;
+    border: 2px solid var(--fg);
+    border-radius: var(--r-img);
+  }
+
+  .ord__totals {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .ord__totals > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 15px;
+  }
+
+  .ord__totals dd {
+    margin: 0;
+    text-align: right;
+  }
+
+  .ord__grand {
+    padding-top: 12px;
+    border-top: 2px solid var(--fg);
+    font-weight: 900;
+  }
+
+  .ord__addresses {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: 20px;
+  }
+
+  .ord__address {
+    font-size: 15px;
+    font-style: normal;
+    line-height: 1.55;
+  }
+
+  .ord__none {
+    margin: 0;
+    color: var(--muted);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Order details"
+}
+{% endschema %}

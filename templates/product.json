@@ -3,6 +3,59 @@
     "main": {
       "type": "main-product",
       "blocks": {
+        "vendor": {
+          "type": "vendor",
+          "settings": {
+            "fallback": "SS27 / Drop 04"
+          }
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {
+            "show_price_range": false,
+            "show_free_shipping": true
+          }
+        },
+        "description": {
+          "type": "description",
+          "settings": {}
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {
+            "picker_style": "pills",
+            "show_selling_plans": true,
+            "size_guide_text": "runs boxy, size down for a closer fit"
+          }
+        },
+        "quantity": {
+          "type": "quantity",
+          "settings": {}
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_dynamic_checkout": true,
+            "show_payment_terms": true,
+            "show_gift_card_recipient": true
+          }
+        },
+        "pickup": {
+          "type": "pickup_availability",
+          "settings": {}
+        },
+        "perks": {
+          "type": "perks",
+          "settings": {
+            "show_shipping": true,
+            "show_returns": true,
+            "show_fabric": true
+          }
+        },
         "details": {
           "type": "accordion",
           "settings": {
@@ -28,12 +81,27 @@
           }
         }
       },
-      "block_order": ["details", "fabric", "shipping"],
+      "block_order": [
+        "vendor",
+        "title",
+        "price",
+        "description",
+        "variant_picker",
+        "quantity",
+        "buy_buttons",
+        "pickup",
+        "perks",
+        "details",
+        "fabric",
+        "shipping"
+      ],
       "settings": {
-        "use_vendor": false,
-        "eyebrow": "SS27 / Drop 04",
-        "show_dynamic_checkout": false,
-        "size_guide_text": "runs boxy, size down for a closer fit"
+        "show_breadcrumbs": true,
+        "gallery_layout": "stacked",
+        "media_ratio": "standard",
+        "enable_zoom": true,
+        "enable_video_looping": false,
+        "show_badge": true
       }
     },
     "ticker": {
@@ -44,15 +112,29 @@
         "reverse": false
       }
     },
+    "complementary": {
+      "type": "complementary-products",
+      "settings": {
+        "eyebrow": "Complete the look",
+        "heading": "Pairs well with",
+        "limit": 4,
+        "show_quick_add": true
+      }
+    },
     "related": {
       "type": "related-products",
       "settings": {
-        "eyebrow": "Pairs well with",
+        "eyebrow": "Keep browsing",
         "heading": "You may also like",
         "limit": 4,
         "show_quick_add": true
       }
     }
   },
-  "order": ["main", "ticker", "related"]
+  "order": [
+    "main",
+    "ticker",
+    "complementary",
+    "related"
+  ]
 }

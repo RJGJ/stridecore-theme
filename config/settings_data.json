@@ -2,7 +2,7 @@
   "current": {
     "color_schemes": {
       "scheme-1": { "settings": { "background": "#0E0E0C", "text": "#F4F2EC", "accent": "#D4FF3A", "on_accent": "#0E0E0C" } },
-      "scheme-2": { "settings": { "background": "#F3F1EA", "text": "#121210", "accent": "#FF5A1F", "on_accent": "#0E0E0C" } },
+      "scheme-2": { "settings": { "background": "#F3F1EA", "text": "#121210", "accent": "#EC4A0A", "on_accent": "#0E0E0C" } },
       "scheme-3": { "settings": { "background": "#1D2FD6", "text": "#FFFFFF", "accent": "#FFD23F", "on_accent": "#0E0E0C" } },
       "scheme-4": { "settings": { "background": "#FFD9E8", "text": "#2A0F3A", "accent": "#7B2CFF", "on_accent": "#FFFFFF" } },
       "scheme-5": { "settings": { "background": "#0F2A1F", "text": "#EFE8D8", "accent": "#FF8A5B", "on_accent": "#0E0E0C" } }
@@ -25,7 +25,7 @@
     "Kinetic": {
       "color_schemes": {
         "scheme-1": { "settings": { "background": "#0E0E0C", "text": "#F4F2EC", "accent": "#D4FF3A", "on_accent": "#0E0E0C" } },
-        "scheme-2": { "settings": { "background": "#F3F1EA", "text": "#121210", "accent": "#FF5A1F", "on_accent": "#0E0E0C" } },
+        "scheme-2": { "settings": { "background": "#F3F1EA", "text": "#121210", "accent": "#EC4A0A", "on_accent": "#0E0E0C" } },
         "scheme-3": { "settings": { "background": "#1D2FD6", "text": "#FFFFFF", "accent": "#FFD23F", "on_accent": "#0E0E0C" } },
         "scheme-4": { "settings": { "background": "#FFD9E8", "text": "#2A0F3A", "accent": "#7B2CFF", "on_accent": "#FFFFFF" } },
         "scheme-5": { "settings": { "background": "#0F2A1F", "text": "#EFE8D8", "accent": "#FF8A5B", "on_accent": "#0E0E0C" } }

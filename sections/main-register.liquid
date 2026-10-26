@@ -33,7 +33,7 @@
       </div>
       {%- if section.settings.show_marketing_optin -%}
         <label class="acct__check acct__wide">
-          <input type="checkbox" name="customer[accepts_marketing]" value="true" checked>
+          <input id="RegisterMarketing" type="checkbox" name="customer[accepts_marketing]" value="true" checked>
           {{ 'account.marketing_optin' | t }}
         </label>
       {%- endif -%}

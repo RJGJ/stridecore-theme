@@ -1,0 +1,73 @@
+{%- doc -%}
+  Emits the JSON the <product-form> element reads to update the buy box when
+  a variant changes: availability, price, compare-at price, unit price, badge,
+  media, quantity rule and selling plan prices. Only real inventory is used.
+
+  @param {product} product
+  @example
+  {% render 'product-variants-json', product: product %}
+{%- enddoc -%}
+
+{%- liquid
+  assign low_stock_label = 'products.badge.low_stock' | t
+  assign sold_out_label = 'products.badge.sold_out' | t
+-%}
+<script type="application/json" data-variants>
+  [
+  {%- for v in product.variants -%}
+    {%- liquid
+      assign v_price = v.price | money
+      assign v_compare = ''
+      if v.compare_at_price > v.price
+        assign v_compare = v.compare_at_price | money
+      endif
+
+      assign v_unit = ''
+      if v.unit_price_measurement
+        assign unit_amount = v.unit_price | money
+        assign unit_ref_value = v.unit_price_measurement.reference_value
+        assign unit_ref_unit = v.unit_price_measurement.reference_unit
+        if unit_ref_value == 1
+          assign v_unit = unit_amount | append: ' / ' | append: unit_ref_unit
+        else
+          assign v_unit = unit_amount | append: ' / ' | append: unit_ref_value | append: ' ' | append: unit_ref_unit
+        endif
+      endif
+
+      assign v_badge = ''
+      if v.available == false
+        assign v_badge = sold_out_label
+      elsif v.compare_at_price > v.price
+        assign v_saved = v.compare_at_price | minus: v.price | times: 100.0 | divided_by: v.compare_at_price | round
+        assign v_badge = '-' | append: v_saved | append: '%'
+      elsif v.inventory_management != blank and v.inventory_quantity > 0 and v.inventory_quantity <= 5
+        assign v_badge = low_stock_label
+      endif
+    -%}
+    {
+      "id": {{ v.id }},
+      "options": {{ v.options | json }},
+      "available": {{ v.available | json }},
+      "price": {{ v_price | json }},
+      "priceCents": {{ v.price }},
+      "compare": {{ v_compare | json }},
+      "unit": {{ v_unit | json }},
+      "mediaId": {{ v.featured_media.id | json }},
+      "badge": {{ v_badge | json }},
+      "sku": {{ v.sku | json }},
+      "qty": { "min": {{ v.quantity_rule.min | default: 1 }}, "max": {{ v.quantity_rule.max | json }}, "step": {{ v.quantity_rule.increment | default: 1 }} },
+      "plans": {
+        {%- for allocation in v.selling_plan_allocations -%}
+          {%- liquid
+            assign alloc_compare = ''
+            if allocation.compare_at_price > allocation.price
+              assign alloc_compare = allocation.compare_at_price | money
+            endif
+          -%}
+          "{{ allocation.selling_plan.id }}": { "price": {{ allocation.price | money | json }}, "compare": {{ alloc_compare | json }} }{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      }
+    }{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  ]
+</script>

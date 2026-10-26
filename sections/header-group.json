@@ -12,7 +12,16 @@
       "block_order": ["drop", "shipping", "returns"],
       "settings": { "enabled": true }
     },
-    "header": { "type": "header", "settings": { "menu": "main-menu" } },
+    "header": {
+      "type": "header",
+      "settings": {
+        "menu": "main-menu",
+        "logo_height": 40,
+        "show_localization": true,
+        "search_placeholder": "Hoodies, cargo, caps…",
+        "color_scheme": "scheme-1"
+      }
+    },
     "cart-drawer": { "type": "cart-drawer", "settings": {} }
   },
   "order": ["announcement", "header", "cart-drawer"]

@@ -1,0 +1,146 @@
+{%- doc -%}
+  Gift card recipient form: lets the buyer send the card to someone else with
+  a message on a chosen date. Uses form.email, form.name, form.message and
+  form.send_on to keep values after a server-side error. Render it inside the
+  `{% form 'product' %}` of a gift card product.
+
+  @param {form} form - the product form object
+  @param {string} section_id
+
+  @example
+  {% render 'product-gift-card-recipient', form: form, section_id: section.id %}
+{%- enddoc -%}
+
+{%- liquid
+  assign control_flag = 'properties[__shopify_send_gift_card_to_recipient]'
+  assign max_message = 200
+-%}
+<div class="gr" data-recipient>
+  <input
+    id="recipient-checkbox-{{ section_id }}"
+    class="gr__check"
+    type="checkbox"
+    name="{{ control_flag }}"
+    data-recipient-toggle
+    disabled
+  >
+  <label class="gr__toggle" for="recipient-checkbox-{{ section_id }}">{{ 'pdp.recipient.checkbox' | t }}</label>
+
+  {%- if form.errors -%}
+    <div class="form-message form-message--error" role="alert">
+      <ul class="gr__errors">
+        {%- for field in form.errors -%}
+          <li>{{ form.errors.messages[field] }}</li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+
+  <p class="visually-hidden" role="status" data-recipient-live></p>
+
+  <div class="gr__fields" data-recipient-fields>
+    <div class="field">
+      <label for="recipient-email-{{ section_id }}">{{ 'pdp.recipient.email_label' | t }}</label>
+      <input
+        class="input"
+        id="recipient-email-{{ section_id }}"
+        type="email"
+        name="properties[Recipient email]"
+        value="{{ form.email }}"
+        autocomplete="off"
+        {% if form.errors contains 'email' %}aria-invalid="true"{% endif %}
+      >
+    </div>
+    <div class="field">
+      <label for="recipient-name-{{ section_id }}">{{ 'pdp.recipient.name_label' | t }}</label>
+      <input
+        class="input"
+        id="recipient-name-{{ section_id }}"
+        type="text"
+        name="properties[Recipient name]"
+        value="{{ form.name }}"
+        autocomplete="off"
+        {% if form.errors contains 'name' %}aria-invalid="true"{% endif %}
+      >
+    </div>
+    <div class="field">
+      <label for="recipient-message-{{ section_id }}">{{ 'pdp.recipient.message_label' | t }}</label>
+      <textarea
+        class="input"
+        id="recipient-message-{{ section_id }}"
+        name="properties[Message]"
+        rows="4"
+        maxlength="{{ max_message }}"
+        {% if form.errors contains 'message' %}aria-invalid="true"{% endif %}
+      >{{ form.message }}</textarea>
+      <span class="gr__hint">{{ 'pdp.recipient.max_characters' | t: max_chars: max_message }}</span>
+    </div>
+    <div class="field">
+      <label for="recipient-send-on-{{ section_id }}">{{ 'pdp.recipient.send_on_label' | t }}</label>
+      <input
+        class="input"
+        id="recipient-send-on-{{ section_id }}"
+        type="date"
+        name="properties[Send on]"
+        value="{{ form.send_on }}"
+        pattern="\d{4}-\d{2}-\d{2}"
+        {% if form.errors contains 'send_on' %}aria-invalid="true"{% endif %}
+      >
+    </div>
+  </div>
+
+  <input type="hidden" name="{{ control_flag }}" value="if_present" data-recipient-control>
+  <input type="hidden" name="properties[__shopify_offset]" value="" data-recipient-offset disabled>
+</div>
+
+{% stylesheet %}
+  .gr {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .gr__check {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .gr__toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .gr__toggle::before {
+    content: '';
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+    background: var(--bg);
+  }
+  .gr__check:checked + .gr__toggle::before {
+    background: var(--accent);
+    box-shadow: inset 0 0 0 4px var(--bg);
+  }
+  .gr__check:focus-visible + .gr__toggle {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+  .gr__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .gr__errors {
+    margin: 0;
+    padding-left: 18px;
+  }
+  .gr__hint {
+    font-size: 12px;
+    color: var(--muted);
+  }
+{% endstylesheet %}

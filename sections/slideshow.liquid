@@ -1,0 +1,368 @@
+{%- liquid
+  assign ss_total = section.blocks.size
+  assign ss_autoplay = section.settings.autoplay
+  assign ss_label = 'sections.slideshow.carousel_label' | t
+-%}
+
+<div class="ss ss--{{ section.settings.height }} color-{{ section.settings.color_scheme }}">
+  <slide-show
+    class="ss__root"
+    data-autoplay="{{ ss_autoplay }}"
+    data-speed="{{ section.settings.autoplay_speed | times: 1000 }}"
+    data-pause-label="{{ 'sections.slideshow.pause' | t | escape }}"
+    data-play-label="{{ 'sections.slideshow.play' | t | escape }}"
+    role="region"
+    aria-roledescription="carousel"
+    aria-label="{{ ss_label | escape }}"
+  >
+    <ul class="ss__track" role="list" data-track tabindex="-1">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign ss_loading = 'lazy'
+          assign ss_priority = 'auto'
+          if forloop.first and section.index == 1
+            assign ss_loading = 'eager'
+            assign ss_priority = 'high'
+          endif
+          assign ss_focal = 'object-position:' | append: block.settings.image.presentation.focal_point
+          assign ss_ph_index = forloop.index | modulo: 2 | plus: 1
+          assign ss_placeholder = 'lifestyle-' | append: ss_ph_index
+          assign ss_url = block.settings.button_link
+        -%}
+        <li
+          class="ss__slide"
+          role="group"
+          aria-roledescription="slide"
+          aria-label="{{ 'sections.slideshow.slide_label' | t: index: forloop.index, total: ss_total }}"
+          data-slide
+          {{ block.shopify_attributes }}
+        >
+          <div class="ss__media">
+            {%- if block.settings.image != blank -%}
+              {{
+                block.settings.image
+                | image_url: width: 2400
+                | image_tag: loading: ss_loading, fetchpriority: ss_priority, sizes: '100vw', widths: '750,1100,1500,1920,2400', class: 'ss__img', style: ss_focal
+              }}
+            {%- else -%}
+              {{ ss_placeholder | placeholder_svg_tag: 'ss__img ss__placeholder' }}
+            {%- endif -%}
+            <div class="ss__overlay" style="--ss-overlay: {{ block.settings.overlay_opacity | divided_by: 100.0 }}"></div>
+          </div>
+          <div class="container ss__container">
+            <div class="ss__box ss__box--{{ block.settings.text_alignment }}">
+              {%- if block.settings.subheading != blank -%}
+                <p class="eyebrow ss__eyebrow">{{ block.settings.subheading }}</p>
+              {%- endif -%}
+              {%- if block.settings.heading != blank -%}
+                <h2 class="display ss__heading">{{ block.settings.heading }}</h2>
+              {%- endif -%}
+              {%- if block.settings.button_label != blank -%}
+                <a
+                  {% if ss_url != blank %}href="{{ ss_url }}"{% else %}role="link" aria-disabled="true"{% endif %}
+                  class="btn btn--accent"
+                >{{ block.settings.button_label }}</a>
+              {%- endif -%}
+            </div>
+          </div>
+        </li>
+      {%- endfor -%}
+    </ul>
+
+    {%- if ss_total > 1 -%}
+      <div class="ss__controls">
+        <button type="button" class="ss__btn" data-prev aria-label="{{ 'sections.slideshow.previous' | t }}">
+          <span class="ss__arrow ss__arrow--prev" aria-hidden="true">{% render 'icon', name: 'arrow-right', size: 20, stroke: 2.5 %}</span>
+        </button>
+        {%- if ss_autoplay -%}
+          <button type="button" class="ss__btn" data-toggle aria-pressed="false" aria-label="{{ 'sections.slideshow.pause' | t }}">
+            <span class="ss__toggle-icon" aria-hidden="true"></span>
+          </button>
+        {%- endif -%}
+        <div class="ss__dots">
+          {%- for block in section.blocks -%}
+            <button
+              type="button"
+              class="ss__dot"
+              data-dot
+              aria-label="{{ 'sections.slideshow.go_to' | t: index: forloop.index }}"
+              aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
+            ><span></span></button>
+          {%- endfor -%}
+        </div>
+        <button type="button" class="ss__btn" data-next aria-label="{{ 'sections.slideshow.next' | t }}">
+          <span class="ss__arrow" aria-hidden="true">{% render 'icon', name: 'arrow-right', size: 20, stroke: 2.5 %}</span>
+        </button>
+      </div>
+    {%- endif -%}
+  </slide-show>
+</div>
+
+<script src="{{ 'slideshow.js' | asset_url }}" defer></script>
+
+{% stylesheet %}
+.ss {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+}
+.ss__root {
+  display: block;
+  position: relative;
+}
+.ss__track {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.ss__track::-webkit-scrollbar {
+  display: none;
+}
+.ss__slide {
+  position: relative;
+  display: grid;
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+  isolation: isolate;
+}
+.ss--small .ss__slide {
+  min-height: 380px;
+}
+.ss--medium .ss__slide {
+  min-height: 500px;
+}
+.ss--large .ss__slide {
+  min-height: 640px;
+}
+@media (min-width: 750px) {
+  .ss--small .ss__slide {
+    min-height: 460px;
+  }
+  .ss--medium .ss__slide {
+    min-height: 620px;
+  }
+  .ss--large .ss__slide {
+    min-height: 780px;
+  }
+}
+.ss__media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--surface);
+}
+.ss__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ss__placeholder {
+  fill: currentColor;
+  color: #8a8a8a;
+}
+.ss__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / var(--ss-overlay, 0.4));
+}
+.ss__container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-block: 48px 96px;
+}
+.ss__box {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 720px;
+}
+.ss__box--left {
+  align-items: flex-start;
+  text-align: left;
+}
+.ss__box--center {
+  align-items: center;
+  margin-inline: auto;
+  text-align: center;
+}
+.ss__box--right {
+  align-items: flex-end;
+  margin-left: auto;
+  text-align: right;
+}
+.ss__eyebrow {
+  color: #fff;
+}
+.ss__heading {
+  font-size: clamp(40px, 6.5vw, 104px);
+}
+.ss__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.ss__controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.ss__btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+}
+.ss__arrow--prev {
+  display: grid;
+  transform: scaleX(-1);
+}
+.ss__toggle-icon {
+  width: 12px;
+  height: 14px;
+  border-left: 4px solid currentColor;
+  border-right: 4px solid currentColor;
+}
+.ss__btn[aria-pressed='true'] .ss__toggle-icon {
+  width: 0;
+  height: 0;
+  border: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 13px solid currentColor;
+}
+.ss__dots {
+  display: flex;
+  align-items: center;
+}
+.ss__dot {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+}
+.ss__dot span {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+}
+.ss__dot[aria-current='true'] span {
+  background: currentColor;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ss__track {
+    scroll-behavior: auto;
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Slideshow",
+  "tag": "section",
+  "class": "section-slideshow",
+  "settings": [
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Slide height",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Play slides automatically",
+      "info": "Never plays for customers who prefer reduced motion.",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "Change slides every",
+      "default": 5
+    },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "2400 x 1200px .jpg recommended" },
+        { "type": "text", "id": "subheading", "label": "Subheading", "default": "New arrivals" },
+        { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "Move <em>freely</em>" },
+        { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop now" },
+        { "type": "url", "id": "button_link", "label": "Button link" },
+        {
+          "type": "select",
+          "id": "text_alignment",
+          "label": "Text alignment",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "left"
+        },
+        {
+          "type": "range",
+          "id": "overlay_opacity",
+          "min": 0,
+          "max": 90,
+          "step": 5,
+          "unit": "%",
+          "label": "Overlay opacity",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Slideshow",
+      "blocks": [
+        { "type": "slide", "settings": { "heading": "Move <em>freely</em>", "subheading": "New arrivals" } },
+        { "type": "slide", "settings": { "heading": "Built to <em>last</em>", "subheading": "Heavyweight basics" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

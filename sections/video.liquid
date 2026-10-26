@@ -1,0 +1,196 @@
+{%- liquid
+  assign vd_video = section.settings.video
+  assign vd_url = section.settings.video_url
+  assign vd_alt = section.settings.description
+  if vd_alt == blank
+    assign vd_alt = 'sections.video.default_title' | t
+  endif
+  assign vd_focal = 'object-position:' | append: section.settings.cover_image.presentation.focal_point
+  assign vd_loading = 'lazy'
+  if section.index == 1
+    assign vd_loading = 'eager'
+  endif
+-%}
+
+<div
+  class="vd color-{{ section.settings.color_scheme }}"
+  style="--vd-pt: {{ section.settings.padding_top }}; --vd-pb: {{ section.settings.padding_bottom }};"
+>
+  <div class="{% unless section.settings.full_width %}container{% endunless %}">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="display display--md vd__heading{% if section.settings.full_width %} container{% endif %}">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <div class="vd__frame">
+      {%- if vd_video != blank -%}
+        <div class="vd__player">
+          {{
+            vd_video
+            | video_tag: image_size: '1920x', controls: true, loop: false, muted: false, preload: 'none', playsinline: true, class: 'vd__media', alt: vd_alt
+          }}
+        </div>
+      {%- else -%}
+        <video-embed class="vd__player" data-label="{{ vd_alt | escape }}">
+          <button type="button" class="vd__play" data-play aria-label="{{ 'sections.video.play' | t: title: vd_alt }}">
+            {%- if section.settings.cover_image != blank -%}
+              {{
+                section.settings.cover_image
+                | image_url: width: 1920
+                | image_tag: loading: vd_loading, sizes: '100vw', widths: '750,1100,1500,1920', class: 'vd__cover', style: vd_focal, alt: ''
+              }}
+            {%- else -%}
+              {{ 'lifestyle-1' | placeholder_svg_tag: 'vd__cover vd__cover--placeholder' }}
+            {%- endif -%}
+            <span class="vd__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" focusable="false"><path d="M7 4.5v15l13-7.5z"></path></svg>
+            </span>
+          </button>
+          {%- if vd_url != blank -%}
+            <template data-embed>
+              {{ vd_url | external_video_url: autoplay: true, loop: false | external_video_tag: class: 'vd__media', title: vd_alt }}
+            </template>
+          {%- endif -%}
+        </video-embed>
+        <script src="{{ 'video-section.js' | asset_url }}" defer></script>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+.vd {
+  padding-top: calc(var(--vd-pt) * 0.6px);
+  padding-bottom: calc(var(--vd-pb) * 0.6px);
+}
+.vd__heading {
+  margin-bottom: 32px;
+}
+.vd__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.vd__frame {
+  border: 2px solid var(--fg);
+  border-radius: var(--r-img);
+  overflow: hidden;
+  background: var(--fg);
+}
+.vd__player {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 9;
+}
+.vd__media,
+.vd__player iframe,
+.vd__player video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+.vd__play {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--surface);
+  color: inherit;
+}
+.vd__cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.vd__cover--placeholder {
+  fill: currentColor;
+  color: var(--muted);
+}
+.vd__icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border: 2px solid var(--fg);
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow);
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s;
+}
+.vd__play:hover .vd__icon {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+@media (min-width: 750px) {
+  .vd {
+    padding-top: calc(var(--vd-pt) * 1px);
+    padding-bottom: calc(var(--vd-pb) * 1px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vd__icon {
+    transition: none;
+  }
+  .vd__play:hover .vd__icon {
+    transform: translate(-50%, -50%);
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Video",
+  "tag": "section",
+  "class": "section-video",
+  "settings": [
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "See it in motion" },
+    {
+      "type": "video_url",
+      "id": "video_url",
+      "label": "Video link",
+      "accept": ["youtube", "vimeo"],
+      "info": "Paste a YouTube or Vimeo link."
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Hosted video",
+      "info": "Replaces the video link when set."
+    },
+    { "type": "image_picker", "id": "cover_image", "label": "Cover image", "info": "1920 x 1080px .jpg recommended" },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "Video description",
+      "info": "Describe the video for customers who use screen readers.",
+      "default": "Behind the scenes of our latest drop"
+    },
+    { "type": "checkbox", "id": "full_width", "label": "Use full width", "default": false },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
+  ],
+  "presets": [
+    {
+      "name": "Video",
+      "settings": {
+        "video_url": "https://www.youtube.com/watch?v=_9VUPq3SxOc"
+      }
+    }
+  ]
+}
+{% endschema %}

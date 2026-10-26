@@ -1,0 +1,203 @@
+<div
+  class="tm color-{{ section.settings.color_scheme }}"
+  style="--tm-pt: {{ section.settings.padding_top }}; --tm-pb: {{ section.settings.padding_bottom }}; --tm-cols: {{ section.settings.columns_desktop }};"
+>
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="display display--md tm__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <ul class="tm__grid" role="list">
+      {%- for block in section.blocks -%}
+        {%- if block.type == '@app' -%}
+          <li class="tm__item" {{ block.shopify_attributes }}>{%- render block -%}</li>
+        {%- else -%}
+          {%- assign tm_rating = block.settings.rating | plus: 0 -%}
+          <li class="tm__item" {{ block.shopify_attributes }}>
+            <figure class="tm__card">
+              {%- if tm_rating > 0 -%}
+                <div class="tm__stars" role="img" aria-label="{{ 'sections.testimonials.rating' | t: rating: tm_rating }}">
+                  {%- for star in (1..5) -%}
+                    <svg class="tm__star{% if star > tm_rating %} tm__star--off{% endif %}" aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.5l7.1-.6z" fill="currentColor"></path></svg>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+              <blockquote class="tm__quote">
+                <p>{{ block.settings.quote }}</p>
+              </blockquote>
+              <figcaption class="tm__author">
+                {%- if block.settings.avatar != blank -%}
+                  {{
+                    block.settings.avatar
+                    | image_url: width: 120, height: 120, crop: 'center'
+                    | image_tag: loading: 'lazy', width: 48, height: 48, widths: '48,96', sizes: '48px', class: 'tm__avatar', alt: block.settings.name
+                  }}
+                {%- endif -%}
+                <span class="tm__who">
+                  <span class="tm__name">{{ block.settings.name }}</span>
+                  {%- if block.settings.role != blank -%}
+                    <span class="tm__role">{{ block.settings.role }}</span>
+                  {%- endif -%}
+                </span>
+              </figcaption>
+            </figure>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>
+
+{% stylesheet %}
+.tm {
+  padding-top: calc(var(--tm-pt) * 0.6px);
+  padding-bottom: calc(var(--tm-pb) * 0.6px);
+}
+.tm__heading {
+  margin-bottom: 40px;
+}
+.tm__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.tm__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tm__item {
+  display: flex;
+  min-width: 0;
+}
+.tm__card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  margin: 0;
+  padding: 28px;
+  border: 2px solid var(--fg);
+  border-radius: var(--r-img);
+  background: var(--surface);
+}
+.tm__stars {
+  display: flex;
+  gap: 2px;
+  color: var(--accent-ink);
+}
+.tm__star--off {
+  opacity: 0.3;
+}
+.tm__quote {
+  flex: 1;
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.5;
+}
+.tm__author {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tm__avatar {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.tm__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tm__name {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tm__role {
+  font-size: 14px;
+  color: var(--muted);
+}
+@media (min-width: 750px) {
+  .tm {
+    padding-top: calc(var(--tm-pt) * 1px);
+    padding-bottom: calc(var(--tm-pb) * 1px);
+  }
+  .tm__grid {
+    grid-template-columns: repeat(min(var(--tm-cols), 2), minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .tm__grid {
+    grid-template-columns: repeat(var(--tm-cols), minmax(0, 1fr));
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Testimonials",
+  "tag": "section",
+  "class": "section-testimonials",
+  "settings": [
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "What customers say" },
+    { "type": "range", "id": "columns_desktop", "min": 1, "max": 4, "step": 1, "label": "Columns on desktop", "default": 3 },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "quote",
+          "label": "Quote",
+          "default": "Replace this with a real customer quote about fit, fabric or service."
+        },
+        { "type": "text", "id": "name", "label": "Name", "default": "Customer name" },
+        { "type": "text", "id": "role", "label": "Description", "default": "Runner" },
+        { "type": "image_picker", "id": "avatar", "label": "Photo", "info": "96 x 96px .jpg recommended" },
+        {
+          "type": "select",
+          "id": "rating",
+          "label": "Star rating",
+          "options": [
+            { "value": "0", "label": "No rating" },
+            { "value": "1", "label": "1 star" },
+            { "value": "2", "label": "2 stars" },
+            { "value": "3", "label": "3 stars" },
+            { "value": "4", "label": "4 stars" },
+            { "value": "5", "label": "5 stars" }
+          ],
+          "default": "5"
+        }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "max_blocks": 9,
+  "presets": [
+    {
+      "name": "Testimonials",
+      "blocks": [
+        { "type": "testimonial" },
+        { "type": "testimonial" },
+        { "type": "testimonial" }
+      ]
+    }
+  ]
+}
+{% endschema %}

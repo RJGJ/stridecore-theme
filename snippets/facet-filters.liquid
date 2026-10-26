@@ -1,0 +1,125 @@
+{%- doc -%}
+  Storefront filter groups for a collection or search results page. Renders every
+  filter type: list (checkboxes, with swatches or images when the filter uses
+  them), boolean (for example availability) and price_range.
+
+  Place it inside the <form> that submits the filters with GET. Every input
+  carries the filter's own param name, so the form works without JavaScript.
+
+  @param {object} filters - collection.filters or search.filters
+  @param {string} id_prefix - unique prefix for input ids, usually section.id
+
+  @example
+  {% render 'facet-filters', filters: collection.filters, id_prefix: section.id %}
+{%- enddoc -%}
+
+{%- for filter in filters -%}
+  {%- assign filter_key = filter.param_name | handle -%}
+  {%- case filter.type -%}
+    {%- when 'price_range' -%}
+      {%- assign range_max_value = filter.range_max | money_without_currency | remove: ',' -%}
+      <fieldset class="facet-group">
+        <legend>{{ filter.label }}</legend>
+        <div class="facet-price">
+          <div class="facet-price__field">
+            <label for="Price-{{ id_prefix }}-min">{{ 'collection.price_from' | t }}</label>
+            <input
+              id="Price-{{ id_prefix }}-min"
+              class="facet-input"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              max="{{ range_max_value }}"
+              step="any"
+              name="{{ filter.min_value.param_name }}"
+              value="{% if filter.min_value.value != nil %}{{ filter.min_value.value | money_without_currency | remove: ',' }}{% endif %}"
+              placeholder="0"
+            >
+          </div>
+          <div class="facet-price__field">
+            <label for="Price-{{ id_prefix }}-max">{{ 'collection.price_to' | t }}</label>
+            <input
+              id="Price-{{ id_prefix }}-max"
+              class="facet-input"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              max="{{ range_max_value }}"
+              step="any"
+              name="{{ filter.max_value.param_name }}"
+              value="{% if filter.max_value.value != nil %}{{ filter.max_value.value | money_without_currency | remove: ',' }}{% endif %}"
+              placeholder="{{ range_max_value }}"
+            >
+          </div>
+        </div>
+        {%- assign highest_price = filter.range_max | money -%}
+        <p class="facet-hint">{{ 'collection.price_highest' | t: price: highest_price }}</p>
+      </fieldset>
+    {%- else -%}
+      <fieldset class="facet-group">
+        <legend>{{ filter.label }}</legend>
+        <ul class="facet-options{% if filter.presentation == 'swatch' or filter.presentation == 'image' %} facet-options--swatches{% endif %}" role="list">
+          {%- for value in filter.values -%}
+            {%- assign option_disabled = false -%}
+            {%- if value.count == 0 and value.active == false -%}
+              {%- assign option_disabled = true -%}
+            {%- endif -%}
+            <li>
+              <label class="facet-check{% if option_disabled %} is-disabled{% endif %}" for="Filter-{{ id_prefix }}-{{ filter_key }}-{{ forloop.index }}">
+                <input
+                  type="checkbox"
+                  id="Filter-{{ id_prefix }}-{{ filter_key }}-{{ forloop.index }}"
+                  name="{{ value.param_name }}"
+                  value="{{ value.value | escape }}"
+                  {% if value.active %}
+                    checked
+                  {% endif %}
+                  {% if option_disabled %}
+                    disabled
+                  {% endif %}
+                >
+                {%- if value.swatch != blank and filter.presentation != 'text' -%}
+                  <span
+                    class="facet-swatch"
+                    aria-hidden="true"
+                    {% if value.swatch.color != blank %}
+                      style="--swatch-color: rgb({{ value.swatch.color.rgb }})"
+                    {% endif %}
+                  >
+                    {%- if value.swatch.image != blank -%}
+                      {{- value.swatch.image | image_url: width: 72 | image_tag: width: 36, height: 36, loading: 'lazy', alt: '' -}}
+                    {%- endif -%}
+                  </span>
+                {%- endif -%}
+                <span class="facet-check__label">{{ value.label }}</span>
+                <span class="facet-check__count mono"><span class="visually-hidden">(</span>{{ value.count }}<span class="visually-hidden">)</span></span>
+              </label>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </fieldset>
+  {%- endcase -%}
+{%- endfor -%}
+
+{% stylesheet %}
+  .facet-group { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; border: 0; min-width: 0; }
+  .facet-group legend { padding: 0; margin-bottom: 14px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+  .facet-options { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+  .facet-options--swatches { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  .facet-check { position: relative; display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 15px; cursor: pointer; }
+  .facet-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--fg); flex: none; }
+  .facet-check__count { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .facet-check.is-disabled { opacity: 0.45; cursor: not-allowed; }
+  .facet-swatch { display: inline-block; flex: none; width: 28px; height: 28px; overflow: hidden; border: 2px solid var(--fg); border-radius: 50%; background: var(--swatch-color, var(--surface)); }
+  .facet-swatch img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .facet-options--swatches .facet-check { gap: 8px; padding: 0 14px 0 10px; border: 2px solid var(--line); border-radius: var(--r-pill); }
+  .facet-options--swatches .facet-check:has(input:checked) { border-color: var(--fg); }
+  .facet-options--swatches .facet-check input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  .facet-options--swatches .facet-check:has(input:focus-visible) { outline: 3px solid var(--fg); outline-offset: 2px; }
+  .facet-options--swatches .facet-check__count { display: none; }
+  .facet-price { display: flex; gap: 10px; }
+  .facet-price__field { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .facet-price__field label { font-size: 13px; color: var(--muted); }
+  .facet-input { width: 100%; min-height: 44px; padding: 0 12px; background: var(--bg); color: var(--fg); border: 2px solid var(--fg); border-radius: var(--r); font-size: 15px; }
+  .facet-hint { margin: 0; color: var(--muted); font-size: 13px; }
+{% endstylesheet %}
