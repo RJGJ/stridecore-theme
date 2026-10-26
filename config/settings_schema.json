@@ -2,58 +2,72 @@
   {
     "name": "theme_info",
     "theme_name": "Kinetic",
-    "theme_version": "0.1.0",
+    "theme_version": "0.2.0",
     "theme_author": "RJGJ",
-    "theme_documentation_url": "https://github.com/RJGJ/shopify-sports-apparel-theme",
-    "theme_support_url": "https://github.com/RJGJ/shopify-sports-apparel-theme/issues"
+    "theme_documentation_url": "https://github.com/RJGJ/kinetic-theme",
+    "theme_support_url": "https://github.com/RJGJ/kinetic-theme/issues"
   },
   {
     "name": "Colors",
     "settings": [
       {
-        "type": "select",
-        "id": "color_scheme",
-        "label": "Color scheme",
-        "options": [
-          { "value": "volt_night", "label": "Volt Night" },
-          { "value": "paper", "label": "Paper" },
-          { "value": "cobalt", "label": "Cobalt" },
-          { "value": "sherbet", "label": "Sherbet" },
-          { "value": "forest", "label": "Forest" },
-          { "value": "custom", "label": "Custom" }
+        "type": "color_scheme_group",
+        "id": "color_schemes",
+        "definition": [
+          { "type": "color", "id": "background", "label": "Background", "default": "#0E0E0C" },
+          { "type": "color", "id": "text", "label": "Text", "default": "#F4F2EC" },
+          { "type": "color", "id": "accent", "label": "Accent", "default": "#D4FF3A" },
+          { "type": "color", "id": "on_accent", "label": "Text on accent", "default": "#0E0E0C" },
+          { "type": "color_background", "id": "background_gradient", "label": "Background gradient" }
         ],
-        "default": "volt_night"
+        "role": {
+          "background": { "solid": "background", "gradient": "background_gradient" },
+          "text": "text",
+          "links": "text",
+          "icons": "text",
+          "primary_button": "accent",
+          "on_primary_button": "on_accent",
+          "primary_button_border": "text",
+          "secondary_button": "background",
+          "on_secondary_button": "text",
+          "secondary_button_border": "text"
+        }
       },
       {
-        "type": "header",
-        "content": "Custom colors",
-        "info": "Only used when the color scheme is set to Custom."
-      },
-      { "type": "color", "id": "custom_background", "label": "Background", "default": "#0E0E0C" },
-      { "type": "color", "id": "custom_text", "label": "Text", "default": "#F4F2EC" },
-      { "type": "color", "id": "custom_accent", "label": "Accent", "default": "#D4FF3A" }
+        "type": "color_scheme",
+        "id": "default_color_scheme",
+        "label": "Default color scheme",
+        "info": "Sections can use a different scheme in their own settings.",
+        "default": "scheme-1"
+      }
     ]
   },
   {
     "name": "Typography",
     "settings": [
       {
-        "type": "select",
-        "id": "font_pairing",
-        "label": "Font pairing",
-        "options": [
-          { "value": "bold_grotesk", "label": "Bold Grotesk (Archivo + Space Mono)" },
-          { "value": "modern_sans", "label": "Modern Sans (Bricolage Grotesque + DM Sans)" },
-          { "value": "editorial_serif", "label": "Editorial Serif (Playfair Display + Work Sans)" },
-          { "value": "condensed", "label": "Condensed (Anton + Inter)" },
-          { "value": "wide_geometric", "label": "Wide Geometric (Unbounded + Nunito Sans)" }
-        ],
-        "default": "bold_grotesk"
+        "type": "font_picker",
+        "id": "type_heading_font",
+        "label": "Heading font",
+        "default": "archivo_n9"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_body_font",
+        "label": "Body font",
+        "default": "archivo_n4"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_accent_font",
+        "label": "Accent font",
+        "info": "Used for small labels, prices and tickers. A monospace font suits the design.",
+        "default": "space_mono_n4"
       },
       {
         "type": "checkbox",
         "id": "heading_uppercase",
-        "label": "Uppercase headings",
+        "label": "Use uppercase headings",
         "default": true
       }
     ]
@@ -74,7 +88,7 @@
       {
         "type": "checkbox",
         "id": "hard_shadow",
-        "label": "Offset hard shadows",
+        "label": "Show offset shadows",
         "default": true
       }
     ]
@@ -96,7 +110,7 @@
         "type": "number",
         "id": "free_shipping_threshold",
         "label": "Free shipping threshold",
-        "info": "In your store currency, e.g. 250. Set to 0 to hide the progress meter.",
+        "info": "Enter the amount in your store currency. Set to 0 to hide the progress bar.",
         "default": 250
       }
     ]
@@ -104,21 +118,61 @@
   {
     "name": "Store details",
     "settings": [
-      { "type": "image_picker", "id": "favicon", "label": "Favicon", "info": "32 x 32px PNG" },
-      { "type": "textarea", "id": "store_address", "label": "Store address", "default": "[STORE ADDRESS]" },
-      { "type": "text", "id": "support_email", "label": "Support email", "default": "[SUPPORT EMAIL]" },
-      { "type": "text", "id": "shipping_days", "label": "Ships in (business days)", "default": "2-4" },
-      { "type": "text", "id": "return_window", "label": "Return window (days)", "default": "30" },
-      { "type": "text", "id": "fabric_gsm", "label": "Fabric weight", "default": "400gsm" },
-      { "type": "checkbox", "id": "show_payment_icons", "label": "Show payment icons in footer", "default": true }
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "32 x 32px .png recommended"
+      },
+      {
+        "type": "textarea",
+        "id": "store_address",
+        "label": "Store address"
+      },
+      {
+        "type": "text",
+        "id": "support_email",
+        "label": "Support email"
+      },
+      {
+        "type": "text",
+        "id": "shipping_days",
+        "label": "Shipping time in business days",
+        "default": "2-4"
+      },
+      {
+        "type": "text",
+        "id": "return_window",
+        "label": "Return window in days",
+        "default": "30"
+      },
+      {
+        "type": "text",
+        "id": "fabric_gsm",
+        "label": "Fabric weight",
+        "default": "400gsm"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_payment_icons",
+        "label": "Show payment icons",
+        "default": true
+      }
     ]
   },
   {
     "name": "Social media",
     "settings": [
+      { "type": "url", "id": "social_facebook", "label": "Facebook" },
       { "type": "url", "id": "social_instagram", "label": "Instagram" },
       { "type": "url", "id": "social_tiktok", "label": "TikTok" },
-      { "type": "url", "id": "social_facebook", "label": "Facebook" }
+      { "type": "url", "id": "social_youtube", "label": "YouTube" },
+      { "type": "url", "id": "social_x", "label": "X" },
+      { "type": "url", "id": "social_pinterest", "label": "Pinterest" },
+      { "type": "url", "id": "social_snapchat", "label": "Snapchat" },
+      { "type": "url", "id": "social_tumblr", "label": "Tumblr" },
+      { "type": "url", "id": "social_vimeo", "label": "Vimeo" },
+      { "type": "url", "id": "social_linkedin", "label": "LinkedIn" }
     ]
   }
 ]

@@ -1,104 +1,16 @@
 {%- doc -%}
-  Emits the KINETIC design tokens as CSS custom properties on :root.
-  Mirrors the contrast logic of the design mockup: text is corrected for 4.5:1
-  against the background, muted text targets 5:1, and accent helpers pick
-  readable pairings.
+  Emits the KINETIC design tokens: one rule per color scheme, font faces from
+  the font pickers, and shape tokens. The default scheme is applied on :root;
+  any section can opt into another scheme with the class "color-<scheme id>".
 {%- enddoc -%}
 
 {%- liquid
-  assign ink = '#0E0E0C'
-  assign white = '#FFFFFF'
-
-  case settings.color_scheme
-    when 'paper'
-      assign c_bg = '#F3F1EA'
-      assign c_fg = '#121210'
-      assign c_ac = '#FF5A1F'
-    when 'cobalt'
-      assign c_bg = '#1D2FD6'
-      assign c_fg = '#FFFFFF'
-      assign c_ac = '#FFD23F'
-    when 'sherbet'
-      assign c_bg = '#FFD9E8'
-      assign c_fg = '#2A0F3A'
-      assign c_ac = '#7B2CFF'
-    when 'forest'
-      assign c_bg = '#0F2A1F'
-      assign c_fg = '#EFE8D8'
-      assign c_ac = '#FF8A5B'
-    when 'custom'
-      assign c_bg = settings.custom_background
-      assign c_fg = settings.custom_text
-      assign c_ac = settings.custom_accent
-    else
-      assign c_bg = '#0E0E0C'
-      assign c_fg = '#F4F2EC'
-      assign c_ac = '#D4FF3A'
-  endcase
-
-  assign bg = c_bg | default: '#0E0E0C'
-  assign ac = c_ac | default: '#D4FF3A'
-  assign fg = c_fg | default: '#F4F2EC'
-
-  comment
-    Text must hit 4.5:1 on the background, otherwise fall back to ink/white.
-  endcomment
-  assign fg_ratio = bg | color_contrast: fg
-  if fg_ratio < 4.5
-    assign black_ratio = bg | color_contrast: '#000000'
-    if black_ratio > 4.6
-      assign fg = '#121210'
-    else
-      assign fg = '#FAF9F5'
-    endif
-  endif
-
-  comment
-    Muted text: pull the text color toward the background in steps while it
-    keeps 5:1 contrast.
-  endcomment
-  assign muted = fg
-  assign muted_found = false
-  assign mix_steps = '42,34,26,18,10' | split: ','
-  for step in mix_steps
-    unless muted_found
-      assign keep = 100 | minus: step
-      assign candidate = fg | color_mix: bg, keep
-      assign candidate_ratio = bg | color_contrast: candidate
-      if candidate_ratio >= 5
-        assign muted = candidate
-        assign muted_found = true
-      endif
-    endunless
-  endfor
-
-  assign ac_ink_ratio = ac | color_contrast: ink
-  assign ac_white_ratio = ac | color_contrast: white
-  if ac_ink_ratio >= ac_white_ratio
-    assign on_accent = ink
-  else
-    assign on_accent = white
-  endif
-
-  assign ac_bg_ratio = ac | color_contrast: bg
-  if ac_bg_ratio >= 4.5
-    assign accent_ink = ac
-  else
-    assign accent_ink = fg
-  endif
-
-  assign ac_fg_ratio = ac | color_contrast: fg
-  if ac_fg_ratio >= 3
-    assign accent_on_fg = ac
-  else
-    assign accent_on_fg = bg
-  endif
-
-  if ac_bg_ratio < 1.6
-    assign accent_edge = fg
-  else
-    assign accent_edge = 'transparent'
-  endif
+  assign heading_font = settings.type_heading_font
+  assign body_font = settings.type_body_font
+  assign accent_font = settings.type_accent_font
+  assign body_bold = body_font | font_modify: 'weight', 'bold'
+  assign body_italic = body_font | font_modify: 'style', 'italic'
+  assign body_bold_italic = body_bold | font_modify: 'style', 'italic'
 
   assign radius = settings.corner_radius | default: 0
   assign radius_img = radius | at_most: 18
@@ -107,85 +19,48 @@
   else
     assign radius_pill = '0px'
   endif
-
-  case settings.font_pairing
-    when 'modern_sans'
-      assign f_display = "'Bricolage Grotesque', Arial, sans-serif"
-      assign f_body = "'DM Sans', Arial, sans-serif"
-      assign f_mono = "'DM Mono', monospace"
-      assign d_weight = 800
-      assign d_stretch = '100%'
-      assign d_track = '-.04em'
-      assign d_lead = '.92'
-    when 'editorial_serif'
-      assign f_display = "'Playfair Display', Georgia, serif"
-      assign f_body = "'Work Sans', Arial, sans-serif"
-      assign f_mono = "'IBM Plex Mono', monospace"
-      assign d_weight = 900
-      assign d_stretch = '100%'
-      assign d_track = '-.025em'
-      assign d_lead = '.98'
-    when 'condensed'
-      assign f_display = "'Anton', Impact, sans-serif"
-      assign f_body = "'Inter', Arial, sans-serif"
-      assign f_mono = "'JetBrains Mono', monospace"
-      assign d_weight = 400
-      assign d_stretch = '100%'
-      assign d_track = '-.005em'
-      assign d_lead = '.95'
-    when 'wide_geometric'
-      assign f_display = "'Unbounded', Arial, sans-serif"
-      assign f_body = "'Nunito Sans', Arial, sans-serif"
-      assign f_mono = "'Space Mono', monospace"
-      assign d_weight = 800
-      assign d_stretch = '100%'
-      assign d_track = '-.04em'
-      assign d_lead = '.95'
-    else
-      assign f_display = "'Archivo', Arial, sans-serif"
-      assign f_body = "'Archivo', Arial, sans-serif"
-      assign f_mono = "'Space Mono', monospace"
-      assign d_weight = 900
-      assign d_stretch = '125%'
-      assign d_track = '-.045em'
-      assign d_lead = '.88'
-  endcase
 -%}
 
-<style>
-  :root {
-    --bg: {{ bg }};
-    --fg: {{ fg }};
-    --muted: {{ muted }};
-    --surface: color-mix(in srgb, {{ bg }}, {{ fg }} 7%);
-    --line: color-mix(in srgb, {{ bg }}, {{ fg }} 20%);
-    --accent: {{ ac }};
-    --on-accent: {{ on_accent }};
-    --accent-ink: {{ accent_ink }};
-    --accent-on-fg: {{ accent_on_fg }};
-    --accent-edge: {{ accent_edge }};
+<link rel="preload" as="font" href="{{ heading_font | font_url }}" type="font/woff2" crossorigin>
+<link rel="preload" as="font" href="{{ body_font | font_url }}" type="font/woff2" crossorigin>
 
+<style>
+  {{ heading_font | font_face: font_display: 'swap' }}
+  {{ body_font | font_face: font_display: 'swap' }}
+  {{ body_bold | font_face: font_display: 'swap' }}
+  {{ body_italic | font_face: font_display: 'swap' }}
+  {{ body_bold_italic | font_face: font_display: 'swap' }}
+  {{ accent_font | font_face: font_display: 'swap' }}
+
+  {% for scheme in settings.color_schemes -%}
+    {%- if scheme.id == settings.default_color_scheme.id -%}
+      :root,
+    {%- endif -%}
+    .color-{{ scheme.id }} {
+      {%- render 'color-scheme-vars', scheme: scheme -%}
+    }
+  {% endfor %}
+
+  :root {
     --r: {{ radius }}px;
     --r-pill: {{ radius_pill }};
     --r-img: {{ radius_img }}px;
-    {% if settings.hard_shadow -%}
-      --shadow: 5px 5px 0 {{ fg }};
-      --shadow-ac: 5px 5px 0 {{ ac }};
-    {%- else -%}
-      --shadow: none;
-      --shadow-ac: none;
-    {%- endif %}
 
-    --f-display: {{ f_display }};
-    --f-body: {{ f_body }};
-    --f-mono: {{ f_mono }};
-    --d-weight: {{ d_weight }};
-    --d-stretch: {{ d_stretch }};
-    --d-track: {{ d_track }};
-    --d-lead: {{ d_lead }};
+    --f-display: {{ heading_font.family }}, {{ heading_font.fallback_families }};
+    --f-body: {{ body_font.family }}, {{ body_font.fallback_families }};
+    --f-mono: {{ accent_font.family }}, {{ accent_font.fallback_families }};
+    --d-weight: {{ heading_font.weight }};
+    --d-stretch: 100%;
+    --d-track: -0.04em;
+    --d-lead: 0.92;
     --h-case: {% if settings.heading_uppercase %}uppercase{% else %}none{% endif %};
 
     --page-max: 1360px;
     --gutter: clamp(16px, 4vw, 40px);
+  }
+
+  [class*='color-scheme-'] {
+    background: var(--bg);
+    color: var(--fg);
   }
 </style>

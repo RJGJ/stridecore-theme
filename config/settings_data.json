@@ -1,1 +1,48 @@
-{ "current": {} }
+{
+  "current": {
+    "color_schemes": {
+      "scheme-1": { "settings": { "background": "#0E0E0C", "text": "#F4F2EC", "accent": "#D4FF3A", "on_accent": "#0E0E0C" } },
+      "scheme-2": { "settings": { "background": "#F3F1EA", "text": "#121210", "accent": "#FF5A1F", "on_accent": "#0E0E0C" } },
+      "scheme-3": { "settings": { "background": "#1D2FD6", "text": "#FFFFFF", "accent": "#FFD23F", "on_accent": "#0E0E0C" } },
+      "scheme-4": { "settings": { "background": "#FFD9E8", "text": "#2A0F3A", "accent": "#7B2CFF", "on_accent": "#FFFFFF" } },
+      "scheme-5": { "settings": { "background": "#0F2A1F", "text": "#EFE8D8", "accent": "#FF8A5B", "on_accent": "#0E0E0C" } }
+    },
+    "default_color_scheme": "scheme-1",
+    "type_heading_font": "archivo_n9",
+    "type_body_font": "archivo_n4",
+    "type_accent_font": "space_mono_n4",
+    "heading_uppercase": true,
+    "corner_radius": 0,
+    "hard_shadow": true,
+    "cart_type": "drawer",
+    "free_shipping_threshold": 250,
+    "shipping_days": "2-4",
+    "return_window": "30",
+    "fabric_gsm": "400gsm",
+    "show_payment_icons": true
+  },
+  "presets": {
+    "Kinetic": {
+      "color_schemes": {
+        "scheme-1": { "settings": { "background": "#0E0E0C", "text": "#F4F2EC", "accent": "#D4FF3A", "on_accent": "#0E0E0C" } },
+        "scheme-2": { "settings": { "background": "#F3F1EA", "text": "#121210", "accent": "#FF5A1F", "on_accent": "#0E0E0C" } },
+        "scheme-3": { "settings": { "background": "#1D2FD6", "text": "#FFFFFF", "accent": "#FFD23F", "on_accent": "#0E0E0C" } },
+        "scheme-4": { "settings": { "background": "#FFD9E8", "text": "#2A0F3A", "accent": "#7B2CFF", "on_accent": "#FFFFFF" } },
+        "scheme-5": { "settings": { "background": "#0F2A1F", "text": "#EFE8D8", "accent": "#FF8A5B", "on_accent": "#0E0E0C" } }
+      },
+      "default_color_scheme": "scheme-1",
+      "type_heading_font": "archivo_n9",
+      "type_body_font": "archivo_n4",
+      "type_accent_font": "space_mono_n4",
+      "heading_uppercase": true,
+      "corner_radius": 0,
+      "hard_shadow": true,
+      "cart_type": "drawer",
+      "free_shipping_threshold": 250,
+      "shipping_days": "2-4",
+      "return_window": "30",
+      "fabric_gsm": "400gsm",
+      "show_payment_icons": true
+    }
+  }
+}
