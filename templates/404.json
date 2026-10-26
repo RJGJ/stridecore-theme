@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-404",
+      "settings": {
+        "heading": "This page sold out.",
+        "text": "The link may be broken or the page may have moved. Try a search, or head back to the shop.",
+        "button_label": "Back to home",
+        "ticker_text": "Lost? Keep shopping"
+      }
+    }
+  },
+  "order": ["main"]
+}

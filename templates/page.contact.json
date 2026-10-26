@@ -1,0 +1,47 @@
+{
+  "sections": {
+    "contact": {
+      "type": "contact-form",
+      "settings": {
+        "heading": "Say hi.",
+        "intro": "Questions about sizing, an order or a collab? Send a message and we will reply soon.",
+        "response_time": "within 24 hours",
+        "hours": "Mon-Fri, 9:00-17:00",
+        "show_order_number": true,
+        "button_label": "Send message"
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q1": {
+          "type": "question",
+          "settings": {
+            "question": "How do your sizes fit?",
+            "answer": "<p>Most pieces are cut boxy with dropped shoulders. If you are between sizes or want a closer fit, size down.</p>"
+          }
+        },
+        "q2": {
+          "type": "question",
+          "settings": {
+            "question": "How long does shipping take?",
+            "answer": "<p>Orders ship within a few business days. Delivery times and rates are shown at checkout.</p>"
+          }
+        },
+        "q3": {
+          "type": "question",
+          "settings": {
+            "question": "Can I return or exchange?",
+            "answer": "<p>Yes, unworn with tags attached. Start a return from your account.</p>"
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3"],
+      "settings": {
+        "heading": "Good to know",
+        "first_open": true
+      }
+    }
+  },
+  "order": ["contact", "faq"]
+}

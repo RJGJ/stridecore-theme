@@ -1,0 +1,154 @@
+{%- liquid
+  assign fp_collection = section.settings.collection
+  if fp_collection == blank
+    assign fp_collection = collections['all']
+  endif
+  assign fp_products = fp_collection.products
+  assign fp_limit = section.settings.product_count
+
+  assign type_list = '' | split: ','
+  if section.settings.show_filters
+    for product in fp_products limit: fp_limit
+      if product.type != blank
+        unless type_list contains product.type
+          assign one_type = product.type | split: '||'
+          assign type_list = type_list | concat: one_type
+        endunless
+      endif
+    endfor
+  endif
+
+  assign view_all_url = fp_collection.url
+  if view_all_url == blank
+    assign view_all_url = routes.all_products_collection_url
+  endif
+  assign status_template = 'home.featured.showing' | t: count: '__COUNT__'
+-%}
+
+<section class="container featured">
+  <featured-products class="featured__wrap" data-status-template="{{ status_template | escape }}">
+    <div class="featured__head">
+      <h2 class="display display--lg featured__title">{{ section.settings.heading | escape | newline_to_br }}</h2>
+      {%- if section.settings.show_filters and type_list.size > 1 -%}
+        <div class="featured__filters" role="group" aria-label="{{ 'home.featured.filter_label' | t }}">
+          <button type="button" class="pill" data-filter="" aria-pressed="true">{{ 'home.featured.all' | t }}</button>
+          {%- for type_name in type_list -%}
+            <button type="button" class="pill" data-filter="{{ type_name | escape }}" aria-pressed="false">{{ type_name }}</button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <p class="visually-hidden" role="status" aria-live="polite" data-status></p>
+
+    {%- if fp_products.size > 0 -%}
+      <div class="product-grid" data-grid>
+        {%- for product in fp_products limit: fp_limit -%}
+          {%- liquid
+            assign card_tone = 'surface'
+            assign tone_index = forloop.index0 | modulo: 3
+            if tone_index == 0
+              assign card_tone = 'accent'
+            endif
+          -%}
+          <div class="featured__item" data-type="{{ product.type | escape }}">
+            {% render 'product-card',
+              product: product,
+              show_quick_add: true,
+              tone: card_tone,
+              ratio: '4 / 5'
+            %}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <div class="product-grid">
+        {%- for i in (1..4) -%}
+          {%- liquid
+            assign card_tone = 'surface'
+            assign tone_index = forloop.index0 | modulo: 3
+            if tone_index == 0
+              assign card_tone = 'accent'
+            endif
+          -%}
+          <div class="card">
+            {% render 'placeholder-media', ratio: '4 / 5', label: 'Product image', tone: card_tone %}
+            <div class="card__info">
+              <span class="card__title">{{ 'home.featured.placeholder_title' | t }}</span>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.button_label != blank -%}
+      <div class="featured__more">
+        <a href="{{ view_all_url }}" class="btn btn--outline">{{ section.settings.button_label }}</a>
+      </div>
+    {%- endif -%}
+  </featured-products>
+</section>
+
+<script src="{{ 'featured-products.js' | asset_url }}" defer></script>
+
+{% stylesheet %}
+.featured {
+  padding-block: clamp(64px, 8vw, 120px);
+}
+.featured__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+.featured__title {
+  font-size: clamp(40px, 5.5vw, 84px);
+  text-wrap: initial;
+}
+.featured__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.featured__filters .pill {
+  cursor: pointer;
+}
+.featured__item {
+  min-width: 0;
+}
+.featured__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 56px;
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Featured products",
+  "tag": "section",
+  "class": "section-featured-products",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Press Enter for a line break.",
+      "default": "Fresh off\nthe press"
+    },
+    { "type": "collection", "id": "collection", "label": "Collection", "info": "Leave empty to show all products." },
+    { "type": "range", "id": "product_count", "label": "Products to show", "min": 2, "max": 24, "step": 1, "default": 8 },
+    {
+      "type": "checkbox",
+      "id": "show_filters",
+      "label": "Show filter tabs",
+      "info": "Builds tabs from the product types in this collection.",
+      "default": true
+    },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "View all products" }
+  ],
+  "presets": [{ "name": "Featured products" }]
+}
+{% endschema %}

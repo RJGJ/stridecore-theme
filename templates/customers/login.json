@@ -1,0 +1,19 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-account",
+      "blocks": {
+        "p1": { "type": "perk", "settings": { "label": "Early access to drops" } },
+        "p2": { "type": "perk", "settings": { "label": "Faster checkout" } },
+        "p3": { "type": "perk", "settings": { "label": "Easy returns" } }
+      },
+      "block_order": ["p1", "p2", "p3"],
+      "settings": {
+        "heading": "Welcome back.",
+        "perks_label": "Members get",
+        "perks_note": "Track orders, start returns and save your addresses in one place."
+      }
+    }
+  },
+  "order": ["main"]
+}

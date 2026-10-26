@@ -1,0 +1,19 @@
+{
+  "name": "kinetic-theme",
+  "version": "0.1.0",
+  "repository": "git@github.com:RJGJ/kinetic-theme.git",
+  "author": "RJGJ (https://rjgjaictin.dev)",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@shopify/cli": "^4.9.4",
+    "archiver": "^8.0.0"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "shopify theme dev",
+    "lint": "shopify theme check",
+    "pull": "shopify theme pull",
+    "push": "shopify theme push",
+    "package": "node scripts/package.mjs"
+  }
+}

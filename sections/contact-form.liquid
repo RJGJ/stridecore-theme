@@ -1,0 +1,265 @@
+<section class="contact-form container" id="contact">
+  <div class="contact-form__info">
+    <h2 class="display display--lg">{{ section.settings.heading }}</h2>
+    {%- if section.settings.intro != blank -%}
+      <p class="contact-form__intro">
+        {{- section.settings.intro -}}
+        {%- if section.settings.response_time != blank %} {{ 'contact.response_time' | t: time: section.settings.response_time }}{% endif -%}
+      </p>
+    {%- endif -%}
+    <dl class="contact-form__details">
+      {%- if settings.support_email != blank -%}
+        <div>
+          <dt>{{ 'contact.email' | t }}</dt>
+          <dd><a href="mailto:{{ settings.support_email }}">{{ settings.support_email }}</a></dd>
+        </div>
+      {%- endif -%}
+      {%- if settings.store_address != blank -%}
+        <div>
+          <dt>{{ 'contact.studio' | t }}</dt>
+          <dd>{{ settings.store_address }}</dd>
+        </div>
+      {%- endif -%}
+      {%- if section.settings.hours != blank -%}
+        <div>
+          <dt>{{ 'contact.hours' | t }}</dt>
+          <dd>{{ section.settings.hours }}</dd>
+        </div>
+      {%- endif -%}
+    </dl>
+  </div>
+
+  <div class="contact-form__panel">
+    {%- form 'contact', id: 'ContactForm', class: 'contact-form__form' -%}
+      {%- if form.posted_successfully? -%}
+        <div class="contact-form__success" role="status">
+          <span class="contact-form__tick">{% render 'icon', name: 'check', size: 28, stroke: 3 %}</span>
+          <h3 class="display contact-form__success-title">{{ 'contact.success_title' | t }}</h3>
+          <p class="contact-form__success-text">{{ 'contact.success_text' | t }}</p>
+          <a href="{{ page.url }}#contact" class="contact-form__again">{{ 'contact.send_another' | t }}</a>
+        </div>
+      {%- else -%}
+        {%- if form.errors -%}
+          <div class="form-message form-message--error contact-form__wide" role="alert" tabindex="-1" id="ContactFormErrors">
+            <p class="contact-form__error-title">{{ 'contact.error_title' | t }}</p>
+            <ul class="contact-form__error-list">
+              {%- for field in form.errors -%}
+                <li>
+                  {%- if field == 'form' -%}
+                    {{ form.errors.messages[field] }}
+                  {%- else -%}
+                    <a href="#ContactForm-{{ field }}">{{ form.errors.translated_fields[field] | capitalize }} {{ form.errors.messages[field] }}</a>
+                  {%- endif -%}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+
+        <div class="field">
+          <label for="ContactForm-name">{{ 'contact.name' | t }}</label>
+          <input id="ContactForm-name" class="input" type="text" name="contact[name]" autocomplete="name" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}">
+        </div>
+        <div class="field">
+          <label for="ContactForm-email">{{ 'contact.email' | t }}</label>
+          <input id="ContactForm-email" class="input" type="email" name="contact[email]" autocomplete="email" required aria-required="true" value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"{% if form.errors contains 'email' %} aria-invalid="true"{% endif %}>
+        </div>
+        {%- if section.settings.show_order_number -%}
+          {%- assign order_field = 'contact.order_number' | t -%}
+          <div class="field contact-form__wide">
+            <label for="ContactForm-order">{{ order_field }} <span class="contact-form__optional">({{ 'contact.optional' | t }})</span></label>
+            <input id="ContactForm-order" class="input" type="text" name="contact[{{ order_field }}]">
+          </div>
+        {%- endif -%}
+        <div class="field contact-form__wide">
+          <label for="ContactForm-body">{{ 'contact.message' | t }}</label>
+          <textarea id="ContactForm-body" class="input" name="contact[body]" rows="5" required aria-required="true"{% if form.errors contains 'body' %} aria-invalid="true"{% endif %}>{{ form.body }}</textarea>
+        </div>
+        <button type="submit" class="btn btn--accent contact-form__submit">{{ section.settings.button_label | default: 'Send message' }}</button>
+      {%- endif -%}
+    {%- endform -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .contact-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+    gap: clamp(40px, 5vw, 80px);
+    padding-block: clamp(56px, 7vw, 112px);
+  }
+
+  .contact-form__info {
+    display: flex;
+    flex: 1 1 320px;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
+  }
+
+  .contact-form__intro {
+    max-width: 380px;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.55;
+  }
+
+  .contact-form__details {
+    display: grid;
+    gap: 18px;
+    margin: 0;
+  }
+
+  .contact-form__details > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .contact-form__details dt {
+    color: var(--muted);
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .contact-form__details dd {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .contact-form__panel {
+    flex: 2 1 480px;
+    min-width: 0;
+    padding: clamp(24px, 3vw, 40px);
+    border: 2px solid var(--fg);
+    border-radius: var(--r-img);
+    background: var(--surface);
+  }
+
+  .contact-form__form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: 20px;
+  }
+
+  .contact-form .field label {
+    color: var(--fg);
+    font-family: var(--f-body);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .contact-form__optional {
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .contact-form .input {
+    min-height: 52px;
+    padding-inline: 16px;
+  }
+
+  .contact-form textarea.input {
+    min-height: 140px;
+    resize: vertical;
+  }
+
+  .contact-form__wide,
+  .contact-form__submit,
+  .contact-form__success {
+    grid-column: 1 / -1;
+  }
+
+  .contact-form__error-title {
+    font-weight: 800;
+  }
+
+  .contact-form__error-list {
+    margin: 8px 0 0;
+    padding-left: 20px;
+  }
+
+  .contact-form__error-list a {
+    text-decoration: underline;
+  }
+
+  .contact-form__submit {
+    justify-self: start;
+    padding-inline: 36px;
+    font-weight: 900;
+  }
+
+  .contact-form__success {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+    gap: 18px;
+    min-height: 360px;
+  }
+
+  .contact-form__tick {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border: 2px solid var(--fg);
+    border-radius: var(--r-pill);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .contact-form__success-title {
+    font-size: 44px;
+    line-height: 1;
+  }
+
+  .contact-form__success-text {
+    color: var(--muted);
+    font-size: 17px;
+  }
+
+  .contact-form__again {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Contact form",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Say hi." },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "Questions about sizing, an order or a collab? Send a message and we will reply soon."
+    },
+    {
+      "type": "text",
+      "id": "response_time",
+      "label": "Response time",
+      "info": "Shown after the intro, e.g. \"within 24 hours\". Leave blank to hide.",
+      "default": "within 24 hours"
+    },
+    { "type": "text", "id": "hours", "label": "Opening hours", "default": "Mon-Fri, 9:00-17:00" },
+    { "type": "checkbox", "id": "show_order_number", "label": "Show order number field", "default": true },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Send message" }
+  ],
+  "presets": [
+    { "name": "Contact form" }
+  ]
+}
+{% endschema %}

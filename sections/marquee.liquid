@@ -1,0 +1,50 @@
+<div class="marquee-band">
+  {% render 'marquee',
+    items: section.settings.items,
+    reverse: true,
+    gap: '40px',
+    class: 'marquee-band__track',
+    separator_class: 'marquee-band__sep'
+  %}
+</div>
+
+{% stylesheet %}
+.marquee-band {
+  overflow: hidden;
+  padding: 18px 0;
+  background: var(--fg);
+  color: var(--bg);
+  border-top: 2px solid var(--fg);
+  border-bottom: 2px solid var(--fg);
+}
+.marquee-band__track {
+  font-family: var(--f-display);
+  font-weight: var(--d-weight);
+  font-stretch: var(--d-stretch);
+  font-size: clamp(48px, 7vw, 104px);
+  line-height: 1.05;
+  text-transform: var(--h-case);
+  letter-spacing: var(--d-track);
+}
+.marquee-band__sep {
+  color: var(--accent-on-fg);
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Big marquee",
+  "tag": "section",
+  "class": "section-marquee",
+  "settings": [
+    {
+      "type": "text",
+      "id": "items",
+      "label": "Items",
+      "info": "Separate items with a vertical bar (|).",
+      "default": "Built different|Worn louder"
+    }
+  ],
+  "presets": [{ "name": "Big marquee" }]
+}
+{% endschema %}

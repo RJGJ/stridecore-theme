@@ -1,0 +1,38 @@
+{%- doc -%}
+  Renders a Shopify image, or the striped KINETIC placeholder block when no
+  image is set. The wrapper fills its container; control the shape with
+  `ratio` or let a parent set the height.
+
+  @param {image} [image] - Shopify image object
+  @param {string} [ratio] - CSS aspect-ratio, e.g. "4 / 5"
+  @param {string} [label] - text shown in the placeholder, e.g. "Hero image 1 · 4:5"
+  @param {string} [tone] - surface | accent | fg (placeholder background), default surface
+  @param {string} [sizes] - img sizes attribute, default "100vw"
+  @param {string} [widths] - comma list of srcset widths
+  @param {string} [loading] - lazy | eager, default lazy
+  @param {string} [class] - extra classes for the wrapper
+
+  @example
+  {% render 'placeholder-media', image: section.settings.image, ratio: '4 / 5', label: 'Hero image', tone: 'accent' %}
+{%- enddoc -%}
+
+{%- liquid
+  assign media_tone = tone | default: 'surface'
+  assign media_widths = widths | default: '360,540,720,900,1200,1600'
+  assign media_sizes = sizes | default: '100vw'
+  assign media_loading = loading | default: 'lazy'
+-%}
+
+{%- if image != blank -%}
+  <div class="media {{ class }}"{% if ratio != blank %} style="aspect-ratio: {{ ratio }}"{% endif %}>
+    {{
+      image
+      | image_url: width: 1600
+      | image_tag: loading: media_loading, sizes: media_sizes, widths: media_widths
+    }}
+  </div>
+{%- else -%}
+  <div class="media media--placeholder stripes{% if media_tone != 'surface' %} media--{{ media_tone }}{% endif %} {{ class }}"{% if ratio != blank %} style="aspect-ratio: {{ ratio }}"{% endif %} role="img" aria-label="{{ label | default: 'Placeholder image' | escape }}">
+    <span>{{ label }}</span>
+  </div>
+{%- endif -%}

@@ -1,0 +1,39 @@
+{%- doc -%}
+  Renders an inline SVG icon (stroke style, currentColor).
+
+  @param {string} name - search | user | bag | arrow-right | arrow-up-right | plus | minus | close | check | menu
+  @param {number} [size] - width/height in px, default 22
+  @param {number} [stroke] - stroke width, default 2
+
+  @example
+  {% render 'icon', name: 'bag' %}
+{%- enddoc -%}
+
+{%- liquid
+  assign icon_size = size | default: 22
+  assign icon_stroke = stroke | default: 2
+-%}
+<svg aria-hidden="true" focusable="false" width="{{ icon_size }}" height="{{ icon_size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ icon_stroke }}" stroke-linecap="square">
+  {%- case name -%}
+    {%- when 'search' -%}
+      <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>
+    {%- when 'user' -%}
+      <circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path>
+    {%- when 'bag' -%}
+      <path d="M5 8h14l-1 13H6L5 8z"></path><path d="M9 8V6a3 3 0 016 0v2"></path>
+    {%- when 'arrow-right' -%}
+      <path d="M5 12h14M13 6l6 6-6 6"></path>
+    {%- when 'arrow-up-right' -%}
+      <path d="M7 17L17 7M9 7h8v8"></path>
+    {%- when 'plus' -%}
+      <path d="M12 5v14M5 12h14"></path>
+    {%- when 'minus' -%}
+      <path d="M5 12h14"></path>
+    {%- when 'close' -%}
+      <path d="M6 6l12 12M18 6L6 18"></path>
+    {%- when 'check' -%}
+      <path d="M5 12l5 5 9-10"></path>
+    {%- when 'menu' -%}
+      <path d="M4 7h16M4 12h16M4 17h16"></path>
+  {%- endcase -%}
+</svg>

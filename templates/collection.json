@@ -1,0 +1,29 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-collection",
+      "blocks": {
+        "promo": {
+          "type": "promo",
+          "settings": {
+            "eyebrow": "Bundle deal",
+            "heading": "Any 3 tees for a set price",
+            "button_label": "Build your bundle",
+            "tone": "fg"
+          }
+        }
+      },
+      "block_order": ["promo"],
+      "settings": {
+        "per_page": 12,
+        "card_size": "medium",
+        "filters_open": true,
+        "show_description": true,
+        "show_image": false,
+        "show_promo": true,
+        "promo_position": 5
+      }
+    }
+  },
+  "order": ["main"]
+}

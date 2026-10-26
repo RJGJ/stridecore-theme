@@ -1,0 +1,84 @@
+{%- doc -%}
+  Product card used on home, collection, search, related and upsell grids.
+  Quick add: single-variant products add straight to the cart through the
+  [data-quick-add] hook in global.js; multi-variant products link to the
+  product page to choose options.
+
+  @param {product} product
+  @param {string} [ratio] - image aspect-ratio, default "4 / 5"
+  @param {boolean} [show_quick_add] - default true
+  @param {string} [tone] - placeholder tone for products without images: surface | accent
+  @param {string} [sizes] - img sizes attribute
+  @param {string} [loading] - lazy | eager
+{%- enddoc -%}
+
+{%- liquid
+  assign card_ratio = ratio | default: '4 / 5'
+  assign card_sizes = sizes | default: '(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw'
+  assign card_quick = show_quick_add
+  if card_quick == nil
+    assign card_quick = true
+  endif
+
+  assign color_count = 0
+  for option in product.options_with_values
+    assign option_name = option.name | downcase
+    if option_name == 'color' or option_name == 'colour'
+      assign color_count = option.values.size
+    endif
+  endfor
+
+  assign badge = ''
+  if product.available == false
+    assign badge = 'products.badge.sold_out' | t
+  elsif product.compare_at_price > product.price
+    assign saved = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round
+    assign badge = '-' | append: saved | append: '%'
+  elsif product.tags contains 'new'
+    assign badge = 'products.badge.new' | t
+  else
+    assign first_variant = product.selected_or_first_available_variant
+    if first_variant.inventory_management != blank and first_variant.inventory_quantity > 0 and first_variant.inventory_quantity <= 5
+      assign badge = 'products.badge.low_stock' | t
+    endif
+  endif
+-%}
+
+<article class="card" data-product-id="{{ product.id }}" style="--card-ratio: {{ card_ratio }}">
+  <div class="card__media">
+    <a href="{{ product.url }}" class="card__image" aria-label="{{ product.title | escape }}" tabindex="-1">
+      {% render 'placeholder-media',
+        image: product.featured_media.preview_image,
+        ratio: card_ratio,
+        label: 'Product image',
+        tone: tone,
+        sizes: card_sizes,
+        loading: loading
+      %}
+    </a>
+
+    {%- if badge != blank -%}
+      <span class="sticker card__badge">{{ badge }}</span>
+    {%- endif -%}
+
+    {%- if card_quick and product.available -%}
+      {%- if product.has_only_default_variant -%}
+        <button type="button" class="btn btn--accent btn--sm card__quick" data-quick-add data-variant-id="{{ product.selected_or_first_available_variant.id }}">
+          {{ 'products.quick_add' | t }}
+        </button>
+      {%- else -%}
+        <a href="{{ product.url }}" class="btn btn--accent btn--sm card__quick">{{ 'products.choose_options' | t }}</a>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+
+  <div class="card__info">
+    <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+      <a href="{{ product.url }}" class="card__title">{{ product.title }}</a>
+      {%- if color_count > 0 -%}
+        <span class="card__sub">{{ 'products.colors' | t: count: color_count }}</span>
+      {%- endif -%}
+    </div>
+    {% render 'price', product: product %}
+  </div>
+</article>

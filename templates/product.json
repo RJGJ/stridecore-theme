@@ -1,0 +1,58 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "details": {
+          "type": "accordion",
+          "settings": {
+            "title": "Details & fit",
+            "content": "<p>Boxy, cropped body. Dropped shoulder. Double-layer hood, kangaroo pocket, ribbed cuffs and hem.</p>",
+            "open": true
+          }
+        },
+        "fabric": {
+          "type": "accordion",
+          "settings": {
+            "title": "Fabric & care",
+            "content": "<p>[GSM] cotton. Machine wash cold inside out, hang dry. Do not tumble dry.</p>",
+            "open": false
+          }
+        },
+        "shipping": {
+          "type": "accordion",
+          "settings": {
+            "title": "Shipping & returns",
+            "content": "<p>Free shipping over [AMOUNT]. Returns accepted within [RETURN WINDOW] days of delivery.</p>",
+            "open": false
+          }
+        }
+      },
+      "block_order": ["details", "fabric", "shipping"],
+      "settings": {
+        "use_vendor": false,
+        "eyebrow": "SS27 / Drop 04",
+        "show_dynamic_checkout": false,
+        "size_guide_text": "runs boxy, size down for a closer fit"
+      }
+    },
+    "ticker": {
+      "type": "ticker-band",
+      "settings": {
+        "items": "Complete the look",
+        "gap": 36,
+        "reverse": false
+      }
+    },
+    "related": {
+      "type": "related-products",
+      "settings": {
+        "eyebrow": "Pairs well with",
+        "heading": "You may also like",
+        "limit": 4,
+        "show_quick_add": true
+      }
+    }
+  },
+  "order": ["main", "ticker", "related"]
+}

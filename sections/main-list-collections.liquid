@@ -1,0 +1,68 @@
+<section class="container section-pad lc">
+  <h1 class="display display--lg lc-title">{{ section.settings.title }}</h1>
+
+  {%- paginate collections by section.settings.per_page -%}
+    <div class="lc-grid">
+      {%- for collection in collections -%}
+        {%- assign num = forloop.index | plus: paginate.current_offset | prepend: '0' -%}
+        {%- if num.size > 2 -%}
+          {%- assign num = forloop.index | plus: paginate.current_offset -%}
+        {%- endif -%}
+        <a href="{{ collection.url }}" class="lc-tile">
+          {%- render 'placeholder-media',
+            image: collection.featured_image,
+            label: 'Category image',
+            tone: 'surface',
+            sizes: '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw',
+            class: 'lc-tile__media'
+          -%}
+          <div class="lc-tile__overlay">
+            <div class="lc-tile__top">
+              <span>{{ num }}</span>
+              <span>{{ 'collection.products_count' | t: count: collection.all_products_count }}</span>
+            </div>
+            <div class="lc-tile__bottom">
+              <span class="lc-tile__name">{{ collection.title }}</span>
+              <span class="lc-tile__arrow">{% render 'icon', name: 'arrow-up-right', size: 20, stroke: 2.5 %}</span>
+            </div>
+          </div>
+        </a>
+      {%- endfor -%}
+    </div>
+
+    {% render 'pagination', paginate: paginate %}
+  {%- endpaginate -%}
+</section>
+
+{% stylesheet %}
+  .lc-title { margin-bottom: clamp(28px, 4vw, 48px); }
+  .lc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 20px; }
+  .lc-tile { position: relative; display: block; aspect-ratio: 3 / 4; border: 2px solid var(--fg); border-radius: var(--r-img); overflow: hidden; text-decoration: none; color: var(--fg); }
+  .lc-tile:hover { opacity: 1; }
+  .lc-tile__media { position: absolute; inset: 0; border-radius: 0; border: 0; height: 100%; }
+  .lc-tile__overlay { position: absolute; inset: 0; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; color: var(--fg); pointer-events: none; }
+  .lc-tile__top { display: flex; justify-content: space-between; gap: 12px; font-family: var(--f-mono); font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .lc-tile__top span { padding: 2px 8px; background: var(--bg); }
+  .lc-tile__bottom { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+  .lc-tile__name { min-width: 0; padding: 0 8px; background: var(--bg); font-family: var(--f-display); font-weight: var(--d-weight); font-stretch: var(--d-stretch); font-size: clamp(32px, 4.2vw, 56px); line-height: var(--d-lead); text-transform: var(--h-case); letter-spacing: var(--d-track); overflow-wrap: anywhere; transition: letter-spacing 0.4s; }
+  .lc-tile:hover .lc-tile__name { letter-spacing: 0.03em; }
+  .lc-tile__arrow { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border: 2px solid currentColor; border-radius: 50%; background: var(--bg); }
+  @media (prefers-reduced-motion: reduce) {
+    .lc-tile__name { transition: none; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection list page",
+  "tag": "section",
+  "class": "section-main-list-collections",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Heading", "default": "Collections" },
+    { "type": "range", "id": "per_page", "label": "Collections per page", "min": 3, "max": 24, "step": 3, "default": 12 }
+  ],
+  "presets": [
+    { "name": "Collection list page" }
+  ]
+}
+{% endschema %}

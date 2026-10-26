@@ -1,0 +1,316 @@
+{%- if settings.cart_type == 'drawer' -%}
+  {%- liquid
+    assign s_title = 'chrome.drawer.title' | t: count: '__COUNT__'
+    assign s_away = 'chrome.drawer.shipping_away' | t: amount: '__AMOUNT__'
+    assign s_remove_item = 'chrome.drawer.remove_item' | t: title: '__TITLE__'
+    assign s_decrease = 'chrome.drawer.decrease' | t: title: '__TITLE__'
+    assign s_increase = 'chrome.drawer.increase' | t: title: '__TITLE__'
+    assign s_each = 'chrome.drawer.each' | t: price: '__PRICE__'
+    assign s_unlocked = 'chrome.drawer.shipping_unlocked' | t
+    assign s_remove = 'chrome.drawer.remove' | t
+    assign s_quantity = 'chrome.drawer.quantity' | t
+    assign s_error = 'chrome.drawer.error' | t
+    assign s_updated = 'chrome.drawer.updated' | t
+  -%}
+  <cart-drawer class="cart-drawer" data-cart-drawer hidden>
+    <div class="cart-drawer__backdrop" data-drawer-close></div>
+    <div class="cart-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title" tabindex="-1" data-drawer-panel>
+      <div class="cart-drawer__head">
+        <h2 class="cart-drawer__title display" id="cart-drawer-title" data-drawer-title>{{ 'chrome.drawer.label' | t }}</h2>
+        <button type="button" class="icon-btn" aria-label="{{ 'chrome.drawer.close' | t }}" data-drawer-close>{% render 'icon', name: 'close' %}</button>
+      </div>
+
+      <div class="cart-drawer__shipping" data-drawer-shipping hidden>
+        <p class="cart-drawer__shipping-msg" data-drawer-shipping-msg></p>
+        <div class="cart-drawer__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="cart-drawer-shipping-msg" data-drawer-bar>
+          <div class="cart-drawer__bar-fill" data-drawer-bar-fill></div>
+        </div>
+      </div>
+
+      <div class="cart-drawer__body" data-drawer-body></div>
+
+      <div class="cart-drawer__foot" data-drawer-foot hidden>
+        <div class="cart-drawer__subtotal">
+          <span>{{ 'chrome.drawer.subtotal' | t }}</span>
+          <span class="mono cart-drawer__subtotal-price" data-drawer-subtotal></span>
+        </div>
+        <p class="cart-drawer__note">{{ 'chrome.drawer.taxes_note' | t }}</p>
+        <form action="{{ routes.cart_url }}" method="post">
+          <button type="submit" name="checkout" class="btn btn--accent btn--block">
+            {% render 'icon', name: 'arrow-right', size: 18, stroke: 2.5 %}{{ 'chrome.drawer.checkout' | t }}
+          </button>
+        </form>
+        <a href="{{ routes.cart_url }}" class="cart-drawer__view">{{ 'chrome.drawer.view_cart' | t }}</a>
+      </div>
+
+      <p class="visually-hidden" role="status" aria-live="polite" data-drawer-live></p>
+    </div>
+
+    <template data-drawer-placeholder>
+      {% render 'placeholder-media', ratio: '4 / 5', label: 'Image', sizes: '96px' %}
+    </template>
+    <template data-drawer-empty>
+      <div class="cart-drawer__empty">
+        <p class="cart-drawer__empty-heading display">{{ 'chrome.drawer.empty_heading' | t }}</p>
+        <p class="muted">{{ 'chrome.drawer.empty_text' | t }}</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn btn--ink">{{ 'chrome.drawer.continue_shopping' | t }}</a>
+      </div>
+    </template>
+    <script type="application/json" data-drawer-strings>
+      {
+        "title": {{ s_title | json }},
+        "away": {{ s_away | json }},
+        "unlocked": {{ s_unlocked | json }},
+        "remove": {{ s_remove | json }},
+        "removeItem": {{ s_remove_item | json }},
+        "decrease": {{ s_decrease | json }},
+        "increase": {{ s_increase | json }},
+        "each": {{ s_each | json }},
+        "quantity": {{ s_quantity | json }},
+        "error": {{ s_error | json }},
+        "updated": {{ s_updated | json }}
+      }
+    </script>
+  </cart-drawer>
+
+  <script src="{{ 'cart-drawer.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% stylesheet %}
+  .cart-drawer__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .cart-drawer__panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 901;
+    width: min(460px, 100vw);
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    color: var(--fg);
+    border-left: 2px solid var(--fg);
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    outline: none;
+  }
+  .cart-drawer.is-open .cart-drawer__backdrop {
+    opacity: 1;
+  }
+  .cart-drawer.is-open .cart-drawer__panel {
+    transform: none;
+  }
+  .cart-drawer__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 2px solid var(--fg);
+  }
+  .cart-drawer__title {
+    font-size: 28px;
+  }
+  .cart-drawer__shipping {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .cart-drawer__shipping-msg {
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .cart-drawer__bar {
+    height: 14px;
+    background: var(--surface);
+    border: 2px solid var(--fg);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+  }
+  .cart-drawer__bar-fill {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    border-right: 2px solid var(--fg);
+    transition: width 0.4s;
+  }
+  .cart-drawer__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 20px;
+  }
+  .cart-drawer__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cart-drawer__item {
+    display: flex;
+    gap: 16px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .cart-drawer__thumb {
+    flex: none;
+    width: 96px;
+    text-decoration: none;
+  }
+  .cart-drawer__thumb .media {
+    width: 100%;
+  }
+  .cart-drawer__thumb .media--placeholder {
+    border-width: 2px;
+  }
+  .cart-drawer__info {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .cart-drawer__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .cart-drawer__name {
+    font-weight: 800;
+    font-size: 16px;
+    text-transform: uppercase;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+  .cart-drawer__meta {
+    display: block;
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .cart-drawer__line {
+    font-family: var(--f-mono);
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+  }
+  .cart-drawer__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .cart-drawer__qty {
+    display: flex;
+    align-items: center;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+  }
+  .cart-drawer__qty button {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    background: none;
+    border: 0;
+    color: inherit;
+  }
+  .cart-drawer__qty-value {
+    min-width: 28px;
+    text-align: center;
+    font-family: var(--f-mono);
+    font-weight: 700;
+  }
+  .cart-drawer__remove {
+    min-height: 44px;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+  .cart-drawer__item.is-busy {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .cart-drawer__foot {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px;
+    background: var(--surface);
+    border-top: 2px solid var(--fg);
+  }
+  .cart-drawer__subtotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 18px;
+    text-transform: uppercase;
+  }
+  .cart-drawer__subtotal-price {
+    font-size: 24px;
+  }
+  .cart-drawer__note {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .cart-drawer__view {
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cart-drawer__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 40px 0;
+  }
+  .cart-drawer__empty-heading {
+    font-size: clamp(36px, 10vw, 52px);
+  }
+  body.cart-drawer-open {
+    overflow: hidden;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cart-drawer__backdrop,
+    .cart-drawer__panel,
+    .cart-drawer__bar-fill {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Cart drawer",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Only active when Cart type is set to Drawer in theme settings. The free shipping meter uses the threshold from theme settings."
+    }
+  ]
+}
+{% endschema %}

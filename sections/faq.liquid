@@ -1,0 +1,175 @@
+<section class="faq" id="faq-{{ section.id }}">
+  <div class="faq__inner container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="display display--lg faq__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+    <faq-list class="faq__list" data-first-open="{{ section.settings.first_open }}">
+      {%- for block in section.blocks -%}
+        <div class="faq__item" {{ block.shopify_attributes }}>
+          <h3 class="faq__q">
+            <button type="button" class="faq__trigger" aria-expanded="true" aria-controls="faq-panel-{{ block.id }}" id="faq-trigger-{{ block.id }}">
+              <span>{{ block.settings.question }}</span>
+              <span class="faq__sign" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="faq__panel" id="faq-panel-{{ block.id }}" role="region" aria-labelledby="faq-trigger-{{ block.id }}">
+            <div class="faq__answer">{{ block.settings.answer }}</div>
+          </div>
+        </div>
+      {%- endfor -%}
+    </faq-list>
+  </div>
+</section>
+
+<script src="{{ 'faq.js' | asset_url }}" defer="defer"></script>
+
+{% stylesheet %}
+  .faq {
+    border-top: 2px solid var(--fg);
+  }
+
+  .faq__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+    gap: clamp(32px, 5vw, 80px);
+    padding-block: clamp(56px, 7vw, 104px);
+  }
+
+  .faq__heading {
+    flex: 1 1 280px;
+  }
+
+  .faq__list {
+    display: block;
+    flex: 2 1 480px;
+    min-width: 0;
+    border-top: 2px solid var(--fg);
+  }
+
+  .faq__item {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .faq__q {
+    margin: 0;
+    font-size: inherit;
+  }
+
+  .faq__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    min-height: 72px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .faq__sign {
+    position: relative;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--fg);
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--fg);
+  }
+
+  .faq__sign::before,
+  .faq__sign::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 2px;
+    background: currentColor;
+    transform: translate(-50%, -50%);
+  }
+
+  .faq__sign::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+
+  .faq__trigger[aria-expanded='true'] .faq__sign {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .faq__trigger[aria-expanded='true'] .faq__sign::after {
+    display: none;
+  }
+
+  .faq__answer {
+    max-width: 640px;
+    margin-bottom: 24px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .faq__answer p {
+    margin: 0;
+  }
+
+  .faq__answer p + p {
+    margin-top: 0.8em;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "FAQ",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Good to know" },
+    { "type": "checkbox", "id": "first_open", "label": "Open the first question by default", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "How do your sizes fit?" },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Most pieces are cut boxy with dropped shoulders. If you are between sizes or want a closer fit, size down.</p>"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 20,
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        { "type": "question" },
+        {
+          "type": "question",
+          "settings": {
+            "question": "How long does shipping take?",
+            "answer": "<p>Orders ship quickly. Delivery times and rates are shown at checkout.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "question": "Can I return or exchange?",
+            "answer": "<p>Yes, unworn with tags attached. Start a return from your account.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

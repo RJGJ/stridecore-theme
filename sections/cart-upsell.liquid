@@ -1,0 +1,155 @@
+{%- liquid
+  assign upsell_products = blank
+  assign use_recs = false
+  if section.settings.source == 'recommendations'
+    assign use_recs = true
+  endif
+
+  assign first_item = cart.items.first
+  assign cart_product_ids = ''
+  for item in cart.items
+    assign cart_product_ids = cart_product_ids | append: ',' | append: item.product_id | append: ','
+  endfor
+-%}
+
+{%- if use_recs and recommendations.performed -%}
+  {%- assign upsell_products = recommendations.products -%}
+{%- elsif use_recs == false and section.settings.collection != blank -%}
+  {%- assign upsell_products = section.settings.collection.products -%}
+{%- endif -%}
+
+{%- if use_recs or upsell_products != blank -%}
+  <section
+    class="cart-upsell"
+    data-cart-upsell
+    {%- if use_recs and recommendations.performed == false %} hidden{% endif %}
+    {%- if use_recs and first_item != blank %}
+      data-recommendations-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ first_item.product_id }}&limit={{ section.settings.limit }}&intent=related"
+    {%- endif %}
+  >
+    <div class="container cart-upsell__inner">
+      <h2 class="display display--md cart-upsell__title">{{ section.settings.heading }}</h2>
+
+      {%- liquid
+        assign shown = 0
+        capture upsell_cards
+          for product in upsell_products
+            assign needle = ',' | append: product.id | append: ','
+            unless cart_product_ids contains needle
+              if shown < section.settings.limit
+                echo '<div>'
+                render 'product-card', product: product, tone: 'surface', sizes: '(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw'
+                echo '</div>'
+                assign shown = shown | plus: 1
+              endif
+            endunless
+          endfor
+        endcapture
+      -%}
+
+      <div class="product-grid cart-upsell__grid" style="--card-min: 220px" data-upsell-grid {% if shown == 0 %}hidden{% endif %}>
+        {{ upsell_cards }}
+      </div>
+    </div>
+  </section>
+
+  {%- if use_recs and first_item != blank and recommendations.performed == false -%}
+    <script>
+      (() => {
+        const section = document.currentScript.previousElementSibling;
+        if (!section || !section.dataset.recommendationsUrl) return;
+        let busy = false;
+        const load = () => {
+          if (busy) return;
+          busy = true;
+          fetch(section.dataset.recommendationsUrl)
+            .then((r) => (r.ok ? r.text() : ''))
+            .then((html) => {
+              if (!html) return;
+              const fresh = new DOMParser().parseFromString(html, 'text/html').querySelector('[data-upsell-grid]');
+              const grid = section.querySelector('[data-upsell-grid]');
+              if (fresh && grid && fresh.children.length) {
+                grid.innerHTML = fresh.innerHTML;
+                grid.hidden = false;
+                section.hidden = false;
+              }
+            })
+            .catch(() => {})
+            .finally(() => {
+              busy = false;
+            });
+        };
+        if ('IntersectionObserver' in window) {
+          const io = new IntersectionObserver((entries) => {
+            if (entries.some((e) => e.isIntersecting)) {
+              io.disconnect();
+              load();
+            }
+          });
+          io.observe(section);
+        } else {
+          load();
+        }
+      })();
+    </script>
+  {%- endif -%}
+{%- endif -%}
+
+{% stylesheet %}
+  .cart-upsell {
+    border-top: 2px solid var(--fg);
+  }
+
+  .cart-upsell__inner {
+    padding-block: clamp(48px, 6vw, 88px);
+  }
+
+  .cart-upsell__title {
+    margin-bottom: 32px;
+    font-size: clamp(36px, 4.5vw, 64px);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Cart upsell",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Pairs well with"
+    },
+    {
+      "type": "select",
+      "id": "source",
+      "label": "Products",
+      "options": [
+        { "value": "recommendations", "label": "Recommendations for the first cart item" },
+        { "value": "collection", "label": "Pick a collection" }
+      ],
+      "default": "recommendations"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Used when Products is set to \"Pick a collection\"."
+    },
+    {
+      "type": "range",
+      "id": "limit",
+      "label": "Number of products",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cart upsell"
+    }
+  ]
+}
+{% endschema %}

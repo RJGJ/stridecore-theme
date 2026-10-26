@@ -1,0 +1,122 @@
+{%- liquid
+  assign image_first = true
+  if section.settings.image_position == 'right'
+    assign image_first = false
+  endif
+-%}
+<section class="story-split{% unless image_first %} story-split--reverse{% endunless %}">
+  <div class="story-split__media">
+    {% render 'placeholder-media',
+      image: section.settings.image,
+      label: section.settings.image_label,
+      sizes: '(min-width: 1000px) 50vw, 100vw',
+      class: 'story-split__image'
+    %}
+  </div>
+  <div class="story-split__text">
+    {%- if section.settings.text_primary != blank -%}
+      <div class="story-split__primary">{{ section.settings.text_primary }}</div>
+    {%- endif -%}
+    {%- if section.settings.text_secondary != blank -%}
+      <div class="story-split__secondary">{{ section.settings.text_secondary }}</div>
+    {%- endif -%}
+    {%- if section.settings.button_label != blank -%}
+      {%- assign story_link = section.settings.button_link | default: routes.all_products_collection_url -%}
+      <a href="{{ story_link }}" class="btn btn--accent story-split__btn">{{ section.settings.button_label }}</a>
+    {%- endif -%}
+  </div>
+</section>
+
+{% stylesheet %}
+  .story-split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr));
+    border-top: 2px solid var(--fg);
+    border-bottom: 2px solid var(--fg);
+  }
+
+  .story-split__media {
+    min-height: 520px;
+    display: grid;
+  }
+
+  .story-split__media .media {
+    height: 100%;
+    min-height: 520px;
+    border-radius: 0;
+    border: 0;
+  }
+
+  .story-split--reverse .story-split__media {
+    order: 2;
+  }
+
+  .story-split__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    padding: clamp(40px, 6vw, 88px) clamp(16px, 4vw, 72px);
+    font-size: 19px;
+    line-height: 1.6;
+  }
+
+  .story-split__text p {
+    margin: 0;
+  }
+
+  .story-split__text p + p {
+    margin-top: 1em;
+  }
+
+  .story-split__secondary {
+    color: var(--muted);
+  }
+
+  .story-split__btn {
+    align-self: start;
+  }
+
+  @media (max-width: 989px) {
+    .story-split--reverse .story-split__media {
+      order: 0;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Story split",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "text", "id": "image_label", "label": "Placeholder label", "default": "Studio / team photo" },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "richtext",
+      "id": "text_primary",
+      "label": "Brand story",
+      "default": "<p>Tell your story here: who you are, where you started and why you make clothes.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "text_secondary",
+      "label": "How you make things",
+      "default": "<p>Describe your materials, where it is produced and what you care about.</p>"
+    },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop the collection" },
+    { "type": "url", "id": "button_link", "label": "Button link" }
+  ],
+  "presets": [
+    { "name": "Story split" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,17 @@
+{%- doc -%}
+  Renders the price column used in cards and the buy box.
+
+  @param {product} product
+  @param {boolean} [inline] - lay out price and compare-at side by side
+{%- enddoc -%}
+
+{%- liquid
+  assign current = product.price
+  assign was = product.compare_at_price
+-%}
+<div class="price"{% if inline %} style="flex-direction: row; align-items: baseline; gap: 12px"{% endif %}>
+  <span>{{ current | money }}</span>
+  {%- if was > current -%}
+    <s>{{ was | money }}</s>
+  {%- endif -%}
+</div>

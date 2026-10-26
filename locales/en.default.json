@@ -1,0 +1,247 @@
+{
+  "general": {
+    "skip_to_content": "Skip to content",
+    "pagination": "Pagination",
+    "previous": "Previous page",
+    "next": "Next page",
+    "close": "Close",
+    "search": "Search",
+    "account": "Account",
+    "menu": "Menu"
+  },
+  "products": {
+    "quick_add": "Quick add +",
+    "choose_options": "Choose options",
+    "badge": {
+      "new": "New",
+      "sold_out": "Sold out",
+      "low_stock": "Low stock"
+    },
+    "colors": {
+      "one": "{{ count }} color",
+      "other": "{{ count }} colors"
+    }
+  },
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty"
+  },
+  "chrome": {
+    "header": {
+      "main_nav": "Main",
+      "open_menu": "Open menu",
+      "close_menu": "Close menu",
+      "cart_label": {
+        "one": "Cart, {{ count }} item",
+        "other": "Cart, {{ count }} items"
+      }
+    },
+    "ticker": {
+      "label": "Announcements"
+    },
+    "footer": {
+      "follow": "Follow",
+      "store": "Store",
+      "payment_methods": "Payment methods",
+      "copyright": "© {{ year }} {{ shop }}"
+    },
+    "drawer": {
+      "label": "Cart",
+      "title": "Your cart ({{ count }})",
+      "close": "Close cart",
+      "shipping_away": "You are {{ amount }} away from free shipping.",
+      "shipping_unlocked": "Nice — you unlocked free shipping.",
+      "remove": "Remove",
+      "remove_item": "Remove {{ title }} from cart",
+      "decrease": "Decrease quantity of {{ title }}",
+      "increase": "Increase quantity of {{ title }}",
+      "quantity": "Quantity",
+      "each": "{{ price }} each",
+      "subtotal": "Subtotal",
+      "taxes_note": "Taxes and shipping calculated at checkout",
+      "checkout": "Checkout",
+      "view_cart": "View full cart",
+      "empty_heading": "Your cart is empty",
+      "empty_text": "Nothing in here yet. The new drop is a good place to start.",
+      "continue_shopping": "Continue shopping",
+      "updated": "Cart updated",
+      "error": "Something went wrong. Please try again."
+    }
+  },
+  "home": {
+    "hero": {
+      "image_1_label": "Hero image 1 · 4:5",
+      "image_2_label": "Hero image 2 · 4:5",
+      "image_full_label": "Hero image · full bleed"
+    },
+    "tiles": {
+      "category_image": "Category image"
+    },
+    "featured": {
+      "all": "All",
+      "filter_label": "Filter products",
+      "showing": "Showing {{ count }} products",
+      "placeholder_title": "Product title"
+    },
+    "lookbook": {
+      "image_label": "Lookbook image · full bleed"
+    },
+    "newsletter": {
+      "email_placeholder": "you@email.com",
+      "success": "Thanks for subscribing. You're on the list.",
+      "error": "Please enter a valid email address."
+    }
+  },
+  "collection": {
+    "breadcrumb": "Breadcrumb",
+    "home": "Home",
+    "products_count": {
+      "one": "{{ count }} product",
+      "other": "{{ count }} products"
+    },
+    "show_filters": "Show filters",
+    "hide_filters": "Hide filters",
+    "filters": "Filters",
+    "sort_by": "Sort by",
+    "apply": "Apply",
+    "clear_all": "Clear all filters",
+    "remove_filter": "Remove filter {{ label }}",
+    "active_filters": "Active filters",
+    "price_from": "From",
+    "price_to": "To",
+    "empty_title": "No products match",
+    "empty_text": "Try removing a filter or widening your search.",
+    "browse_all": "Browse everything"
+  },
+  "search": {
+    "label": "Search the store",
+    "submit": "Search",
+    "clear": "Clear search",
+    "popular": "Popular:",
+    "prompt": "Type something to search the store.",
+    "results_for": {
+      "one": "{{ count }} result for “{{ terms }}”",
+      "other": "{{ count }} results for “{{ terms }}”"
+    },
+    "empty_title_before": "Nothing",
+    "empty_title_highlight": "matched",
+    "empty_text": "Check the spelling, try a broader word, or start from one of the popular searches.",
+    "browse_all": "Browse everything",
+    "suggestions": "Suggestions",
+    "products": "Products",
+    "collections": "Collections",
+    "pages": "Pages and articles",
+    "view_all": "View all results",
+    "no_suggestions": "No suggestions available",
+    "no_suggestions_for": "No results for “{{ terms }}”",
+    "suggestions_count": {
+      "one": "{{ count }} suggestion available",
+      "other": "{{ count }} suggestions available"
+    }
+  },
+  "product": {
+    "breadcrumb_label": "Breadcrumb",
+    "home": "Home",
+    "gallery_label": "Product media",
+    "main_image": "Main product image",
+    "detail_shot": "Detail shot",
+    "on_model_shot": "On-model shot",
+    "free_shipping": "Free shipping",
+    "size_guide": "Size guide",
+    "quantity": "Quantity",
+    "decrease_quantity": "Decrease quantity",
+    "increase_quantity": "Increase quantity",
+    "add_to_cart": "Add to cart",
+    "adding": "Adding…",
+    "added": "Added",
+    "sold_out": "Sold out",
+    "unavailable": "Unavailable",
+    "added_message": "Added to your cart.",
+    "view_cart": "View cart →",
+    "error_generic": "Something went wrong. Please try again.",
+    "perks": {
+      "ships_in": "Ships in",
+      "ships_value": "{{ days }} business days",
+      "returns": "Returns",
+      "returns_value": "{{ days }} days",
+      "fabric": "Fabric",
+      "fabric_value": "{{ gsm }} cotton"
+    }
+  },
+  "cart_page": {
+    "continue_shopping": "Continue shopping",
+    "items_count": {
+      "one": "{{ count }} item",
+      "other": "{{ count }} items"
+    },
+    "shipping_away": "You are {{ amount }} away from free shipping.",
+    "shipping_unlocked": "Nice, you unlocked free shipping.",
+    "shipping_progress": "Progress towards free shipping",
+    "each": "{{ price }} each",
+    "quantity": "Quantity of {{ title }}",
+    "decrease": "Decrease quantity of {{ title }}",
+    "increase": "Increase quantity of {{ title }}",
+    "remove": "Remove",
+    "remove_item": "Remove {{ title }} from cart",
+    "summary": "Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shipping_free": "Free",
+    "taxes": "Taxes",
+    "at_checkout": "Calculated at checkout",
+    "order_note": "Order note",
+    "order_note_placeholder": "Gift message, delivery details...",
+    "total": "Total",
+    "checkout": "Checkout",
+    "update": "Update cart",
+    "empty_heading_html": "Your cart is <span class=\"highlight\">empty</span>.",
+    "sign_in": "Sign in",
+    "announce_updated": "Cart updated. Subtotal {total}.",
+    "announce_removed": "Item removed. Subtotal {total}.",
+    "announce_error": "Sorry, the cart could not be updated."
+  },
+  "contact": {
+    "name": "Name",
+    "email": "Email",
+    "studio": "Studio",
+    "hours": "Hours",
+    "order_number": "Order number",
+    "optional": "optional",
+    "message": "Message",
+    "response_time": "We will reply {{ time }}.",
+    "success_title": "Message sent.",
+    "success_text": "Thanks for reaching out. We will get back to you soon.",
+    "send_another": "Send another",
+    "error_title": "Please fix the following:"
+  },
+  "account": {
+    "sign_in": "Sign in",
+    "create_account": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "forgot_password": "Forgot password?",
+    "recover_intro": "Enter your email and we will send you a link to reset your password.",
+    "send_reset": "Send reset link",
+    "recover_success": "We have sent you an email with a link to reset your password.",
+    "new_here": "New here?",
+    "have_account": "Already have an account?",
+    "marketing_optin": "Email me about new drops and restocks",
+    "error_title": "Something went wrong:",
+    "greeting": "Hi, {{ name }}.",
+    "addresses": "Addresses",
+    "log_out": "Log out",
+    "order_history": "Order history",
+    "order": "Order",
+    "date": "Date",
+    "payment": "Payment",
+    "fulfillment": "Fulfillment",
+    "total": "Total",
+    "no_orders": "You have not placed any orders yet."
+  },
+  "not_found": {
+    "search_label": "Search the store",
+    "shop_all": "Shop all"
+  }
+}

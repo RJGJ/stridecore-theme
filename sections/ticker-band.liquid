@@ -1,0 +1,43 @@
+{%- liquid
+  assign band_items = section.settings.items
+  assign band_gap = section.settings.gap | append: 'px'
+-%}
+{%- if band_items != blank -%}
+  <div class="ticker-band">
+    {% render 'marquee',
+      items: band_items,
+      reverse: section.settings.reverse,
+      gap: band_gap,
+      class: 'display ticker-band__track'
+    %}
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .ticker-band {
+    background: var(--accent);
+    color: var(--on-accent);
+    border-top: 2px solid var(--fg);
+    border-bottom: 2px solid var(--fg);
+    overflow: hidden;
+    padding: 16px 0;
+  }
+  .ticker-band .ticker-band__track {
+    font-size: clamp(36px, 5vw, 72px);
+    line-height: 1.05;
+    text-wrap: nowrap;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Ticker band",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "items", "label": "Items", "info": "Separate items with a vertical bar (|).", "default": "Complete the look" },
+    { "type": "range", "id": "gap", "label": "Gap", "min": 16, "max": 96, "step": 4, "unit": "px", "default": 36 },
+    { "type": "checkbox", "id": "reverse", "label": "Reverse direction", "default": false }
+  ],
+  "presets": [{ "name": "Ticker band" }]
+}
+{% endschema %}

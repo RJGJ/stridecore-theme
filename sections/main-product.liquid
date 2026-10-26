@@ -1,0 +1,764 @@
+{%- liquid
+  assign current = product.selected_or_first_available_variant
+  assign threshold_cents = settings.free_shipping_threshold | default: 0 | times: 100
+  assign amount_money = threshold_cents | money
+
+  assign crumb_collection = collection
+  if crumb_collection == blank
+    assign crumb_collection = product.collections.first
+  endif
+
+  assign show_free_shipping = false
+  if threshold_cents > 0 and current.price >= threshold_cents
+    assign show_free_shipping = true
+  endif
+
+  assign eyebrow_text = section.settings.eyebrow
+  if section.settings.use_vendor and product.vendor != blank
+    assign eyebrow_text = product.vendor
+  endif
+
+  assign low_stock_label = 'products.badge.low_stock' | t
+  assign sold_out_label = 'products.badge.sold_out' | t
+  assign initial_badge = ''
+  assign has_accordion = false
+  for block in section.blocks
+    if block.type == 'accordion'
+      assign has_accordion = true
+    endif
+  endfor
+-%}
+
+{%- capture variants_json -%}
+  [
+  {%- for v in product.variants -%}
+    {%- liquid
+      assign v_price = v.price | money
+      assign v_compare = ''
+      if v.compare_at_price > v.price
+        assign v_compare = v.compare_at_price | money
+      endif
+      assign v_badge = ''
+      if v.available == false
+        assign v_badge = sold_out_label
+      elsif v.compare_at_price > v.price
+        assign v_saved = v.compare_at_price | minus: v.price | times: 100.0 | divided_by: v.compare_at_price | round
+        assign v_badge = '-' | append: v_saved | append: '%'
+      elsif v.inventory_management != blank and v.inventory_quantity > 0 and v.inventory_quantity <= 5
+        assign v_badge = low_stock_label
+      endif
+      if v.id == current.id
+        assign initial_badge = v_badge
+      endif
+    -%}
+    {
+      "id": {{ v.id }},
+      "options": {{ v.options | json }},
+      "available": {{ v.available | json }},
+      "price": {{ v_price | json }},
+      "priceCents": {{ v.price }},
+      "compare": {{ v_compare | json }},
+      "mediaId": {{ v.featured_media.id | json }},
+      "badge": {{ v_badge | json }}
+    }{% unless forloop.last %},{% endunless %}
+  {%- endfor -%}
+  ]
+{%- endcapture -%}
+
+{%- assign label_add = 'product.add_to_cart' | t -%}
+{%- assign label_adding = 'product.adding' | t -%}
+{%- assign label_added = 'product.added' | t -%}
+{%- assign label_sold_out = 'product.sold_out' | t -%}
+{%- assign label_unavailable = 'product.unavailable' | t -%}
+{%- assign label_error = 'product.error_generic' | t -%}
+{%- assign ph_main = 'product.main_image' | t -%}
+{%- assign ph_detail = 'product.detail_shot' | t -%}
+{%- assign ph_model = 'product.on_model_shot' | t -%}
+
+<nav class="pf-crumbs container" aria-label="{{ 'product.breadcrumb_label' | t }}">
+  <a href="{{ routes.root_url }}">{{ 'product.home' | t }}</a>
+  <span aria-hidden="true">/</span>
+  {%- if crumb_collection != blank -%}
+    <a href="{{ crumb_collection.url }}">{{ crumb_collection.title }}</a>
+    <span aria-hidden="true">/</span>
+  {%- endif -%}
+  <span class="pf-crumbs__current" aria-current="page">{{ product.title }}</span>
+</nav>
+
+<product-form
+  class="pf container"
+  data-section-id="{{ section.id }}"
+  data-product-url="{{ product.url }}"
+  data-threshold="{{ threshold_cents }}"
+  data-cart-url="{{ routes.cart_url }}"
+  data-label-add="{{ label_add | escape }}"
+  data-label-adding="{{ label_adding | escape }}"
+  data-label-added="{{ label_added | escape }}"
+  data-label-sold-out="{{ label_sold_out | escape }}"
+  data-label-unavailable="{{ label_unavailable | escape }}"
+  data-label-error="{{ label_error | escape }}"
+  data-label-status-added="{{ 'product.added_message' | t | escape }}"
+>
+  <script type="application/json" data-variants>{{ variants_json }}</script>
+
+  <div class="pf__gallery" role="group" aria-label="{{ 'product.gallery_label' | t }}">
+    {%- if product.media.size > 0 -%}
+      {%- for media in product.media -%}
+        <div class="pf__item{% if forloop.first %} pf__item--main{% endif %}" data-media-id="{{ media.id }}">
+          {%- if forloop.first -%}
+            {%- assign media_ratio = '5 / 4' -%}
+          {%- else -%}
+            {%- assign media_ratio = '4 / 5' -%}
+          {%- endif -%}
+          <div class="media pf__media" style="aspect-ratio: {{ media_ratio }}">
+            {%- case media.media_type -%}
+              {%- when 'image' -%}
+                {%- if forloop.first -%}
+                  {{
+                    media
+                    | image_url: width: 1600
+                    | image_tag: loading: 'eager', fetchpriority: 'high', sizes: '(min-width: 1024px) 55vw, 100vw', widths: '540,720,900,1200,1600', alt: media.alt
+                  }}
+                {%- else -%}
+                  {{
+                    media
+                    | image_url: width: 1100
+                    | image_tag: loading: 'lazy', sizes: '(min-width: 1024px) 27vw, 100vw', widths: '360,540,720,900,1100', alt: media.alt
+                  }}
+                {%- endif -%}
+              {%- when 'video' -%}
+                {{ media | video_tag: image_size: '1100x', controls: true, loop: false, muted: false, preload: 'none' }}
+              {%- when 'external_video' -%}
+                {{ media | external_video_tag }}
+              {%- when 'model' -%}
+                {{ media | model_viewer_tag: image_size: '1100x', toggleable: true }}
+              {%- else -%}
+                {{ media | media_tag }}
+            {%- endcase -%}
+          </div>
+          {%- if forloop.first -%}
+            <span class="sticker pf__sticker" data-badge{% if initial_badge == blank %} hidden{% endif %}>{{ initial_badge }}</span>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    {%- else -%}
+      <div class="pf__item pf__item--main">
+        {% render 'placeholder-media', ratio: '5 / 4', label: ph_main %}
+        <span class="sticker pf__sticker" data-badge{% if initial_badge == blank %} hidden{% endif %}>{{ initial_badge }}</span>
+      </div>
+      <div class="pf__item">
+        {% render 'placeholder-media', ratio: '4 / 5', label: ph_detail %}
+      </div>
+      <div class="pf__item">
+        {% render 'placeholder-media', ratio: '4 / 5', label: ph_model %}
+      </div>
+    {%- endif -%}
+  </div>
+
+  <div class="pf__buy">
+    <div class="pf__head">
+      {%- if eyebrow_text != blank -%}
+        <span class="eyebrow">{{ eyebrow_text }}</span>
+      {%- endif -%}
+      <h1 class="display pf__title">{{ product.title }}</h1>
+      <div class="pf__price-row">
+        <span class="pf__price" data-price>{{ current.price | money }}</span>
+        <s class="pf__compare" data-compare{% unless current.compare_at_price > current.price %} hidden{% endunless %}>{{ current.compare_at_price | money }}</s>
+        <span class="pf__tag" data-free-shipping{% unless show_free_shipping %} hidden{% endunless %}>{{ 'product.free_shipping' | t }}</span>
+      </div>
+      {%- if product.description != blank -%}
+        <div class="pf__desc rte">{{ product.description }}</div>
+      {%- endif -%}
+    </div>
+
+    {%- assign form_id = 'product-form-' | append: section.id -%}
+    {%- form 'product', product, id: form_id, class: 'pf__form', novalidate: 'novalidate', data-product-form: '' -%}
+      <input type="hidden" name="id" value="{{ current.id }}" data-variant-id{% unless current.available %} disabled{% endunless %}>
+
+      {%- unless product.has_only_default_variant -%}
+        {%- for option in product.options_with_values -%}
+          {%- liquid
+            assign option_name = option.name | downcase
+            assign swatch_mode = false
+            if option_name == 'color' or option_name == 'colour'
+              assign swatch_mode = true
+            endif
+            for ov in option.values
+              if ov.swatch != blank
+                assign swatch_mode = true
+              endif
+            endfor
+            assign option_index = forloop.index0
+            assign selected_name = option.selected_value
+          -%}
+          <fieldset class="pf__option" data-option-index="{{ option_index }}">
+            <legend class="pf__legend">
+              {{- option.name }}{% if swatch_mode %} — <span class="pf__legend-value" data-option-value>{{ selected_name }}</span>{% endif -%}
+            </legend>
+            <div class="{% if swatch_mode %}pf__swatches{% else %}pf__pills{% endif %}">
+              {%- for ov in option.values -%}
+                {%- liquid
+                  assign input_id = form_id | append: '-' | append: option_index | append: '-' | append: forloop.index
+                  assign swatch_color = ''
+                  assign swatch_image = ''
+                  if ov.swatch.color
+                    assign swatch_color = ov.swatch.color | color_to_rgb
+                  endif
+                  if ov.swatch.image
+                    assign swatch_image = ov.swatch.image | image_url: width: 96
+                  endif
+                -%}
+                {%- assign use_swatch = false -%}
+                {%- if swatch_mode -%}
+                  {%- if swatch_color != blank or swatch_image != blank -%}
+                    {%- assign use_swatch = true -%}
+                  {%- endif -%}
+                {%- endif -%}
+                {%- if use_swatch -%}
+                  <label class="pf__swatch" for="{{ input_id }}" title="{{ ov.value | escape }}" data-value="{{ ov.value | escape }}">
+                    <input type="radio" class="visually-hidden" id="{{ input_id }}" name="{{ form_id }}-opt-{{ option_index }}" value="{{ ov.value | escape }}" data-option-input="{{ option_index }}"{% if ov.selected %} checked{% endif %}>
+                    <span class="pf__ring" aria-hidden="true">
+                      <span class="pf__chip" style="{% if swatch_image != blank %}background-image: url('{{ swatch_image }}'); background-size: cover; background-position: center;{% else %}background-color: {{ swatch_color }};{% endif %}"></span>
+                    </span>
+                    <span class="visually-hidden">{{ ov.value }}</span>
+                  </label>
+                {%- else -%}
+                  <label class="pf__pill-label" for="{{ input_id }}" data-value="{{ ov.value | escape }}">
+                    <input type="radio" class="visually-hidden" id="{{ input_id }}" name="{{ form_id }}-opt-{{ option_index }}" value="{{ ov.value | escape }}" data-option-input="{{ option_index }}"{% if ov.selected %} checked{% endif %}>
+                    <span class="pf__pill">{{ ov.value }}</span>
+                  </label>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </fieldset>
+        {%- endfor -%}
+      {%- endunless -%}
+
+      {%- if section.settings.size_guide_page != blank or section.settings.size_guide_text != blank -%}
+        <p class="pf__guide">
+          {%- if section.settings.size_guide_page != blank -%}
+            <a href="{{ section.settings.size_guide_page.url }}">{{ 'product.size_guide' | t }}{% if section.settings.size_guide_text != blank %} — {{ section.settings.size_guide_text }}{% endif %}</a>
+          {%- else -%}
+            <span>{{ section.settings.size_guide_text }}</span>
+          {%- endif -%}
+        </p>
+      {%- endif -%}
+
+      <div class="pf__actions">
+        <div class="pf__qty">
+          <button type="button" class="pf__qty-btn" data-qty-dec aria-label="{{ 'product.decrease_quantity' | t }}">−</button>
+          <input type="number" class="pf__qty-input" name="quantity" value="1" min="1" max="9" inputmode="numeric" aria-label="{{ 'product.quantity' | t }}" data-qty>
+          <button type="button" class="pf__qty-btn" data-qty-inc aria-label="{{ 'product.increase_quantity' | t }}">+</button>
+        </div>
+        {%- liquid
+          assign add_label = label_add
+          assign add_disabled = false
+          if current.available == false
+            assign add_label = label_sold_out
+            assign add_disabled = true
+          endif
+        -%}
+        <button type="submit" class="btn btn--accent pf__add" data-add{% if add_disabled %} disabled{% endif %}>
+          <span data-add-label>{{ add_label }}</span>
+        </button>
+      </div>
+
+      {%- if section.settings.show_dynamic_checkout -%}
+        <div class="pf__dynamic" data-dynamic-checkout{% unless current.available %} hidden{% endunless %}>
+          {{ form | payment_button }}
+        </div>
+      {%- endif -%}
+    {%- endform -%}
+
+    <div class="pf__status" role="status" aria-live="polite" data-status hidden>
+      <span class="pf__status-text" data-status-text></span>
+      <a class="pf__status-link" href="{{ routes.cart_url }}" data-status-link hidden>{{ 'product.view_cart' | t }}</a>
+    </div>
+
+    <div class="pf__perks">
+      <div><strong>{{ 'product.perks.ships_in' | t }}</strong><span>{{ 'product.perks.ships_value' | t: days: settings.shipping_days }}</span></div>
+      <div><strong>{{ 'product.perks.returns' | t }}</strong><span>{{ 'product.perks.returns_value' | t: days: settings.return_window }}</span></div>
+      <div><strong>{{ 'product.perks.fabric' | t }}</strong><span>{{ 'product.perks.fabric_value' | t: gsm: settings.fabric_gsm }}</span></div>
+    </div>
+
+    {%- for block in section.blocks -%}
+      {%- if block.type == '@app' -%}
+        <div class="pf__app">{% render block %}</div>
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- if has_accordion -%}
+      <kinetic-accordion class="pf__acc" data-single>
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'accordion' -%}
+            {%- liquid
+              assign panel_id = 'pf-acc-' | append: block.id
+              assign acc_body = block.settings.content
+              assign acc_body = acc_body | replace: '[RETURN WINDOW]', settings.return_window | replace: '[GSM]', settings.fabric_gsm | replace: '[X]', settings.shipping_days | replace: '[AMOUNT]', amount_money
+            -%}
+            <div class="pf__acc-item" {{ block.shopify_attributes }}>
+              <h2 class="pf__acc-heading">
+                <button type="button" class="pf__acc-trigger" aria-expanded="{{ block.settings.open }}" aria-controls="{{ panel_id }}" data-accordion-trigger>
+                  <span>{{ block.settings.title }}</span>
+                  <span class="pf__acc-sign" aria-hidden="true"></span>
+                </button>
+              </h2>
+              <div class="pf__acc-panel rte" id="{{ panel_id }}" role="region" aria-label="{{ block.settings.title | escape }}"{% unless block.settings.open %} hidden{% endunless %}>
+                {{ acc_body }}
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </kinetic-accordion>
+    {%- endif -%}
+  </div>
+</product-form>
+
+<script src="{{ 'product-form.js' | asset_url }}" defer></script>
+{%- if has_accordion -%}
+  <script src="{{ 'accordion.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% stylesheet %}
+  .pf-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-block: 20px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .pf-crumbs a {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
+  .pf-crumbs__current {
+    color: var(--fg);
+  }
+
+  .pf {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(32px, 4vw, 64px);
+    align-items: start;
+    padding-bottom: clamp(64px, 8vw, 112px);
+  }
+  .pf__gallery {
+    flex: 999 1 560px;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    gap: 16px;
+  }
+  .pf__item {
+    position: relative;
+    min-width: 0;
+    scroll-margin-top: 24px;
+  }
+  .pf__item--main {
+    grid-column: 1 / -1;
+  }
+  .pf__item .media--placeholder,
+  .pf__media {
+    border: 2px solid var(--fg);
+    width: 100%;
+  }
+  .pf__media video,
+  .pf__media iframe,
+  .pf__media model-viewer {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 0;
+  }
+  .pf__item.is-highlighted .pf__media {
+    outline: 3px solid var(--accent-ink);
+    outline-offset: 3px;
+  }
+  .pf__sticker {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 8px 14px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .pf__buy {
+    flex: 1 1 380px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .pf__head {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .pf__title {
+    font-size: clamp(40px, 4.4vw, 64px);
+  }
+  .pf__price-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .pf__price {
+    font-family: var(--f-mono);
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .pf__compare {
+    font-family: var(--f-mono);
+    font-size: 18px;
+    color: var(--muted);
+  }
+  .pf__tag {
+    padding: 4px 10px;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 0 0 2px var(--accent-edge);
+    border-radius: var(--r-pill);
+    font-family: var(--f-mono);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .pf__desc {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .rte > :first-child {
+    margin-top: 0;
+  }
+  .rte > :last-child {
+    margin-bottom: 0;
+  }
+  .rte p,
+  .rte ul,
+  .rte ol {
+    margin: 0 0 1em;
+  }
+
+  .pf__form {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .pf__option {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  .pf__legend {
+    padding: 0;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .pf__legend-value {
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .pf__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .pf__swatch {
+    position: relative;
+    display: block;
+    cursor: pointer;
+  }
+  .pf__ring {
+    display: block;
+    width: 48px;
+    height: 48px;
+    padding: 4px;
+    border: 2px solid transparent;
+    border-radius: var(--r-pill);
+    position: relative;
+  }
+  .pf__chip {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .pf__swatch input:checked + .pf__ring {
+    border-color: var(--fg);
+  }
+  .pf__swatch input:focus-visible + .pf__ring {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+  .pf__swatch[data-unavailable] .pf__ring::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: var(--r-pill);
+    background: linear-gradient(to top right, transparent calc(50% - 1px), var(--fg) calc(50% - 1px), var(--fg) calc(50% + 1px), transparent calc(50% + 1px));
+  }
+  .pf__swatch[data-unavailable] .pf__chip {
+    opacity: 0.5;
+  }
+
+  .pf__pills {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 10px;
+  }
+  .pf__pill-label {
+    display: block;
+    cursor: pointer;
+  }
+  .pf__pill {
+    display: grid;
+    place-items: center;
+    min-height: 52px;
+    padding: 0 8px;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--f-mono);
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .pf__pill-label input:checked + .pf__pill {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .pf__pill-label input:focus-visible + .pf__pill {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+  .pf__pill-label[data-unavailable] .pf__pill {
+    border-color: var(--line);
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  .pf__pill-label[data-unavailable] input:checked + .pf__pill {
+    background: var(--surface);
+    color: var(--muted);
+    border-color: var(--fg);
+  }
+
+  .pf__guide {
+    margin-top: -12px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .pf__guide a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .pf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .pf__qty {
+    display: flex;
+    align-items: center;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+  }
+  .pf__qty-btn {
+    width: 52px;
+    height: 56px;
+    background: none;
+    border: 0;
+    color: inherit;
+    font-size: 22px;
+    cursor: pointer;
+  }
+  .pf__qty-input {
+    width: 48px;
+    height: 56px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: center;
+    font-family: var(--f-mono);
+    font-weight: 700;
+    font-size: 17px;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .pf__qty-input::-webkit-outer-spin-button,
+  .pf__qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .pf__add {
+    flex: 1 1 220px;
+    min-height: 60px;
+    font-weight: 900;
+    font-size: 16px;
+  }
+  .pf__dynamic {
+    margin-top: -12px;
+  }
+
+  .pf__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+  }
+  .pf__status--error {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .pf__status-text {
+    font-weight: 700;
+  }
+  .pf__status-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 14px;
+  }
+
+  .pf__perks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .pf__perks > div {
+    padding: 16px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+  }
+  .pf__perks > div + div {
+    border-left: 1px solid var(--line);
+  }
+  .pf__perks strong {
+    text-transform: uppercase;
+  }
+  .pf__perks span {
+    color: var(--muted);
+  }
+
+  .pf__acc {
+    display: flex;
+    flex-direction: column;
+  }
+  .pf__acc-item {
+    border-bottom: 1px solid var(--line);
+  }
+  .pf__acc-heading {
+    margin: 0;
+    font-size: inherit;
+  }
+  .pf__acc-trigger {
+    width: 100%;
+    min-height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    cursor: pointer;
+  }
+  .pf__acc-sign {
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1;
+  }
+  .pf__acc-sign::before {
+    content: '+';
+  }
+  .pf__acc-trigger[aria-expanded='true'] .pf__acc-sign::before {
+    content: '−';
+  }
+  .pf__acc-panel {
+    margin: 0 0 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  @media (max-width: 480px) {
+    .pf__sticker {
+      top: 12px;
+      left: 12px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Product",
+  "tag": "section",
+  "class": "section-main-product",
+  "settings": [
+    { "type": "header", "content": "Buy box" },
+    { "type": "checkbox", "id": "use_vendor", "label": "Use product vendor as eyebrow", "default": false },
+    { "type": "text", "id": "eyebrow", "label": "Default eyebrow", "default": "SS27 / Drop 04", "info": "Shown above the title (or when the vendor is not used)." },
+    { "type": "checkbox", "id": "show_dynamic_checkout", "label": "Show dynamic checkout buttons", "default": false },
+    { "type": "header", "content": "Size guide" },
+    { "type": "page", "id": "size_guide_page", "label": "Size guide page" },
+    { "type": "text", "id": "size_guide_text", "label": "Size guide note", "default": "runs boxy, size down for a closer fit" }
+  ],
+  "blocks": [
+    {
+      "type": "accordion",
+      "name": "Accordion",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Details & fit" },
+        { "type": "richtext", "id": "content", "label": "Content", "info": "Placeholders [AMOUNT], [RETURN WINDOW], [GSM] and [X] are replaced from theme settings.", "default": "<p>Boxy, cropped body. Dropped shoulder. Double-layer hood, kangaroo pocket, ribbed cuffs and hem.</p>" },
+        { "type": "checkbox", "id": "open", "label": "Open by default", "default": false }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "presets": [
+    {
+      "name": "Product",
+      "blocks": [
+        { "type": "accordion", "settings": { "title": "Details & fit", "open": true, "content": "<p>Boxy, cropped body. Dropped shoulder. Double-layer hood, kangaroo pocket, ribbed cuffs and hem.</p>" } },
+        { "type": "accordion", "settings": { "title": "Fabric & care", "content": "<p>[GSM] cotton. Machine wash cold inside out, hang dry. Do not tumble dry.</p>" } },
+        { "type": "accordion", "settings": { "title": "Shipping & returns", "content": "<p>Free shipping over [AMOUNT]. Returns accepted within [RETURN WINDOW] days of delivery.</p>" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

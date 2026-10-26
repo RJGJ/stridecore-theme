@@ -1,0 +1,17 @@
+{%- doc -%}
+  Section title with an optional eyebrow line. Use inside a flex wrapper when
+  placing controls to the right of it.
+
+  @param {string} heading - text (may include <br>)
+  @param {string} [eyebrow] - mono label above the heading
+  @param {string} [tag] - h1 | h2 | h3, default h2
+  @param {string} [size] - xl | lg | md, default lg
+{%- enddoc -%}
+
+{%- assign heading_tag = tag | default: 'h2' -%}
+<div class="section-heading">
+  {%- if eyebrow != blank -%}
+    <p class="eyebrow" style="margin-bottom: 20px">{{ eyebrow }}</p>
+  {%- endif -%}
+  <{{ heading_tag }} class="display display--{{ size | default: 'lg' }}">{{ heading }}</{{ heading_tag }}>
+</div>

@@ -1,0 +1,34 @@
+{%- doc -%}
+  Seamless horizontal marquee. Content repeats so the -50% keyframe loops cleanly.
+
+  @param {string} items - items separated by "|"
+  @param {string} [separator] - glyph between items, default "✦"
+  @param {boolean} [reverse] - run the other direction (slower)
+  @param {string} [gap] - CSS gap, default 48px
+  @param {string} [class] - extra classes applied to the track (set font/size here)
+  @param {string} [separator_class] - class for the separator glyph
+
+  @example
+  {% render 'marquee', items: 'Built different|Worn louder', class: 'display' %}
+{%- enddoc -%}
+
+{%- liquid
+  assign marquee_items = items | split: '|'
+  assign marquee_separator = separator | default: '✦'
+-%}
+{%- if marquee_items.size > 0 -%}
+  <div class="marquee{% if reverse %} marquee--reverse{% endif %}" style="--marquee-gap: {{ gap | default: '48px' }}">
+    <div class="marquee__track {{ class }}">
+      {%- for copy in (1..2) -%}
+        <div class="marquee__group"{% if copy == 2 %} aria-hidden="true"{% endif %}>
+          {%- for repeat in (1..2) -%}
+            {%- for item in marquee_items -%}
+              <span>{{ item | strip }}</span>
+              <span class="{{ separator_class }}" aria-hidden="true">{{ marquee_separator }}</span>
+            {%- endfor -%}
+          {%- endfor -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}

@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-search",
+      "settings": {
+        "placeholder": "Hoodies, cargo, caps…",
+        "popular_terms": "Hoodie, Cargo, Tee, Cap, Jacket",
+        "include_content": false,
+        "per_page": 12
+      }
+    }
+  },
+  "order": ["main"]
+}

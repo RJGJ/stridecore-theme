@@ -1,0 +1,135 @@
+{%- assign greet_name = customer.first_name | default: customer.email -%}
+<section class="acct-home container">
+  <div class="acct-home__top">
+    <h1 class="display acct-home__title">{{ 'account.greeting' | t: name: greet_name }}</h1>
+    <div class="acct-home__links">
+      <a href="{{ routes.account_addresses_url }}" class="btn btn--sm">{{ 'account.addresses' | t }}</a>
+      <a href="{{ routes.account_logout_url }}" class="btn btn--sm btn--ink">{{ 'account.log_out' | t }}</a>
+    </div>
+  </div>
+
+  <h2 class="acct-home__subtitle">{{ 'account.order_history' | t }}</h2>
+
+  {%- paginate customer.orders by 20 -%}
+    {%- if customer.orders.size > 0 -%}
+      <div class="acct-home__table-wrap">
+        <table class="acct-home__table">
+          <caption class="visually-hidden">{{ 'account.order_history' | t }}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'account.order' | t }}</th>
+              <th scope="col">{{ 'account.date' | t }}</th>
+              <th scope="col">{{ 'account.payment' | t }}</th>
+              <th scope="col">{{ 'account.fulfillment' | t }}</th>
+              <th scope="col" class="acct-home__num">{{ 'account.total' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {%- for order in customer.orders -%}
+              <tr>
+                <th scope="row"><a href="{{ order.customer_url }}">{{ order.name }}</a></th>
+                <td>{{ order.created_at | time_tag: format: 'date' }}</td>
+                <td>{{ order.financial_status_label }}</td>
+                <td>{{ order.fulfillment_status_label }}</td>
+                <td class="acct-home__num">{{ order.total_price | money }}</td>
+              </tr>
+            {%- endfor -%}
+          </tbody>
+        </table>
+      </div>
+      {% render 'pagination', paginate: paginate %}
+    {%- else -%}
+      <p class="acct-home__empty">{{ 'account.no_orders' | t }}</p>
+      <a href="{{ routes.all_products_collection_url }}" class="btn btn--accent">{{ 'cart_page.continue_shopping' | t }}</a>
+    {%- endif -%}
+  {%- endpaginate -%}
+</section>
+
+{% stylesheet %}
+  .acct-home {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 28px;
+    padding-block: clamp(40px, 6vw, 96px);
+  }
+
+  .acct-home__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .acct-home__title {
+    font-size: clamp(44px, 7vw, 104px);
+  }
+
+  .acct-home__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .acct-home__subtitle {
+    font-family: var(--f-mono);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .acct-home__table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border-top: 2px solid var(--fg);
+  }
+
+  .acct-home__table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .acct-home__table th,
+  .acct-home__table td {
+    padding: 18px 12px 18px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+  }
+
+  .acct-home__table thead th {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .acct-home__table tbody th {
+    font-family: var(--f-mono);
+    font-weight: 700;
+  }
+
+  .acct-home__num {
+    text-align: right;
+    font-family: var(--f-mono);
+    padding-right: 0 !important;
+  }
+
+  .acct-home__empty {
+    color: var(--muted);
+    font-size: 17px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Customer account"
+}
+{% endschema %}

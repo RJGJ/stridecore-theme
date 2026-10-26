@@ -1,0 +1,43 @@
+{%- doc -%}
+  Renders a KINETIC button or link-button.
+
+  @param {string} label - visible text (already translated)
+  @param {string} [href] - when set renders <a>, otherwise <button>
+  @param {string} [variant] - accent | ink | outline | invert | ghost (default accent)
+  @param {string} [size] - sm | md (default md)
+  @param {string} [icon] - icon name rendered after the label
+  @param {string} [type] - button type, default "button"
+  @param {boolean} [block] - full width
+  @param {boolean} [disabled]
+  @param {string} [class] - extra classes
+  @param {string} [attrs] - raw extra attributes, e.g. data attributes
+
+  @example
+  {% render 'button', label: 'Shop the drop', href: routes.all_products_collection_url, icon: 'arrow-right' %}
+{%- enddoc -%}
+
+{%- liquid
+  assign button_variant = variant | default: 'accent'
+  assign button_classes = 'btn btn--' | append: button_variant
+  if size == 'sm'
+    assign button_classes = button_classes | append: ' btn--sm'
+  endif
+  if block
+    assign button_classes = button_classes | append: ' btn--block'
+  endif
+  if class != blank
+    assign button_classes = button_classes | append: ' ' | append: class
+  endif
+-%}
+
+{%- if href != blank -%}
+  <a href="{{ href }}" class="{{ button_classes }}" {{ attrs }}>
+    {{- label -}}
+    {%- if icon != blank %} {% render 'icon', name: icon, size: 18, stroke: 2.5 %}{% endif -%}
+  </a>
+{%- else -%}
+  <button type="{{ type | default: 'button' }}" class="{{ button_classes }}" {% if disabled %}disabled{% endif %} {{ attrs }}>
+    {{- label -}}
+    {%- if icon != blank %} {% render 'icon', name: icon, size: 18, stroke: 2.5 %}{% endif -%}
+  </button>
+{%- endif -%}

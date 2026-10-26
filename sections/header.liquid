@@ -1,0 +1,137 @@
+<header class="site-header" data-site-header>
+  <div class="site-header__inner">
+    <a href="{{ routes.root_url }}" class="site-header__logo">
+      {%- if section.settings.logo != blank -%}
+        {{ section.settings.logo | image_url: width: 400 | image_tag: alt: shop.name, loading: 'eager', class: 'site-header__logo-img', widths: '200,400' }}
+      {%- else -%}
+        {{- shop.name -}}<span class="site-header__dot">.</span>
+      {%- endif -%}
+    </a>
+
+    <nav class="site-header__nav" id="site-nav-{{ section.id }}" aria-label="{{ 'chrome.header.main_nav' | t }}" data-site-nav>
+      {%- if section.settings.menu != blank -%}
+        {%- for link in section.settings.menu.links -%}
+          {%- assign link_title = link.title | downcase | strip -%}
+          <a href="{{ link.url }}" class="site-header__link{% if link_title == 'sale' %} site-header__link--sale{% endif %}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
+        {%- endfor -%}
+      {%- endif -%}
+    </nav>
+
+    <div class="site-header__actions">
+      <a href="{{ routes.search_url }}" class="icon-btn" aria-label="{{ 'general.search' | t }}">{% render 'icon', name: 'search' %}</a>
+      <a href="{{ routes.account_url }}" class="icon-btn" aria-label="{{ 'general.account' | t }}">{% render 'icon', name: 'user' %}</a>
+      <a href="{{ routes.cart_url }}" class="icon-btn" aria-label="{{ 'chrome.header.cart_label' | t: count: cart.item_count }}"{% if settings.cart_type == 'drawer' %} data-cart-drawer-open{% endif %}>
+        {% render 'icon', name: 'bag' %}
+        <span class="count-bubble" data-cart-count{% if cart.item_count == 0 %} hidden{% endif %}>{{ cart.item_count }}</span>
+      </a>
+      <button type="button" class="icon-btn site-header__toggle" aria-expanded="false" aria-controls="site-nav-{{ section.id }}" aria-label="{{ 'chrome.header.open_menu' | t }}" data-open-label="{{ 'chrome.header.open_menu' | t }}" data-close-label="{{ 'chrome.header.close_menu' | t }}" data-menu-toggle>
+        <span data-icon-open>{% render 'icon', name: 'menu' %}</span>
+        <span data-icon-close hidden>{% render 'icon', name: 'close' %}</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script src="{{ 'header.js' | asset_url }}" defer></script>
+
+{% stylesheet %}
+  .site-header {
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .site-header__inner {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 16px var(--gutter);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 32px;
+  }
+  .site-header__logo {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+    font-family: var(--f-display);
+    font-weight: var(--d-weight);
+    font-stretch: var(--d-stretch);
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    text-transform: var(--h-case);
+  }
+  .site-header__logo-img {
+    max-height: 40px;
+    width: auto;
+  }
+  .site-header__dot {
+    color: var(--accent-ink);
+  }
+  .site-header__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .site-header__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+  }
+  .site-header__link--sale {
+    color: var(--accent-ink);
+  }
+  .site-header__link[aria-current='page'] {
+    text-decoration: underline;
+    text-underline-offset: 6px;
+  }
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .site-header__toggle {
+    display: none;
+  }
+  @media (max-width: 799px) {
+    .site-header__inner {
+      gap: 0 16px;
+    }
+    .site-header__toggle {
+      display: grid;
+    }
+    .site-header__nav {
+      display: none;
+      order: 3;
+      width: 100%;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+    .site-header__nav.is-open {
+      display: flex;
+    }
+    .site-header__link {
+      min-height: 52px;
+      font-size: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Header",
+  "tag": "div",
+  "settings": [
+    { "type": "image_picker", "id": "logo", "label": "Logo image", "info": "Optional. Falls back to the store name wordmark." },
+    { "type": "link_list", "id": "menu", "label": "Menu", "default": "main-menu" }
+  ]
+}
+{% endschema %}

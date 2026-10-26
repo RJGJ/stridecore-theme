@@ -1,0 +1,61 @@
+{
+  "sections": {
+    "hero": {
+      "type": "about-hero",
+      "settings": {
+        "eyebrow": "About us",
+        "heading": "Small batch.",
+        "highlight": "Big noise."
+      }
+    },
+    "story": {
+      "type": "story-split",
+      "settings": {
+        "image_label": "Studio / team photo",
+        "image_position": "left",
+        "text_primary": "<p>Tell your story here: who you are, where you started and why you make clothes.</p>",
+        "text_secondary": "<p>Describe your materials, where it is produced and what you care about.</p>",
+        "button_label": "Shop the collection"
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q1": {
+          "type": "question",
+          "settings": {
+            "question": "How do your sizes fit?",
+            "answer": "<p>Most pieces are cut boxy with dropped shoulders. If you are between sizes or want a closer fit, size down. Every product page links the size guide.</p>"
+          }
+        },
+        "q2": {
+          "type": "question",
+          "settings": {
+            "question": "How long does shipping take?",
+            "answer": "<p>Orders ship within a few business days. Delivery times and rates are shown at checkout.</p>"
+          }
+        },
+        "q3": {
+          "type": "question",
+          "settings": {
+            "question": "Can I return or exchange?",
+            "answer": "<p>Yes, unworn with tags attached. Start a return from your account.</p>"
+          }
+        },
+        "q4": {
+          "type": "question",
+          "settings": {
+            "question": "Will sold-out items restock?",
+            "answer": "<p>Some do, most do not. Sign up to the newsletter to hear first when a restock or new drop goes live.</p>"
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3", "q4"],
+      "settings": {
+        "heading": "Good to know",
+        "first_open": true
+      }
+    }
+  },
+  "order": ["hero", "story", "faq"]
+}

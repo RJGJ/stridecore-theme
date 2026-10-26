@@ -1,0 +1,19 @@
+{
+  "name": "Header group",
+  "type": "header",
+  "sections": {
+    "announcement": {
+      "type": "announcement-ticker",
+      "blocks": {
+        "drop": { "type": "message", "settings": { "text": "New drop — SS27 collection out now" } },
+        "shipping": { "type": "message", "settings": { "text": "Free shipping over {threshold}" } },
+        "returns": { "type": "message", "settings": { "text": "{return_window}-day easy returns" } }
+      },
+      "block_order": ["drop", "shipping", "returns"],
+      "settings": { "enabled": true }
+    },
+    "header": { "type": "header", "settings": { "menu": "main-menu" } },
+    "cart-drawer": { "type": "cart-drawer", "settings": {} }
+  },
+  "order": ["announcement", "header", "cart-drawer"]
+}

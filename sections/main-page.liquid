@@ -1,0 +1,64 @@
+<article class="page container">
+  <h1 class="display display--lg page__title">{{ page.title }}</h1>
+  <div class="page__content">
+    {{ page.content }}
+  </div>
+</article>
+
+{% stylesheet %}
+  .page {
+    padding-block: clamp(40px, 6vw, 96px);
+  }
+
+  .page__title {
+    margin-bottom: clamp(24px, 3vw, 48px);
+  }
+
+  .page__content {
+    max-width: 760px;
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  .page__content > * + * {
+    margin-top: 1.2em;
+  }
+
+  .page__content h2,
+  .page__content h3 {
+    font-family: var(--f-display);
+    font-weight: var(--d-weight);
+    line-height: var(--d-lead);
+    letter-spacing: var(--d-track);
+    text-transform: var(--h-case);
+  }
+
+  .page__content a {
+    text-decoration: underline;
+  }
+
+  .page__content img {
+    height: auto;
+    border-radius: var(--r-img);
+  }
+
+  .page__content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+
+  .page__content th,
+  .page__content td {
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    text-align: left;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Page"
+}
+{% endschema %}

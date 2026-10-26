@@ -1,0 +1,42 @@
+<section class="about-hero container">
+  {%- if section.settings.eyebrow != blank -%}
+    <span class="eyebrow about-hero__eyebrow">{{ section.settings.eyebrow }}</span>
+  {%- endif -%}
+  <h1 class="display about-hero__title">
+    {{- section.settings.heading }}
+    {% if section.settings.highlight != blank %}<span class="highlight about-hero__highlight">{{ section.settings.highlight }}</span>{% endif -%}
+  </h1>
+</section>
+
+{% stylesheet %}
+  .about-hero {
+    padding-block: clamp(40px, 6vw, 96px);
+  }
+
+  .about-hero__eyebrow {
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  .about-hero__title {
+    font-size: clamp(56px, 10vw, 160px);
+  }
+
+  .about-hero__highlight {
+    transform: rotate(-1.5deg);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "About hero",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "About us" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Small batch." },
+    { "type": "text", "id": "highlight", "label": "Highlighted words", "default": "Big noise." }
+  ],
+  "presets": [
+    { "name": "About hero" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,89 @@
+<section class="container perks">
+  <div class="perks__grid">
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign perk_number = forloop.index | plus: 100 | append: '' | slice: 1, 2
+        assign perk_text = block.settings.text | replace: '{return_window}', settings.return_window
+      -%}
+      <div class="perks__item" {{ block.shopify_attributes }}>
+        <span class="perks__num">{{ perk_number }}</span>
+        <span class="perks__title">{{ block.settings.title }}</span>
+        <span class="perks__text">{{ perk_text }}</span>
+      </div>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% stylesheet %}
+.perks {
+  padding-block: clamp(56px, 7vw, 104px);
+}
+.perks__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  border: 2px solid var(--fg);
+  border-radius: var(--r-img);
+  overflow: hidden;
+}
+.perks__item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 32px 28px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.perks__num {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-ink);
+}
+.perks__title {
+  font-size: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.perks__text {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Perks",
+  "tag": "section",
+  "class": "section-perks",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "perk",
+      "name": "Perk",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Heavyweight" },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text",
+          "info": "Use {return_window} to insert the return window from theme settings.",
+          "default": "Dense cotton that holds its shape wash after wash."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Perks",
+      "blocks": [
+        { "type": "perk", "settings": { "title": "Heavyweight", "text": "Dense cotton that holds its shape wash after wash." } },
+        { "type": "perk", "settings": { "title": "Boxy fits", "text": "Dropped shoulders, cropped lengths. Size guide on every product." } },
+        { "type": "perk", "settings": { "title": "Easy returns", "text": "{return_window} days to change your mind, no questions." } },
+        { "type": "perk", "settings": { "title": "Limited runs", "text": "Small batches. When a drop is gone, it is gone." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

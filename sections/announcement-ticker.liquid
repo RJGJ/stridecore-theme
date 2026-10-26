@@ -1,0 +1,90 @@
+{%- liquid
+  assign threshold_cents = settings.free_shipping_threshold | times: 100
+  assign threshold_money = threshold_cents | money_without_trailing_zeros
+-%}
+
+{%- if section.settings.enabled and section.blocks.size > 0 -%}
+  <div class="ticker" role="region" aria-label="{{ 'chrome.ticker.label' | t }}">
+    <div class="marquee ticker__marquee">
+      <div class="marquee__track ticker__track">
+        {%- for copy in (1..2) -%}
+          <div class="marquee__group"{% if copy == 2 %} aria-hidden="true"{% endif %}>
+            {%- for repeat in (1..2) -%}
+              {%- for block in section.blocks -%}
+                {%- liquid
+                  assign message = block.settings.text
+                  assign skip = false
+                  if message contains '{threshold}'
+                    if settings.free_shipping_threshold > 0
+                      assign message = message | replace: '{threshold}', threshold_money
+                    else
+                      assign skip = true
+                    endif
+                  endif
+                  if message contains '{return_window}'
+                    assign message = message | replace: '{return_window}', settings.return_window
+                  endif
+                -%}
+                {%- unless skip or message == blank -%}
+                  <span {{ block.shopify_attributes }}>{{ message }}</span>
+                  <span aria-hidden="true">✦</span>
+                {%- endunless -%}
+              {%- endfor -%}
+            {%- endfor -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .ticker {
+    background: var(--accent);
+    color: var(--on-accent);
+    border-bottom: 2px solid var(--fg);
+    overflow: hidden;
+  }
+  .ticker__track {
+    padding: 10px 0;
+    font-family: var(--f-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Announcement ticker",
+  "tag": "div",
+  "settings": [
+    { "type": "checkbox", "id": "enabled", "label": "Show ticker", "default": true },
+    {
+      "type": "paragraph",
+      "content": "Use {threshold} in a message for the free shipping amount (hidden when the threshold is 0) and {return_window} for the return window in days."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Message",
+      "settings": [
+        { "type": "text", "id": "text", "label": "Text", "default": "New drop — SS27 collection out now" }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Announcement ticker",
+      "blocks": [
+        { "type": "message", "settings": { "text": "New drop — SS27 collection out now" } },
+        { "type": "message", "settings": { "text": "Free shipping over {threshold}" } },
+        { "type": "message", "settings": { "text": "{return_window}-day easy returns" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

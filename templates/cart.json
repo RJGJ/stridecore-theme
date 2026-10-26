@@ -1,0 +1,21 @@
+{
+  "sections": {
+    "main-cart": {
+      "type": "main-cart",
+      "settings": {
+        "show_order_note": true,
+        "empty_text": "Nothing in here yet. The new drop is a good place to start.",
+        "empty_button_label": "Shop the drop"
+      }
+    },
+    "cart-upsell": {
+      "type": "cart-upsell",
+      "settings": {
+        "heading": "Pairs well with",
+        "source": "recommendations",
+        "limit": 4
+      }
+    }
+  },
+  "order": ["main-cart", "cart-upsell"]
+}
