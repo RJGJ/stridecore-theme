@@ -144,6 +144,7 @@ function checkDefault(ctx, where, s, ownerFile) {
     }
   }
   if (t === 'range') {
+    if (typeof s.unit === "string" && s.unit.length > 3) R.error(ctx.file, line, 'range', `${where}: unit "${s.unit}" is too long (max 3 characters)`);
     const { min, max, step = 1 } = s;
     if (d === undefined) R.error(ctx.file, line, 'range', `${where}: range needs a default`);
     else {
