@@ -12,6 +12,7 @@
  * between options, Escape closes and returns focus to the button, and focus
  * leaving the component closes it.
  */
+if (!customElements.get('localization-form')) {
 class LocalizationForm extends HTMLElement {
   connectedCallback() {
     this.button = this.querySelector('[data-localization-button]');
@@ -90,4 +91,5 @@ class LocalizationForm extends HTMLElement {
   }
 }
 
-if (!customElements.get('localization-form')) customElements.define('localization-form', LocalizationForm);
+  customElements.define('localization-form', LocalizationForm);
+}

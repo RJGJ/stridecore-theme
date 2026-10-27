@@ -38,7 +38,7 @@ test.describe('accessibility (axe, serious and critical)', () => {
     await go(page, handle);
     const add = page.locator('form[action*="/cart/add"] [type="submit"]:not([disabled]), button[name="add"]:not([disabled])').first();
     await add.click();
-    await page.locator('[data-cart-drawer], cart-drawer, [role="dialog"]').first().waitFor({ state: 'visible', timeout: 15_000 });
+    await page.locator('[data-drawer-panel]').first().waitFor({ state: 'visible', timeout: 15_000 });
     const v = await seriousViolations(page);
     expect(v, v.join('\n')).toEqual([]);
   });

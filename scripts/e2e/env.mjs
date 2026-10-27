@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 dotenv.config({ path: path.join(ROOT, '.env.local'), quiet: true });
+dotenv.config({ path: path.join(ROOT, '.env'), quiet: true });
 
 function normalizeStore(s) {
   if (!s) return '';

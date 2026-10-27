@@ -273,6 +273,7 @@
     "no_orders": "You have not placed any orders yet."
   },
   "not_found": {
+    "title": "404, page not found",
     "search_label": "Search the store",
     "shop_all": "Shop all"
   },

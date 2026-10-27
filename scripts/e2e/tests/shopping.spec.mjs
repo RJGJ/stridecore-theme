@@ -1,6 +1,6 @@
 import { test, expect, go, shot, addToCartViaApi } from './fixtures.mjs';
 
-const DRAWER = '[data-cart-drawer], cart-drawer, dialog[id*="cart" i], [role="dialog"][id*="cart" i], [id*="cart-drawer" i]';
+const DRAWER = '[data-drawer-panel]';
 const COUNT = '[data-cart-count], .cart-count, .count-bubble, [id*="cart-count" i], [class*="cart-count" i]';
 
 test.describe('home', () => {
@@ -135,7 +135,7 @@ test.describe('cart page', () => {
     await expect.poll(async () => (await total.innerText().catch(() => '')), { timeout: 15_000 }).not.toBe(before);
 
     // Note
-    const note = page.locator('textarea[name="note"]').first();
+    const note = page.locator('main textarea[name="note"]').first();
     if (await note.count()) {
       await note.fill('Please gift wrap');
       await note.blur();

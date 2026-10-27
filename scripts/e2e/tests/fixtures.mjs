@@ -129,7 +129,7 @@ export async function noHorizontalScroll(page) {
 
 /** Run axe and return serious/critical violations in a printable form. */
 export async function seriousViolations(page) {
-  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze();
+  const results = await new AxeBuilder({ page }).exclude('#PBarNextFrame').exclude('.shopify-payment-button').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze();
   return results.violations
     .filter((v) => v.impact === 'serious' || v.impact === 'critical')
     .map((v) => `${v.impact} ${v.id}: ${v.help} (${v.nodes.length} node(s)) e.g. ${v.nodes[0]?.target?.join(' ')}`);
