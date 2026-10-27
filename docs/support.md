@@ -5,7 +5,7 @@ We help with questions about setting up and using the Stridecore theme, and fix 
 ## Contact us
 
 - **Support form:** `SUPPORT_FORM_URL` (add the link to your form here before submitting the theme)
-- **Public issue tracker:** https://github.com/RJGJ/kinetic-theme/issues
+- **Public issue tracker:** https://github.com/RJGJ/stridecore-theme/issues
 
 Please include:
 
