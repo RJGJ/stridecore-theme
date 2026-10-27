@@ -43,6 +43,7 @@
 
 <script src="{{ 'facets.js' | asset_url }}" defer></script>
 
+<div class="srch color-{{ section.settings.color_scheme }}">
 <section class="srch-bar">
   <div class="container srch-bar__inner">
     <h1 class="visually-hidden">{{ 'search.label' | t }}</h1>
@@ -259,6 +260,7 @@
     .sf-toggle { display: none; }
   </style>
 </noscript>
+</div>
 
 {% stylesheet %}
   .srch-bar { border-bottom: 2px solid var(--fg); }
@@ -309,6 +311,7 @@
   "tag": "section",
   "class": "section-main-search",
   "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
     { "type": "text", "id": "placeholder", "label": "Search placeholder", "default": "Hoodies, cargo, caps…" },
     { "type": "text", "id": "popular_terms", "label": "Popular searches", "info": "Separate terms with commas.", "default": "Hoodie, Cargo, Tee, Cap, Jacket" },
     { "type": "checkbox", "id": "include_content", "label": "Include pages and articles in results", "default": true },

@@ -25,6 +25,9 @@ test.describe('accessibility (axe, serious and critical)', () => {
     for (const [name, url] of await targets(site)) {
       await go(page, url);
       await page.waitForLoadState('load');
+      // The search page dims results (opacity) while they load; scan the settled page.
+      await page.waitForTimeout(1500);
+      await page.waitForFunction(() => !document.querySelector('.is-loading'), null, { timeout: 10_000 }).catch(() => {});
       if (!page.url().includes(new URL(testInfo.project.use.baseURL).host)) continue;
       const v = await seriousViolations(page);
       if (v.length) failures.push(`${name} (${url}):\n  ${v.join('\n  ')}`);
@@ -61,6 +64,7 @@ test.describe('responsive', () => {
 
 test.describe('keyboard', () => {
   test('tab order follows the DOM and focus is visible', async ({ page, site }, testInfo) => {
+    test.skip(testInfo.project.name.startsWith('webkit'), 'WebKit does not Tab to links and buttons by default (Safari needs Option+Tab)');
     test.skip(testInfo.project.name.startsWith('mobile'), 'Keyboard tab order is checked on desktop projects');
     await go(page, '/');
     await page.waitForLoadState('load');
@@ -101,6 +105,7 @@ test.describe('keyboard', () => {
   });
 
   test('skip link is the first focus stop', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name.startsWith('webkit'), 'WebKit does not Tab to links and buttons by default (Safari needs Option+Tab)');
     test.skip(testInfo.project.name.startsWith('mobile'), 'desktop only');
     await go(page, '/');
     await page.keyboard.press('Tab');

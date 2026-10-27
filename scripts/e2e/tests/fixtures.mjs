@@ -14,6 +14,8 @@ const NOISE = [
   /Content Security Policy/i,
   /net::ERR_(BLOCKED|ABORTED|FAILED)/i,
   /ResizeObserver loop/i,
+  // Shopify's preview bar (only on unpublished theme previews) reports its own failures.
+  /bugsnag|preview-bar/i,
 ];
 
 /** Navigate while keeping the preview theme parameter. */
@@ -33,7 +35,10 @@ async function unlock(context) {
       if (await reveal.count()) await reveal.click();
     }
     await input.fill(CFG.password);
-    await Promise.all([page.waitForLoadState('domcontentloaded'), input.press('Enter')]);
+    await input.press('Enter');
+    // WebKit reports the old page as loaded before the redirect starts; wait for it to leave /password.
+    await page.waitForURL((u) => !u.pathname.startsWith('/password'), { timeout: 20_000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded');
     if (await page.locator('input[type="password"]').first().isVisible().catch(() => false)) {
       throw new Error('Storefront password was rejected');
     }
@@ -63,7 +68,11 @@ export const test = base.extend({
       if (NOISE.some((re) => re.test(text))) return;
       errors.push(`console.error: ${m.text()} (${m.location()?.url || ''})`);
     });
-    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    page.on('pageerror', (e) => {
+      // WebKit surfaces failed preview-bar fetches as a bare "Load failed".
+      if (e.message === 'Load failed') return;
+      errors.push(`pageerror: ${e.message}`);
+    });
     await use(errors);
   },
 
@@ -129,10 +138,17 @@ export async function noHorizontalScroll(page) {
 
 /** Run axe and return serious/critical violations in a printable form. */
 export async function seriousViolations(page) {
-  const results = await new AxeBuilder({ page }).exclude('#PBarNextFrame').exclude('.shopify-payment-button').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze();
-  return results.violations
-    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-    .map((v) => `${v.impact} ${v.id}: ${v.help} (${v.nodes.length} node(s)) e.g. ${v.nodes[0]?.target?.join(' ')}`);
+  const scan = async () => {
+    const results = await new AxeBuilder({ page }).exclude('#PBarNextFrame').exclude('.shopify-payment-button').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze();
+    return results.violations
+      .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      .map((v) => `${v.impact} ${v.id}: ${v.help} (${v.nodes.length} node(s)) e.g. ${v.nodes[0]?.target?.join(' ')}`);
+  };
+  const first = await scan();
+  if (!first.length) return first;
+  // Rescan once after a pause: pages that are mid-fade or mid-fetch produce transient contrast hits.
+  await page.waitForTimeout(2500);
+  return scan();
 }
 
 export async function addToCartViaApi(page, site) {

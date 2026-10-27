@@ -47,10 +47,11 @@ test.describe('search', () => {
 
 test.describe('header', () => {
   test('nested menu is keyboard operable', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name.startsWith('webkit'), 'WebKit does not Tab to links and buttons by default (Safari needs Option+Tab)');
     await go(page, '/');
     const isMobile = testInfo.project.name.startsWith('mobile');
     if (isMobile) {
-      const toggle = page.locator('[data-menu-toggle], button[aria-controls*="nav" i], button[aria-label*="menu" i]').first();
+      const toggle = page.locator('[data-menu-toggle]').first();
       await expect(toggle).toBeVisible();
       await toggle.focus();
       await page.keyboard.press('Enter');
