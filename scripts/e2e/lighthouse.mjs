@@ -48,7 +48,7 @@ async function http(url, { jar, method = 'GET', body } = {}) {
 /** POST the storefront password form and return the storefront_digest cookie (or null if no gate). */
 async function storefrontDigest() {
   const jar = new Map();
-  let res = await http(`${CFG.baseURL}${withPreview('/password')}`, { jar });
+  let res = await http(`${CFG.baseURL}/password`, { jar });
   const html = res.status === 200 ? await res.text() : '';
   if (!/name=["']password["']|type=["']password["']/i.test(html)) return { jar, digest: null };
   if (!CFG.password) throw new Error('Storefront is password protected: set STOREFRONT_PASSWORD in .env.local');
@@ -56,9 +56,10 @@ async function storefrontDigest() {
   const form = new URLSearchParams({ form_type: 'storefront_password', utf8: '✓', password: CFG.password });
   if (token) form.set('authenticity_token', token);
   res = await http(`${CFG.baseURL}/password`, { jar, method: 'POST', body: form.toString() });
-  const digest = jar.get('storefront_digest');
-  if (!digest) throw new Error(`Password POST returned ${res.status} without a storefront_digest cookie (wrong password?)`);
-  return { jar, digest };
+  // Newer Shopify versions no longer set storefront_digest; verify access by loading the home page.
+  const probe = await http(`${CFG.baseURL}/`, { jar });
+  if (probe.status !== 200) throw new Error(`Password POST returned ${res.status} and / returned ${probe.status} (wrong password?)`);
+  return { jar, digest: jar };
 }
 
 async function discover(jar) {
@@ -95,7 +96,7 @@ async function launchChrome(digest) {
   if (digest) {
     const v = await (await fetch(`http://127.0.0.1:${chrome.port}/json/version`)).json();
     await cdp(v.webSocketDebuggerUrl, 'Storage.setCookies', {
-      cookies: [{ name: 'storefront_digest', value: digest, domain: new URL(CFG.baseURL).hostname, path: '/', secure: CFG.baseURL.startsWith('https'), httpOnly: true }],
+      cookies: [...digest].map(([name, value]) => ({ name, value, domain: new URL(CFG.baseURL).hostname, path: '/', secure: CFG.baseURL.startsWith('https'), httpOnly: true })),
     });
   }
   return chrome;
