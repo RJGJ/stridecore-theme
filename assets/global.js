@@ -1,33 +1,33 @@
 /**
- * KINETIC core runtime. Loaded on every page (deferred).
+ * STRIDECORE core runtime. Loaded on every page (deferred).
  *
- * Public contract (window.KINETIC):
- *   K.on(name, fn) / K.off(name, fn) / K.emit(name, detail)   event bus on document, names prefixed "kinetic:"
+ * Public contract (window.STRIDECORE):
+ *   K.on(name, fn) / K.off(name, fn) / K.emit(name, detail)   event bus on document, names prefixed "stridecore:"
  *   K.fetchJSON(url, options)                                  fetch + JSON with error handling
  *   K.money(cents)                                             format minor units in the shop currency
  *   K.debounce(fn, ms)
  *   K.cart.get()                                               GET /cart.js
- *   K.cart.add({ id, quantity, properties }, { open })         POST /cart/add.js, emits kinetic:cart:updated
- *   K.cart.change(lineKey, quantity)                           POST /cart/change.js, emits kinetic:cart:updated
- *   K.cart.refresh()                                           re-read the cart and emit kinetic:cart:updated
+ *   K.cart.add({ id, quantity, properties }, { open })         POST /cart/add.js, emits stridecore:cart:updated
+ *   K.cart.change(lineKey, quantity)                           POST /cart/change.js, emits stridecore:cart:updated
+ *   K.cart.refresh()                                           re-read the cart and emit stridecore:cart:updated
  *
  * Events:
- *   kinetic:cart:updated   detail: cart JSON (carries item_count, total_price, items)
- *   kinetic:cart:open      ask the cart drawer to open
- *   kinetic:cart:error     detail: { message }
+ *   stridecore:cart:updated   detail: cart JSON (carries item_count, total_price, items)
+ *   stridecore:cart:open      ask the cart drawer to open
+ *   stridecore:cart:error     detail: { message }
  *
  * DOM hooks handled here:
  *   [data-cart-count]      text is kept in sync with cart.item_count; hidden when 0
  *   [data-quick-add]       click adds data-variant-id (quantity data-quantity or 1)
  */
 (() => {
-  const K = (window.KINETIC = window.KINETIC || {});
+  const K = (window.STRIDECORE = window.STRIDECORE || {});
   const routes = K.routes || {};
 
-  K.on = (name, fn) => document.addEventListener(`kinetic:${name}`, fn);
-  K.off = (name, fn) => document.removeEventListener(`kinetic:${name}`, fn);
+  K.on = (name, fn) => document.addEventListener(`stridecore:${name}`, fn);
+  K.off = (name, fn) => document.removeEventListener(`stridecore:${name}`, fn);
   K.emit = (name, detail) =>
-    document.dispatchEvent(new CustomEvent(`kinetic:${name}`, { detail }));
+    document.dispatchEvent(new CustomEvent(`stridecore:${name}`, { detail }));
 
   K.debounce = (fn, ms = 250) => {
     let t;
@@ -119,7 +119,7 @@
         quantity: Number(button.dataset.quantity || 1),
       });
     } catch (_) {
-      /* error is surfaced through kinetic:cart:error */
+      /* error is surfaced through stridecore:cart:error */
     } finally {
       button.disabled = false;
       button.textContent = label;

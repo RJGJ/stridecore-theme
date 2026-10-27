@@ -1,4 +1,4 @@
-# Kinetic
+# Stridecore
 
 A bold, high-contrast Shopify theme for sports apparel and streetwear stores. Built for Online Store 2.0 with original code.
 

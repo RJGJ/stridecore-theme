@@ -101,7 +101,7 @@
       assign acc_label = block.settings.title | escape
     -%}
     <div class="pb pb--accordion" {{ block.shopify_attributes }}>
-      <kinetic-accordion class="pf__acc">
+      <stridecore-accordion class="pf__acc">
         <div class="pf__acc-item">
           <h2 class="pf__acc-heading">
             <button type="button" class="pf__acc-trigger" aria-expanded="{{ block.settings.open }}" aria-controls="{{ panel_id }}" data-accordion-trigger>
@@ -113,7 +113,7 @@
             {{ acc_body }}
           </div>
         </div>
-      </kinetic-accordion>
+      </stridecore-accordion>
       <script src="{{ 'accordion.js' | asset_url }}" defer></script>
     </div>
 

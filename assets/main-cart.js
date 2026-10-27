@@ -2,9 +2,9 @@
  * <cart-page> progressive enhancement for sections/main-cart.liquid.
  *
  * Without JS the cart is a plain form (number inputs + "Update cart" + checkout).
- * With JS: stepper/remove/qty changes go through KINETIC.cart.change, and the
+ * With JS: stepper/remove/qty changes go through STRIDECORE.cart.change, and the
  * cart is re-rendered from the Section Rendering API (?sections=<id>). Any
- * kinetic:cart:updated event (drawer, quick add...) also triggers a re-render.
+ * stridecore:cart:updated event (drawer, quick add...) also triggers a re-render.
  *
  * Quantity inputs carry the variant quantity rule in data-min / data-step / data-max.
  *
@@ -27,8 +27,8 @@
         this.render(event.detail);
       };
       this.onError = (event) => this.showError(event.detail?.message || this.dataset.msgError);
-      window.KINETIC?.on('cart:updated', this.onUpdated);
-      window.KINETIC?.on('cart:error', this.onError);
+      window.STRIDECORE?.on('cart:updated', this.onUpdated);
+      window.STRIDECORE?.on('cart:error', this.onError);
 
       this.addEventListener('click', (event) => this.handleClick(event));
       this.addEventListener('change', (event) => this.handleChange(event));
@@ -45,8 +45,8 @@
     }
 
     disconnectedCallback() {
-      window.KINETIC?.off('cart:updated', this.onUpdated);
-      window.KINETIC?.off('cart:error', this.onError);
+      window.STRIDECORE?.off('cart:updated', this.onUpdated);
+      window.STRIDECORE?.off('cart:error', this.onError);
     }
 
     get root() {
@@ -117,7 +117,7 @@
         input.value = next;
         this.update(input.closest('[data-line-key]'), next, next === 0 ? 'removed' : 'updated');
       } else if (input.matches('textarea[name="note"]')) {
-        window.KINETIC.fetchJSON(`${window.KINETIC.routes?.cartUpdate || '/cart/update'}.js`, {
+        window.STRIDECORE.fetchJSON(`${window.STRIDECORE.routes?.cartUpdate || '/cart/update'}.js`, {
           method: 'POST',
           body: JSON.stringify({ note: input.value }),
         }).catch(() => {});
@@ -125,14 +125,14 @@
     }
 
     async update(line, quantity, kind) {
-      if (!line || !window.KINETIC) return;
+      if (!line || !window.STRIDECORE) return;
       this.pendingMessage = kind;
       line.setAttribute('aria-busy', 'true');
       try {
-        await window.KINETIC.cart.change(line.dataset.lineKey, quantity);
-        // render() runs from the kinetic:cart:updated listener.
+        await window.STRIDECORE.cart.change(line.dataset.lineKey, quantity);
+        // render() runs from the stridecore:cart:updated listener.
       } catch (_) {
-        // Error text arrives through kinetic:cart:error; resync the markup.
+        // Error text arrives through stridecore:cart:error; resync the markup.
         this.render();
       }
     }
@@ -183,7 +183,7 @@
       const noteValue = note ? note.value : null;
       const oldFill = this.querySelector('[data-bar-fill]');
       const oldPct = oldFill ? oldFill.style.width : null;
-      const cartUrl = window.KINETIC?.routes?.cart || '/cart';
+      const cartUrl = window.STRIDECORE?.routes?.cart || '/cart';
 
       try {
         const res = await fetch(`${cartUrl}?sections=${encodeURIComponent(this.sectionId)}`, {
@@ -220,7 +220,7 @@
 
         const kind = this.pendingMessage || 'updated';
         this.pendingMessage = '';
-        const total = cart && window.KINETIC ? window.KINETIC.money(cart.total_price) : '';
+        const total = cart && window.STRIDECORE ? window.STRIDECORE.money(cart.total_price) : '';
         const template = kind === 'removed' ? this.dataset.msgRemoved : this.dataset.msgUpdated;
         this.announce((template || '').replace('{total}', total));
       } catch (error) {

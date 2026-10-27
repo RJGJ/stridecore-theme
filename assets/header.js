@@ -1,5 +1,5 @@
 /**
- * KINETIC header behavior.
+ * STRIDECORE header behavior.
  *
  * 1. Mobile drawer toggle ([data-menu-toggle] controls the nav by aria-controls).
  * 2. Navigation disclosure ([data-nav-item] > [data-nav-toggle] controls [data-nav-panel]).
@@ -14,8 +14,8 @@
  *    or a click on the backdrop closes it.
  */
 (() => {
-  if (window.__kineticHeader) return;
-  window.__kineticHeader = true;
+  if (window.__stridecoreHeader) return;
+  window.__stridecoreHeader = true;
 
   const desktop = window.matchMedia('(min-width: 800px)');
   const SELECTOR_FOCUSABLE = 'a[href], button:not([disabled])';

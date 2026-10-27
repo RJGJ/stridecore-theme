@@ -1,9 +1,9 @@
 /**
- * KINETIC cart drawer: <cart-drawer> custom element.
+ * STRIDECORE cart drawer: <cart-drawer> custom element.
  *
  * The drawer is rendered by Liquid (sections/cart-drawer.liquid) so it shows line
  * prices, unit prices, discounts, selling plans, quantity rules and accelerated
- * checkout buttons. After any cart change (kinetic:cart:updated) the section is
+ * checkout buttons. After any cart change (stridecore:cart:updated) the section is
  * re-fetched from the Section Rendering API and the whole content region is swapped,
  * so every line and the total are always in sync.
  *
@@ -13,7 +13,7 @@
  */
 (() => {
   if (customElements.get('cart-drawer')) return;
-  const K = (window.KINETIC = window.KINETIC || {});
+  const K = (window.STRIDECORE = window.STRIDECORE || {});
 
   const FOCUSABLE =
     'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -207,9 +207,9 @@
       line.setAttribute('aria-busy', 'true');
       try {
         await K.cart.change(line.dataset.lineKey, quantity);
-        // refresh() runs from the kinetic:cart:updated listener.
+        // refresh() runs from the stridecore:cart:updated listener.
       } catch (_) {
-        // The message arrives through kinetic:cart:error; resync the markup.
+        // The message arrives through stridecore:cart:error; resync the markup.
         this.refresh();
       }
     }

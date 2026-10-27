@@ -16,7 +16,7 @@ const NO_PRESET_ALLOWLIST = [/^main-/, /^predictive-search$/, /^pickup-availabil
 const PROPER_NOUNS = new Set([
   'Facebook', 'Instagram', 'YouTube', 'Vimeo', 'Shopify', 'Pinterest', 'TikTok', 'Twitter', 'Snapchat', 'Tumblr',
   'Spotify', 'Google', 'Apple', 'Pay', 'Wallet', 'Shop', 'Liquid', 'JSON', 'HTML', 'CSS', 'SEO', 'URL', 'FAQ', 'RSS',
-  'Klaviyo', 'Mailchimp', 'LinkedIn', 'WhatsApp', 'Kinetic', 'English', 'Maps', 'Open', 'Graph',
+  'Klaviyo', 'Mailchimp', 'LinkedIn', 'WhatsApp', 'Stridecore', 'English', 'Maps', 'Open', 'Graph',
   'Europe', 'US', 'UK', 'EU', 'Messenger', 'Venmo', 'Amazon', 'PayPal', 'Visa', 'Mastercard', 'Shopify',
 ]);
 

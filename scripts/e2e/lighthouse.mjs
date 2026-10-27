@@ -39,7 +39,7 @@ function absorb(jar, res) {
 async function http(url, { jar, method = 'GET', body } = {}) {
   const res = await fetch(url, {
     method, body, redirect: 'manual',
-    headers: { cookie: cookieHeader(jar), 'user-agent': 'Mozilla/5.0 kinetic-qa', ...(body ? { 'content-type': 'application/x-www-form-urlencoded' } : {}) },
+    headers: { cookie: cookieHeader(jar), 'user-agent': 'Mozilla/5.0 stridecore-qa', ...(body ? { 'content-type': 'application/x-www-form-urlencoded' } : {}) },
   });
   absorb(jar, res);
   return res;

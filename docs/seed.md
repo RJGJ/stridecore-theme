@@ -1,6 +1,6 @@
 # Demo store seed (Northline Athletics)
 
-Node scripts that fill a Shopify dev or demo store through the Admin GraphQL API so the Kinetic theme can be shown with realistic content. Everything is original copy for a fictional brand, "Northline Athletics". No apps are installed.
+Node scripts that fill a Shopify dev or demo store through the Admin GraphQL API so the Stridecore theme can be shown with realistic content. Everything is original copy for a fictional brand, "Northline Athletics". No apps are installed.
 
 API version: `2026-10` (latest stable on 2026-10-26), pinned once as `API_VERSION` in `scripts/seed/lib.mjs`.
 
@@ -60,7 +60,7 @@ The theme store rules ask for rights to every demo asset and no text baked into 
 - Local pickup: the script tries `locationAdd` and `locationLocalPickupEnable`. If the plan blocks extra locations, add one in Settings > Locations and enable Settings > Shipping and delivery > Local pickup.
 - Payments: enable the Bogus Gateway or Shopify Payments test mode (required for the theme store demo). Not possible through the Admin API.
 - Linking the Color option to the standard color metaobject entries (optional, see above).
-- Online Store theme: publish or preview the Kinetic theme; set the logo, favicon, hero images (use the uploaded Files) and the header and footer menus.
+- Online Store theme: publish or preview the Stridecore theme; set the logo, favicon, hero images (use the uploaded Files) and the header and footer menus.
 - Store name, currency, markets and a storefront password if needed.
 - The FAQ, Shipping and Returns pages use the default page template. Set a template suffix in `seed/catalog.json` if the theme gains dedicated templates.
 - Photos for the four products listed above.

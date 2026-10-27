@@ -1,5 +1,5 @@
 /**
- * <product-form> : variant picker, buy box sync and add to cart for the KINETIC product page.
+ * <product-form> : variant picker, buy box sync and add to cart for the STRIDECORE product page.
  * Used by sections/main-product.liquid and sections/featured-product.liquid.
  *
  * Expects (rendered by the product-* snippets):
@@ -409,7 +409,7 @@
     }
 
     async onSubmit(event) {
-      const K = window.KINETIC;
+      const K = window.STRIDECORE;
       if (!this.current || !this.current.available) {
         event.preventDefault();
         return;

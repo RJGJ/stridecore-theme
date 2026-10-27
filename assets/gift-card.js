@@ -271,7 +271,7 @@
     return modules;
   };
 
-  if (typeof window !== 'undefined') window.KINETIC_encodeQr = encodeQr;
+  if (typeof window !== 'undefined') window.STRIDECORE_encodeQr = encodeQr;
 
   /* ---------- <gift-card-qr> ---------- */
   class GiftCardQr extends HTMLElement {

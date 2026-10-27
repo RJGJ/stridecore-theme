@@ -19,7 +19,7 @@ class PredictiveSearch extends HTMLElement {
     this.live = this.querySelector('[data-predictive-live]');
     if (!this.input || !this.panel) return;
 
-    const K = window.KINETIC || {};
+    const K = window.STRIDECORE || {};
     const routes = K.routes || {};
     this.url = this.dataset.url || routes.predictiveSearch || '/search/suggest';
     this.sectionId = this.dataset.sectionId || 'predictive-search';

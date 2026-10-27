@@ -1,5 +1,5 @@
 /**
- * <product-gallery> : KINETIC product media gallery behavior.
+ * <product-gallery> : STRIDECORE product media gallery behavior.
  *
  * Rendered by snippets/product-media-gallery.liquid. Provides:
  *   - thumbnails layout: shows one media at a time, thumbnail buttons [data-thumb]

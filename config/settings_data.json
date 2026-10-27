@@ -22,7 +22,7 @@
     "show_payment_icons": true
   },
   "presets": {
-    "Kinetic": {
+    "Stridecore": {
       "color_schemes": {
         "scheme-1": { "settings": { "background": "#0E0E0C", "text": "#F4F2EC", "accent": "#D4FF3A", "on_accent": "#0E0E0C" } },
         "scheme-2": { "settings": { "background": "#F3F1EA", "text": "#121210", "accent": "#EC4A0A", "on_accent": "#0E0E0C" } },
