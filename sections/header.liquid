@@ -1,30 +1,86 @@
-<header class="site-header" data-site-header>
+{%- liquid
+  assign logo = section.settings.logo
+  assign logo_alt = logo.alt | default: shop.name
+  assign nav_label = 'chrome.header.main_nav' | t
+  assign search_label = 'search.label' | t
+  assign has_localization = false
+  if localization.available_countries.size > 1 or localization.available_languages.size > 1
+    assign has_localization = true
+  endif
+-%}
+
+<header class="site-header color-{{ section.settings.color_scheme }}" data-site-header style="--logo-height: {{ section.settings.logo_height }}px">
+  {%- if has_localization and section.settings.show_localization -%}
+    <div class="site-header__util">
+      <div class="site-header__util-inner">
+        {% render 'localization-selector', id: 'header', class: 'site-header__loc' %}
+      </div>
+    </div>
+  {%- endif -%}
+
   <div class="site-header__inner">
     <a href="{{ routes.root_url }}" class="site-header__logo">
-      {%- if section.settings.logo != blank -%}
-        {{ section.settings.logo | image_url: width: 400 | image_tag: alt: shop.name, loading: 'eager', class: 'site-header__logo-img', widths: '200,400' }}
+      {%- if logo != blank -%}
+        {{-
+          logo
+          | image_url: width: 480
+          | image_tag: alt: logo_alt, loading: 'eager', fetchpriority: 'high', class: 'site-header__logo-img', widths: '120,240,360,480', sizes: '(min-width: 800px) 240px, 50vw'
+        -}}
       {%- else -%}
         {{- shop.name -}}<span class="site-header__dot">.</span>
       {%- endif -%}
     </a>
 
-    <nav class="site-header__nav" id="site-nav-{{ section.id }}" aria-label="{{ 'chrome.header.main_nav' | t }}" data-site-nav>
-      {%- if section.settings.menu != blank -%}
-        {%- for link in section.settings.menu.links -%}
-          {%- assign link_title = link.title | downcase | strip -%}
-          <a href="{{ link.url }}" class="site-header__link{% if link_title == 'sale' %} site-header__link--sale{% endif %}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
-        {%- endfor -%}
+    {%- capture mobile_extra -%}
+      {%- if has_localization and section.settings.show_localization -%}
+        <div class="hnav__extra">
+          {% render 'localization-selector', id: 'header-mobile' %}
+        </div>
       {%- endif -%}
-    </nav>
+    {%- endcapture -%}
+    {% render 'header-menu', menu: section.settings.menu, id: section.id, label: nav_label, extra: mobile_extra %}
 
     <div class="site-header__actions">
-      <a href="{{ routes.search_url }}" class="icon-btn" aria-label="{{ 'general.search' | t }}">{% render 'icon', name: 'search' %}</a>
-      <a href="{{ routes.account_url }}" class="icon-btn" aria-label="{{ 'general.account' | t }}">{% render 'icon', name: 'user' %}</a>
-      <a href="{{ routes.cart_url }}" class="icon-btn" aria-label="{{ 'chrome.header.cart_label' | t: count: cart.item_count }}"{% if settings.cart_type == 'drawer' %} data-cart-drawer-open{% endif %}>
+      <a href="{{ routes.search_url }}" class="icon-btn" aria-label="{{ search_label }}" aria-haspopup="dialog" data-search-open>
+        {% render 'icon', name: 'search' %}
+      </a>
+
+      {%- if shop.customer_accounts_enabled -%}
+        <div class="site-header__account">
+          <shopify-account menu="customer-account-main-menu">
+            <span slot="signed-out-avatar" class="site-header__account-icon">
+              {% render 'icon', name: 'user' %}
+              <span class="visually-hidden">{{ 'general.account' | t }}</span>
+            </span>
+          </shopify-account>
+          <a href="{{ routes.account_url }}" class="icon-btn site-header__account-fallback" aria-label="{{ 'general.account' | t }}">
+            {% render 'icon', name: 'user' %}
+          </a>
+        </div>
+      {%- endif -%}
+
+      <a
+        href="{{ routes.cart_url }}"
+        class="icon-btn"
+        aria-label="{{ 'chrome.header.cart_label' | t: count: cart.item_count }}"
+        {% if settings.cart_type == 'drawer' %}
+          data-cart-drawer-open
+        {% endif %}
+      >
         {% render 'icon', name: 'bag' %}
         <span class="count-bubble" data-cart-count{% if cart.item_count == 0 %} hidden{% endif %}>{{ cart.item_count }}</span>
       </a>
-      <button type="button" class="icon-btn site-header__toggle" aria-expanded="false" aria-controls="site-nav-{{ section.id }}" aria-label="{{ 'chrome.header.open_menu' | t }}" data-open-label="{{ 'chrome.header.open_menu' | t }}" data-close-label="{{ 'chrome.header.close_menu' | t }}" data-menu-toggle>
+
+      <button
+        type="button"
+        class="icon-btn site-header__toggle"
+        aria-expanded="false"
+        aria-controls="site-nav-{{ section.id }}"
+        aria-label="{{ 'chrome.header.open_menu' | t }}"
+        data-open-label="{{ 'chrome.header.open_menu' | t }}"
+        data-close-label="{{ 'chrome.header.close_menu' | t }}"
+        data-menu-toggle
+      >
         <span data-icon-open>{% render 'icon', name: 'menu' %}</span>
         <span data-icon-close hidden>{% render 'icon', name: 'close' %}</span>
       </button>
@@ -32,12 +88,39 @@
   </div>
 </header>
 
+<dialog class="search-modal" aria-label="{{ search_label }}" data-search-modal>
+  <div class="container search-modal__inner">
+    <div class="search-modal__head">
+      <span class="eyebrow">{{ search_label }}</span>
+      <button type="button" class="icon-btn search-modal__close" aria-label="{{ 'site.header.close_search' | t }}" data-search-close>
+        {% render 'icon', name: 'close' %}
+      </button>
+    </div>
+    {% render 'search-form', id: 'header', placeholder: section.settings.search_placeholder, types: 'product,page,article' %}
+  </div>
+</dialog>
+
 <script src="{{ 'header.js' | asset_url }}" defer></script>
+<script src="{{ 'predictive-search.js' | asset_url }}" defer></script>
+<script src="{{ 'localization.js' | asset_url }}" defer></script>
 
 {% stylesheet %}
   .site-header {
+    position: relative;
     border-bottom: 1px solid var(--line);
     background: var(--bg);
+    color: var(--fg);
+  }
+  .site-header__util {
+    display: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .site-header__util-inner {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 6px var(--gutter);
+    display: flex;
+    justify-content: flex-end;
   }
   .site-header__inner {
     max-width: var(--page-max);
@@ -53,6 +136,7 @@
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+    min-width: 0;
     text-decoration: none;
     font-family: var(--f-display);
     font-weight: var(--d-weight);
@@ -62,33 +146,15 @@
     text-transform: var(--h-case);
   }
   .site-header__logo-img {
-    max-height: 40px;
+    display: block;
     width: auto;
+    height: auto;
+    max-height: var(--logo-height, 40px);
+    max-width: min(240px, 50vw);
+    object-fit: contain;
   }
   .site-header__dot {
     color: var(--accent-ink);
-  }
-  .site-header__nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 28px;
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .site-header__link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    text-decoration: none;
-  }
-  .site-header__link--sale {
-    color: var(--accent-ink);
-  }
-  .site-header__link[aria-current='page'] {
-    text-decoration: underline;
-    text-underline-offset: 6px;
   }
   .site-header__actions {
     display: flex;
@@ -98,29 +164,323 @@
   .site-header__toggle {
     display: none;
   }
+  .site-header__account {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .site-header__account-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+  }
+  shopify-account:not(:defined) {
+    display: none;
+  }
+  shopify-account:defined + .site-header__account-fallback {
+    display: none;
+  }
+
+  /* Main menu: shared markup for desktop dropdown / mega panel and the mobile accordion */
+  .hnav__list,
+  .hnav__sub,
+  .hnav__subsub {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .hnav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 28px;
+  }
+  .hnav__row {
+    display: flex;
+    align-items: stretch;
+  }
+  .hnav__link,
+  .hnav__sublink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+  }
+  .hnav__link {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .hnav__link--sale {
+    color: var(--accent-ink);
+  }
+  .hnav__link[aria-current='page'] {
+    text-decoration: underline;
+    text-underline-offset: 6px;
+  }
+  .hnav__toggle {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    min-height: 44px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--r);
+    color: inherit;
+    cursor: pointer;
+  }
+  .hnav__toggle--sub {
+    display: none;
+  }
+  .hnav__caret {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform 0.15s;
+  }
+  .hnav__toggle[aria-expanded='true'] .hnav__caret {
+    transform: translateY(2px) rotate(-135deg);
+  }
+  .hnav__panel {
+    display: none;
+  }
+  .hnav__panel.is-open {
+    display: block;
+  }
+  .hnav__extra {
+    display: none;
+  }
+  .hnav__sublink[aria-current='page'] {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  @media (min-width: 800px) {
+    .site-header__util {
+      display: block;
+    }
+    .site-header__inner {
+      flex-wrap: nowrap;
+    }
+    .hnav {
+      min-width: 0;
+    }
+    .hnav__item--parent:not(.hnav__item--mega) {
+      position: relative;
+    }
+    .hnav__panel {
+      position: absolute;
+      z-index: 30;
+      top: 100%;
+      left: 0;
+      min-width: 240px;
+      padding: 10px 0;
+      background: var(--bg);
+      color: var(--fg);
+      border: 2px solid var(--fg);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+    }
+    .hnav__item--mega .hnav__panel {
+      left: 0;
+      right: 0;
+      min-width: 0;
+      padding: 32px max(var(--gutter), calc((100% - var(--page-max)) / 2 + var(--gutter)));
+      border-width: 2px 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .hnav__item--mega .hnav__sub {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 24px 32px;
+    }
+    .hnav__sublink {
+      width: 100%;
+      padding: 0 20px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .hnav__item--mega .hnav__sublink {
+      padding: 0;
+    }
+    .hnav__sublink:hover {
+      background: var(--fg);
+      color: var(--bg);
+      opacity: 1;
+    }
+    .hnav__item--mega .hnav__sublink:hover {
+      background: none;
+      color: inherit;
+      text-decoration: underline;
+    }
+    .hnav__sublink--head {
+      font-family: var(--f-mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .hnav__sublink--leaf {
+      font-weight: 500;
+    }
+    .hnav__subsub {
+      display: block;
+    }
+    .hnav__subsub .hnav__sublink {
+      padding-left: 32px;
+    }
+    .hnav__item--mega .hnav__subsub .hnav__sublink {
+      padding-left: 0;
+    }
+    .no-js .hnav__item:hover > .hnav__panel,
+    .no-js .hnav__item:focus-within > .hnav__panel {
+      display: block;
+    }
+  }
+
   @media (max-width: 799px) {
     .site-header__inner {
+      flex-wrap: wrap;
       gap: 0 16px;
     }
     .site-header__toggle {
       display: grid;
     }
-    .site-header__nav {
+    .hnav {
       display: none;
       order: 3;
       width: 100%;
-      flex-direction: column;
-      gap: 0;
       margin-top: 8px;
       border-top: 1px solid var(--line);
+      max-height: calc(100vh - 140px);
+      max-height: calc(100dvh - 140px);
+      overflow-y: auto;
     }
-    .site-header__nav.is-open {
-      display: flex;
+    .hnav.is-open {
+      display: block;
     }
-    .site-header__link {
+    .hnav__list {
+      flex-direction: column;
+      gap: 0;
+    }
+    .hnav__item {
+      border-bottom: 1px solid var(--line);
+    }
+    .hnav__row {
+      justify-content: space-between;
+    }
+    .hnav__link,
+    .hnav__sublink {
+      flex: 1;
       min-height: 52px;
       font-size: 16px;
-      border-bottom: 1px solid var(--line);
+    }
+    .hnav__toggle {
+      width: 52px;
+      min-height: 52px;
+    }
+    .hnav__toggle--sub {
+      display: inline-grid;
+    }
+    .hnav__sub {
+      padding-left: 16px;
+      border-left: 2px solid var(--line);
+      margin-bottom: 8px;
+    }
+    .hnav__sublink {
+      font-weight: 600;
+    }
+    .hnav__sublink--head {
+      font-weight: 700;
+    }
+    .hnav__subsub {
+      display: none;
+      padding-left: 16px;
+    }
+    .hnav__subsub.is-open {
+      display: block;
+    }
+    .hnav__extra {
+      display: block;
+      padding: 16px 0 8px;
+    }
+  }
+
+  /* Search modal */
+  .search-modal {
+    position: fixed;
+    inset: 0 0 auto 0;
+    width: 100%;
+    max-width: none;
+    max-height: 100vh;
+    max-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    background: var(--bg);
+    color: var(--fg);
+    border: 0;
+    border-bottom: 2px solid var(--fg);
+  }
+  .search-modal::backdrop {
+    background: rgb(0 0 0 / 0.55);
+  }
+  .search-modal__inner {
+    padding-top: 16px;
+    padding-bottom: 32px;
+  }
+  .search-modal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .search-modal .srch-input {
+    font-size: clamp(28px, 5vw, 56px);
+  }
+  .search-modal .ps-panel {
+    position: static;
+    margin-top: 8px;
+    box-shadow: none;
+    max-height: 50vh;
+  }
+
+  /* Search form and predictive search dropdown (also used by the search page) */
+  .srch-predictive { display: block; position: relative; }
+  .srch-form { position: relative; display: flex; flex-direction: column; gap: 24px; }
+  .srch-field { display: flex; align-items: center; gap: 16px; border-bottom: 4px solid var(--fg); padding-bottom: 8px; }
+  .srch-field > svg { flex: none; width: clamp(28px, 4vw, 44px); height: clamp(28px, 4vw, 44px); }
+  .srch-input { flex: 1; min-width: 0; padding: 0; background: transparent; border: 0; border-radius: 0; color: var(--fg); font-family: var(--f-display); font-weight: var(--d-weight); font-stretch: var(--d-stretch); font-size: clamp(36px, 6vw, 88px); letter-spacing: var(--d-track); text-transform: var(--h-case); outline-offset: 6px; -webkit-appearance: none; appearance: none; }
+  .srch-input::placeholder { color: var(--muted); opacity: 0.6; }
+  .srch-input::-webkit-search-cancel-button { display: none; }
+  .srch-clear { flex: none; display: grid; place-items: center; width: 52px; height: 52px; background: var(--fg); color: var(--bg); border-radius: var(--r-pill); text-decoration: none; }
+  .ps-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30; max-height: min(70vh, 640px); overflow-y: auto; background: var(--bg); color: var(--fg); border: 2px solid var(--fg); border-radius: var(--r); box-shadow: var(--shadow); }
+  .ps-panel[hidden] { display: none; }
+  .ps-group { padding: 12px 0 4px; }
+  .ps-heading { margin: 0; padding: 0 20px 6px; font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .ps-list { margin: 0; padding: 0; list-style: none; }
+  .ps-link { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 6px 20px; text-decoration: none; font-size: 16px; font-weight: 700; }
+  .ps-link:hover { opacity: 1; }
+  .ps-link.is-active, .ps-link:hover, .ps-all.is-active, .ps-all:hover { background: var(--fg); color: var(--bg); }
+  .ps-link__title { flex: 1; min-width: 0; text-transform: uppercase; overflow-wrap: anywhere; }
+  .ps-link__price { flex: none; font-size: 14px; }
+  .ps-thumb { flex: none; width: 56px; }
+  .ps-thumb .media { border-radius: var(--r-img); }
+  .ps-thumb .media--placeholder > span { display: none; }
+  .ps-all { display: flex; justify-content: space-between; align-items: center; min-height: 52px; padding: 0 20px; border-top: 2px solid var(--fg); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 14px; text-decoration: none; }
+  .ps-all:hover { opacity: 1; }
+  .ps-empty { margin: 0; padding: 20px; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hnav__caret {
+      transition: none;
     }
   }
 {% endstylesheet %}
@@ -130,8 +490,19 @@
   "name": "Header",
   "tag": "div",
   "settings": [
-    { "type": "image_picker", "id": "logo", "label": "Logo image", "info": "Optional. Falls back to the store name wordmark." },
-    { "type": "link_list", "id": "menu", "label": "Menu", "default": "main-menu" }
+    { "type": "header", "content": "Logo" },
+    { "type": "image_picker", "id": "logo", "label": "Logo image", "info": "Optional. Falls back to the store name." },
+    { "type": "range", "id": "logo_height", "label": "Logo height", "unit": "px", "min": 20, "max": 80, "step": 2, "default": 40 },
+    { "type": "header", "content": "Navigation" },
+    { "type": "link_list", "id": "menu", "label": "Main menu", "default": "main-menu" },
+    { "type": "checkbox", "id": "show_localization", "label": "Show country and language selectors", "info": "Appears when the store sells in more than one country or language.", "default": true },
+    { "type": "header", "content": "Search" },
+    { "type": "text", "id": "search_placeholder", "label": "Search placeholder", "default": "Hoodies, cargo, caps…" },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" }
+  ],
+  "presets": [
+    { "name": "Header" }
   ]
 }
 {% endschema %}

@@ -10,6 +10,11 @@
   @param {string} [tone] - placeholder tone for products without images: surface | accent
   @param {string} [sizes] - img sizes attribute
   @param {string} [loading] - lazy | eager
+  @param {boolean} [show_vendor] - show the vendor above the title, default false
+
+  Pricing: shows "From {min}" when `product.price_varies`, the compare-at price
+  and a Sale badge when `product.compare_at_price_max` is above the price, and
+  the unit price (`variant.unit_price`) when the variant has one.
 {%- enddoc -%}
 
 {%- liquid
@@ -31,9 +36,8 @@
   assign badge = ''
   if product.available == false
     assign badge = 'products.badge.sold_out' | t
-  elsif product.compare_at_price > product.price
-    assign saved = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round
-    assign badge = '-' | append: saved | append: '%'
+  elsif product.compare_at_price_max > product.price
+    assign badge = 'products.badge.sale' | t
   elsif product.tags contains 'new'
     assign badge = 'products.badge.new' | t
   else
@@ -46,7 +50,7 @@
 
 <article class="card" data-product-id="{{ product.id }}" style="--card-ratio: {{ card_ratio }}">
   <div class="card__media">
-    <a href="{{ product.url }}" class="card__image" aria-label="{{ product.title | escape }}" tabindex="-1">
+    <a href="{{ product.url }}" class="card__image" aria-hidden="true" tabindex="-1">
       {% render 'placeholder-media',
         image: product.featured_media.preview_image,
         ratio: card_ratio,
@@ -62,7 +66,7 @@
     {%- endif -%}
 
     {%- if card_quick and product.available -%}
-      {%- if product.has_only_default_variant -%}
+      {%- if product.has_only_default_variant and product.requires_selling_plan == false -%}
         <button type="button" class="btn btn--accent btn--sm card__quick" data-quick-add data-variant-id="{{ product.selected_or_first_available_variant.id }}">
           {{ 'products.quick_add' | t }}
         </button>
@@ -73,12 +77,35 @@
   </div>
 
   <div class="card__info">
-    <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+    <div class="card__text">
+      {%- if show_vendor and product.vendor != blank -%}
+        <span class="card__sub">{{ product.vendor }}</span>
+      {%- endif -%}
       <a href="{{ product.url }}" class="card__title">{{ product.title }}</a>
       {%- if color_count > 0 -%}
         <span class="card__sub">{{ 'products.colors' | t: count: color_count }}</span>
       {%- endif -%}
     </div>
-    {% render 'price', product: product %}
+    {% render 'card-price', product: product %}
   </div>
 </article>
+
+{% stylesheet %}
+  .card__text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .card__title {
+    overflow-wrap: anywhere;
+  }
+  .card__image .media {
+    height: 100%;
+  }
+  .card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+{% endstylesheet %}

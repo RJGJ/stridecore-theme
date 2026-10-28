@@ -1,0 +1,104 @@
+{%- doc -%}
+  Add to cart form. A real `{% form 'product' %}` that posts without JavaScript
+  and is enhanced by <product-form> (ajax add, cart drawer). Includes the
+  accelerated checkout buttons, the Shop Pay Installments banner, the gift
+  card recipient form and the inline status message.
+
+  @param {product} product
+  @param {variant} variant - currently selected variant
+  @param {block} block - the buy_buttons block (settings: show_dynamic_checkout, show_payment_terms, show_gift_card_recipient)
+  @param {string} form_id - id of the product form
+  @param {string} section_id
+
+  @example
+  {% render 'product-buy-buttons', product: product, variant: variant, block: block, form_id: form_id, section_id: section.id %}
+{%- enddoc -%}
+
+{%- liquid
+  assign add_label = 'product.add_to_cart' | t
+  assign add_disabled = false
+  if variant.available == false
+    assign add_label = 'product.sold_out' | t
+    assign add_disabled = true
+  endif
+-%}
+<div class="bb">
+  {%- form 'product', product, id: form_id, class: 'bb__form', novalidate: 'novalidate', data-product-form: '' -%}
+    <input type="hidden" name="id" value="{{ variant.id }}" data-variant-id{% unless variant.available %} disabled{% endunless %}>
+
+    {%- if product.gift_card? and block.settings.show_gift_card_recipient -%}
+      {% render 'product-gift-card-recipient', form: form, section_id: section_id %}
+    {%- endif -%}
+
+    {%- if form.errors and product.gift_card? == false -%}
+      <div class="form-message form-message--error" role="alert">{{ form.errors | default_errors }}</div>
+    {%- endif -%}
+
+    <button type="submit" name="add" class="btn btn--accent bb__add" data-add{% if add_disabled %} disabled{% endif %}>
+      <span data-add-label>{{ add_label }}</span>
+    </button>
+
+    {%- if block.settings.show_dynamic_checkout -%}
+      <div class="bb__dynamic" data-dynamic-checkout{% unless variant.available %} hidden{% endunless %}>
+        {{ form | payment_button }}
+      </div>
+    {%- endif -%}
+
+    {%- if block.settings.show_payment_terms -%}
+      <div class="bb__terms" data-payment-terms{% unless variant.available %} hidden{% endunless %}>
+        {{ form | payment_terms }}
+      </div>
+    {%- endif -%}
+  {%- endform -%}
+
+  <div class="bb__status" role="status" aria-live="polite" data-status hidden>
+    <span class="bb__status-text" data-status-text></span>
+    <a class="bb__status-link" href="{{ routes.cart_url }}" data-status-link hidden>{{ 'product.view_cart' | t }}</a>
+  </div>
+</div>
+
+{% stylesheet %}
+  .bb {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .bb__form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .bb__add {
+    width: 100%;
+    min-height: 60px;
+    font-weight: 900;
+    font-size: 16px;
+  }
+  .bb__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+  }
+  .bb__status--error {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .bb__status-text {
+    font-weight: 700;
+  }
+  .bb__status-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 14px;
+  }
+{% endstylesheet %}

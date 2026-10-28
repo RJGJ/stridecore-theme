@@ -1,0 +1,156 @@
+{%- liquid
+  assign logo_height = section.settings.logo_height
+  assign logo_width = logo_height | times: 3
+-%}
+
+<div
+  class="ll color-{{ section.settings.color_scheme }}"
+  style="--ll-pt: {{ section.settings.padding_top }}; --ll-pb: {{ section.settings.padding_bottom }}; --ll-h: {{ logo_height }}px; --ll-cols: {{ section.settings.columns_desktop }};"
+>
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="display display--md ll__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <ul class="ll__grid" role="list">
+      {%- for block in section.blocks -%}
+        {%- if block.type == '@app' -%}
+          <li class="ll__item" {{ block.shopify_attributes }}>{%- render block -%}</li>
+        {%- else -%}
+          {%- liquid
+            assign ll_url = block.settings.link
+            assign ll_alt = block.settings.image.alt | default: shop.name
+          -%}
+          <li class="ll__item" {{ block.shopify_attributes }}>
+            {%- if ll_url != blank -%}<a href="{{ ll_url }}" class="ll__link">{%- endif -%}
+            {%- if block.settings.image != blank -%}
+              {{
+                block.settings.image
+                | image_url: height: 200
+                | image_tag: loading: 'lazy', height: logo_height, sizes: '(min-width: 750px) 240px, 40vw', widths: '120,240,360', class: 'll__img', alt: ll_alt
+              }}
+            {%- else -%}
+              <svg class="ll__placeholder" role="img" aria-label="{{ 'sections.logo_list.placeholder_label' | t }}" width="{{ logo_width }}" height="{{ logo_height }}" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="118" height="38" rx="4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 4"></rect>
+                <circle cx="20" cy="20" r="8" fill="currentColor"></circle>
+                <rect x="36" y="14" width="64" height="12" rx="2" fill="currentColor"></rect>
+              </svg>
+            {%- endif -%}
+            {%- if ll_url != blank -%}</a>{%- endif -%}
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>
+
+{% stylesheet %}
+.ll {
+  padding-top: calc(var(--ll-pt) * 0.6px);
+  padding-bottom: calc(var(--ll-pb) * 0.6px);
+}
+.ll__heading {
+  margin-bottom: 32px;
+  text-align: center;
+  font-size: clamp(28px, 3.4vw, 48px);
+}
+.ll__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.ll__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: center;
+  justify-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ll__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 44px;
+}
+.ll__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+.ll__img {
+  width: auto;
+  max-width: 100%;
+  height: var(--ll-h);
+  object-fit: contain;
+}
+.ll__placeholder {
+  width: auto;
+  max-width: 100%;
+  height: var(--ll-h);
+  color: var(--muted);
+}
+@media (min-width: 750px) {
+  .ll {
+    padding-top: calc(var(--ll-pt) * 1px);
+    padding-bottom: calc(var(--ll-pb) * 1px);
+  }
+  .ll__grid {
+    grid-template-columns: repeat(min(var(--ll-cols), 4), minmax(0, 1fr));
+    gap: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .ll__grid {
+    grid-template-columns: repeat(var(--ll-cols), minmax(0, 1fr));
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Logo list",
+  "tag": "section",
+  "class": "section-logo-list",
+  "settings": [
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "As seen in" },
+    { "type": "range", "id": "logo_height", "min": 24, "max": 120, "step": 4, "unit": "px", "label": "Logo height", "default": 48 },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 6, "step": 1, "label": "Columns on desktop", "default": 5 },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 56 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 56 }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "Add alt text in your files so screen readers can name the logo." },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Logo list",
+      "blocks": [
+        { "type": "logo" },
+        { "type": "logo" },
+        { "type": "logo" },
+        { "type": "logo" },
+        { "type": "logo" }
+      ]
+    }
+  ]
+}
+{% endschema %}

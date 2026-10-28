@@ -1,0 +1,9 @@
+{% comment %}theme-check-disable UndefinedObject{% endcomment %}
+{%- comment -%}
+  Rendered on demand through the Section Rendering API:
+  {root_url}variants/{variant_id}/?section_id=pickup-availability
+  `product_variant` is provided by the variants route.
+{%- endcomment -%}
+<div data-pickup-fetched>
+  {% render 'product-pickup', product_variant: product_variant %}
+</div>

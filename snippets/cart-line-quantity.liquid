@@ -1,0 +1,119 @@
+{%- doc -%}
+  Quantity stepper for a cart line, shared by the cart page and the cart drawer.
+  Honors the variant quantity rule (minimum, maximum, increment). The JS in
+  main-cart.js and cart-drawer.js reads the data-* attributes on the input.
+
+  @param {line_item} item - the cart line item
+  @param {number} index - 1-based line index
+  @param {string} id_prefix - prefix that keeps input ids unique per section
+
+  @example
+  {% render 'cart-line-quantity', item: item, index: forloop.index, id_prefix: section.id %}
+{%- enddoc -%}
+
+{%- liquid
+  assign rule = item.variant.quantity_rule
+  assign rule_min = rule.min | default: 1
+  assign rule_increment = rule.increment | default: 1
+  assign rule_max = rule.max
+  assign input_id = 'Quantity-' | append: id_prefix | append: '-' | append: index
+  assign rule_id = 'QuantityRule-' | append: id_prefix | append: '-' | append: index
+  assign show_rule = false
+  if rule_min > 1 or rule_increment > 1 or rule_max != nil
+    assign show_rule = true
+  endif
+  assign label_quantity = 'cart_page.quantity' | t: title: item.product.title
+  assign label_decrease = 'cart_page.decrease' | t: title: item.product.title
+  assign label_increase = 'cart_page.increase' | t: title: item.product.title
+-%}
+
+<div class="cart-qty-wrap">
+  <div class="cart-qty" role="group" aria-label="{{ label_quantity | escape }}">
+    <button type="button" class="cart-qty__btn" data-qty-step="-1" aria-label="{{ label_decrease | escape }}">&minus;</button>
+    <input
+      type="number"
+      id="{{ input_id }}"
+      class="cart-qty__input"
+      name="updates[]"
+      value="{{ item.quantity }}"
+      min="0"
+      {% if rule_max != nil %}
+        max="{{ rule_max }}"
+      {% endif %}
+      step="{{ rule_increment }}"
+      inputmode="numeric"
+      data-qty
+      data-min="{{ rule_min }}"
+      data-step="{{ rule_increment }}"
+      {% if rule_max != nil %}
+        data-max="{{ rule_max }}"
+      {% endif %}
+      aria-label="{{ label_quantity | escape }}"
+      {% if show_rule %}
+        aria-describedby="{{ rule_id }}"
+      {% endif %}
+    >
+    <button type="button" class="cart-qty__btn" data-qty-step="1" aria-label="{{ label_increase | escape }}">+</button>
+  </div>
+  {%- if show_rule -%}
+    <p class="cart-qty__rule" id="{{ rule_id }}">
+      {%- if rule_min > 1 -%}
+        {{ 'cart_page.rule_min' | t: quantity: rule_min }}&#32;
+      {%- endif -%}
+      {%- if rule_increment > 1 -%}
+        {{ 'cart_page.rule_increment' | t: quantity: rule_increment }}&#32;
+      {%- endif -%}
+      {%- if rule_max != nil -%}
+        {{ 'cart_page.rule_max' | t: quantity: rule_max }}&#32;
+      {%- endif -%}
+    </p>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .cart-qty-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cart-qty {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+  }
+  .cart-qty__btn {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: 20px;
+  }
+  .cart-qty__input {
+    width: 48px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-family: var(--f-mono);
+    font-weight: 700;
+    text-align: center;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .cart-qty__input::-webkit-outer-spin-button,
+  .cart-qty__input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+  }
+  .cart-qty__rule {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+{% endstylesheet %}

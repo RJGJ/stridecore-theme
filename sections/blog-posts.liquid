@@ -1,0 +1,234 @@
+{%- liquid
+  assign bp_blog = section.settings.blog
+  if bp_blog == blank
+    assign bp_blog = blogs.news
+  endif
+  assign bp_limit = section.settings.post_count
+  assign bp_columns = section.settings.columns_desktop
+  assign bp_vw = 100 | divided_by: bp_columns
+  assign bp_sizes = '(min-width: 1024px) ' | append: bp_vw | append: 'vw, (min-width: 750px) 50vw, 100vw'
+  assign bp_has_posts = false
+  if bp_blog.articles_count > 0
+    assign bp_has_posts = true
+  endif
+-%}
+
+<div
+  class="bp color-{{ section.settings.color_scheme }}"
+  style="--bp-pt: {{ section.settings.padding_top }}; --bp-pb: {{ section.settings.padding_bottom }}; --bp-cols: {{ bp_columns }};"
+>
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="display display--md bp__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <ul class="bp__grid" role="list">
+      {%- if bp_has_posts -%}
+        {%- for article in bp_blog.articles limit: bp_limit -%}
+          <li class="bp__item">
+            <article class="bp__card">
+              {%- if section.settings.show_image -%}
+                <a href="{{ article.url }}" class="bp__media" tabindex="-1" aria-hidden="true">
+                  {%- if article.image != blank -%}
+                    <div class="media" style="aspect-ratio: 3 / 2">
+                      {{
+                        article.image
+                        | image_url: width: 1000
+                        | image_tag: loading: 'lazy', sizes: bp_sizes, widths: '400,600,800,1000', alt: article.image.alt
+                      }}
+                    </div>
+                  {%- else -%}
+                    <div class="media media--placeholder bp__placeholder" style="aspect-ratio: 3 / 2">
+                      {{ 'image' | placeholder_svg_tag: 'bp__placeholder-svg' }}
+                    </div>
+                  {%- endif -%}
+                </a>
+              {%- endif -%}
+              <div class="bp__body">
+                {%- if section.settings.show_date or section.settings.show_author -%}
+                  <p class="eyebrow bp__meta">
+                    {%- if section.settings.show_date -%}
+                      {{ article.published_at | time_tag: format: 'date' }}
+                    {%- endif -%}
+                    {%- if section.settings.show_date and section.settings.show_author and article.author != blank %} · {% endif -%}
+                    {%- if section.settings.show_author and article.author != blank -%}
+                      {{ 'sections.blog_posts.by' | t: author: article.author }}
+                    {%- endif -%}
+                  </p>
+                {%- endif -%}
+                <h3 class="bp__title"><a href="{{ article.url }}">{{ article.title }}</a></h3>
+                {%- if section.settings.show_excerpt -%}
+                  <p class="bp__excerpt">{{ article.excerpt_or_content | strip_html | truncatewords: 24 }}</p>
+                {%- endif -%}
+              </div>
+            </article>
+          </li>
+        {%- endfor -%}
+      {%- else -%}
+        {%- for i in (1..bp_limit) -%}
+          {%- if forloop.index > bp_columns -%}
+            {%- break -%}
+          {%- endif -%}
+          <li class="bp__item">
+            <article class="bp__card">
+              {%- if section.settings.show_image -%}
+                <div class="media media--placeholder bp__placeholder" style="aspect-ratio: 3 / 2">
+                  {{ 'image' | placeholder_svg_tag: 'bp__placeholder-svg' }}
+                </div>
+              {%- endif -%}
+              <div class="bp__body">
+                <h3 class="bp__title">{{ 'sections.blog_posts.placeholder_title' | t }}</h3>
+                {%- if section.settings.show_excerpt -%}
+                  <p class="bp__excerpt">{{ 'sections.blog_posts.placeholder_text' | t }}</p>
+                {%- endif -%}
+              </div>
+            </article>
+          </li>
+        {%- endfor -%}
+      {%- endif -%}
+    </ul>
+
+    {%- for block in section.blocks -%}
+      <div class="bp__block" {{ block.shopify_attributes }}>{%- render block -%}</div>
+    {%- endfor -%}
+
+    {%- if section.settings.button_label != blank and bp_blog.url != blank -%}
+      <div class="bp__more">
+        <a href="{{ bp_blog.url }}" class="btn btn--outline">{{ section.settings.button_label }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+.bp {
+  padding-top: calc(var(--bp-pt) * 0.6px);
+  padding-bottom: calc(var(--bp-pb) * 0.6px);
+}
+.bp__heading {
+  margin-bottom: 40px;
+}
+.bp__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.bp__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bp__item {
+  min-width: 0;
+}
+.bp__card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.bp__media {
+  display: block;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.bp__media .media,
+.bp__card > .media {
+  border: 2px solid var(--fg);
+}
+.bp__card:hover .bp__media {
+  transform: translate(-6px, -6px);
+}
+.bp__placeholder {
+  color: var(--muted);
+}
+.bp__placeholder-svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+.bp__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bp__title {
+  font-family: var(--f-display);
+  font-weight: var(--d-weight);
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: var(--d-lead);
+  letter-spacing: var(--d-track);
+  text-transform: var(--h-case);
+  overflow-wrap: break-word;
+}
+.bp__title a {
+  text-decoration: none;
+}
+.bp__excerpt {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.bp__block {
+  margin-top: 32px;
+}
+.bp__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 48px;
+}
+@media (min-width: 750px) {
+  .bp {
+    padding-top: calc(var(--bp-pt) * 1px);
+    padding-bottom: calc(var(--bp-pb) * 1px);
+  }
+  .bp__grid {
+    grid-template-columns: repeat(min(var(--bp-cols), 2), minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .bp__grid {
+    grid-template-columns: repeat(var(--bp-cols), minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bp__media {
+    transition: none;
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Blog posts",
+  "tag": "section",
+  "class": "section-blog-posts",
+  "settings": [
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "From the journal" },
+    { "type": "blog", "id": "blog", "label": "Blog" },
+    { "type": "range", "id": "post_count", "min": 1, "max": 6, "step": 1, "label": "Maximum posts to show", "default": 3 },
+    { "type": "range", "id": "columns_desktop", "min": 1, "max": 4, "step": 1, "label": "Columns on desktop", "default": 3 },
+    { "type": "checkbox", "id": "show_image", "label": "Show featured image", "default": true },
+    { "type": "checkbox", "id": "show_date", "label": "Show date", "default": true },
+    { "type": "checkbox", "id": "show_author", "label": "Show author", "default": false },
+    { "type": "checkbox", "id": "show_excerpt", "label": "Show excerpt", "default": true },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "View all posts" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
+  ],
+  "blocks": [
+    { "type": "@app" }
+  ],
+  "max_blocks": 3,
+  "presets": [
+    {
+      "name": "Blog posts"
+    }
+  ]
+}
+{% endschema %}

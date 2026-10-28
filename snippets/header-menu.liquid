@@ -1,0 +1,126 @@
+{%- doc -%}
+  Main menu with up to three levels. Desktop: dropdown (two levels) or mega panel
+  (three levels). Mobile: accordion. The markup is shared, assets/header.js adds the
+  disclosure behavior (hover, arrow keys, Escape).
+
+  @param {object} menu - a linklist object
+  @param {string} id - unique id prefix (usually the section id)
+  @param {string} [label] - accessible name for the nav landmark
+  @param {string} [extra] - captured HTML appended inside the nav (mobile-only extras)
+
+  @example
+  {% render 'header-menu', menu: section.settings.menu, id: section.id %}
+{%- enddoc -%}
+
+{%- if menu != blank and menu.links.size > 0 -%}
+  <nav class="hnav" id="site-nav-{{ id }}" aria-label="{{ label | default: 'Main' | escape }}" data-site-nav>
+    <ul class="hnav__list" role="list">
+      {%- for link in menu.links -%}
+        {%- liquid
+          assign link_title = link.title | downcase | strip
+          assign has_children = false
+          assign is_mega = false
+          if link.links.size > 0
+            assign has_children = true
+            for child in link.links
+              if child.links.size > 0
+                assign is_mega = true
+              endif
+            endfor
+          endif
+          assign panel_id = 'hnav-panel-' | append: id | append: '-' | append: forloop.index
+          assign toggle_label = 'site.header.open_submenu' | t: title: link.title
+        -%}
+        <li class="hnav__item{% if has_children %} hnav__item--parent{% endif %}{% if is_mega %} hnav__item--mega{% endif %}" data-nav-item>
+          <div class="hnav__row">
+            <a
+              href="{{ link.url }}"
+              class="hnav__link{% if link_title == 'sale' %} hnav__link--sale{% endif %}"
+              {% if link.current %}
+                aria-current="page"
+              {% elsif link.child_active %}
+                aria-current="true"
+              {% endif %}
+            >
+              {{- link.title -}}
+            </a>
+            {%- if has_children -%}
+              <button
+                type="button"
+                class="hnav__toggle"
+                aria-expanded="false"
+                aria-controls="{{ panel_id }}"
+                aria-label="{{ toggle_label }}"
+                data-nav-toggle
+              >
+                <span class="hnav__caret" aria-hidden="true"></span>
+              </button>
+            {%- endif -%}
+          </div>
+
+          {%- if has_children -%}
+            <div class="hnav__panel" id="{{ panel_id }}" data-nav-panel>
+              <ul class="hnav__sub" role="list">
+                {%- for child in link.links -%}
+                  {%- liquid
+                    assign child_title = child.title | downcase | strip
+                    assign child_has_children = false
+                    if child.links.size > 0
+                      assign child_has_children = true
+                    endif
+                    assign sub_id = panel_id | append: '-' | append: forloop.index
+                    assign sub_toggle_label = 'site.header.open_submenu' | t: title: child.title
+                  -%}
+                  <li class="hnav__subitem{% if child_has_children %} hnav__subitem--parent{% endif %}">
+                    <div class="hnav__row hnav__row--sub">
+                      <a
+                        href="{{ child.url }}"
+                        class="hnav__sublink{% if child_has_children %} hnav__sublink--head{% endif %}{% if child_title == 'sale' %} hnav__link--sale{% endif %}"
+                        {% if child.current %}
+                          aria-current="page"
+                        {% endif %}
+                      >
+                        {{- child.title -}}
+                      </a>
+                      {%- if child_has_children -%}
+                        <button
+                          type="button"
+                          class="hnav__toggle hnav__toggle--sub"
+                          aria-expanded="false"
+                          aria-controls="{{ sub_id }}"
+                          aria-label="{{ sub_toggle_label }}"
+                          data-nav-toggle
+                        >
+                          <span class="hnav__caret" aria-hidden="true"></span>
+                        </button>
+                      {%- endif -%}
+                    </div>
+                    {%- if child_has_children -%}
+                      <ul class="hnav__subsub" id="{{ sub_id }}" role="list" data-nav-panel>
+                        {%- for grandchild in child.links -%}
+                          {%- assign grandchild_title = grandchild.title | downcase | strip -%}
+                          <li>
+                            <a
+                              href="{{ grandchild.url }}"
+                              class="hnav__sublink hnav__sublink--leaf{% if grandchild_title == 'sale' %} hnav__link--sale{% endif %}"
+                              {% if grandchild.current %}
+                                aria-current="page"
+                              {% endif %}
+                            >
+                              {{- grandchild.title -}}
+                            </a>
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+    {{ extra }}
+  </nav>
+{%- endif -%}

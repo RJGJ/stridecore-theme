@@ -1,0 +1,85 @@
+{%- doc -%}
+  Emits the color custom properties for one color scheme. Text is corrected to
+  4.5:1 against the background, muted text targets 5:1, and accent helpers pick
+  readable pairings.
+
+  @param {object} scheme - one entry of settings.color_schemes
+{%- enddoc -%}
+
+{%- liquid
+  assign ink = '#0E0E0C'
+  assign white = '#FFFFFF'
+
+  assign bg = scheme.settings.background
+  assign fg = scheme.settings.text
+  assign ac = scheme.settings.accent
+  assign on_ac = scheme.settings.on_accent
+
+  assign fg_ratio = bg | color_contrast: fg
+  if fg_ratio < 4.5
+    assign black_ratio = bg | color_contrast: '#000000'
+    if black_ratio > 4.6
+      assign fg = '#121210'
+    else
+      assign fg = '#FAF9F5'
+    endif
+  endif
+
+  assign on_ac_ratio = ac | color_contrast: on_ac
+  if on_ac_ratio < 4.5
+    assign ac_ink_ratio = ac | color_contrast: ink
+    assign ac_white_ratio = ac | color_contrast: white
+    if ac_ink_ratio >= ac_white_ratio
+      assign on_ac = ink
+    else
+      assign on_ac = white
+    endif
+  endif
+
+  assign muted = fg
+  assign muted_found = false
+  assign mix_steps = '42,34,26,18,10' | split: ','
+  for step in mix_steps
+    unless muted_found
+      assign keep = 100 | minus: step
+      assign candidate = fg | color_mix: bg, keep
+      assign candidate_ratio = bg | color_contrast: candidate
+      if candidate_ratio >= 5
+        assign muted = candidate
+        assign muted_found = true
+      endif
+    endunless
+  endfor
+
+  assign ac_bg_ratio = ac | color_contrast: bg
+  if ac_bg_ratio >= 4.5
+    assign accent_ink = ac
+  else
+    assign accent_ink = fg
+  endif
+
+  assign ac_fg_ratio = ac | color_contrast: fg
+  if ac_fg_ratio >= 3
+    assign accent_on_fg = ac
+  else
+    assign accent_on_fg = bg
+  endif
+
+  if ac_bg_ratio < 1.6
+    assign accent_edge = fg
+  else
+    assign accent_edge = 'transparent'
+  endif
+-%}
+--bg: {{ bg }};
+--fg: {{ fg }};
+--muted: {{ muted }};
+--surface: color-mix(in srgb, {{ bg }}, {{ fg }} 7%);
+--line: color-mix(in srgb, {{ bg }}, {{ fg }} 20%);
+--accent: {{ ac }};
+--on-accent: {{ on_ac }};
+--accent-ink: {{ accent_ink }};
+--accent-on-fg: {{ accent_on_fg }};
+--accent-edge: {{ accent_edge }};
+--shadow: {% if settings.hard_shadow %}5px 5px 0 {{ fg }}{% else %}none{% endif %};
+--shadow-ac: {% if settings.hard_shadow %}5px 5px 0 {{ ac }}{% else %}none{% endif %};

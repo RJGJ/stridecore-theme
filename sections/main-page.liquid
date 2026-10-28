@@ -1,6 +1,6 @@
 <article class="page container">
   <h1 class="display display--lg page__title">{{ page.title }}</h1>
-  <div class="page__content">
+  <div class="page__content rte">
     {{ page.content }}
   </div>
 </article>
@@ -59,6 +59,7 @@
 
 {% schema %}
 {
-  "name": "Page"
+  "name": "Page",
+  "blocks": [{ "type": "@app" }]
 }
 {% endschema %}

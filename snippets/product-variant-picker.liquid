@@ -1,0 +1,205 @@
+{%- doc -%}
+  Variant picker: one fieldset per product option. Options with swatch data
+  (option.value.swatch.color or .image) render as square swatch buttons,
+  everything else as pills or a dropdown. <product-form> keeps the variant
+  in sync and marks unavailable combinations with [data-unavailable].
+
+  @param {product} product
+  @param {block} block - the variant_picker block (settings: picker_style, size_guide_page, size_guide_text)
+  @param {string} form_id - unique id prefix for the inputs
+
+  @example
+  {% render 'product-variant-picker', product: product, block: block, form_id: form_id %}
+{%- enddoc -%}
+
+{%- unless product.has_only_default_variant -%}
+  <div class="vp" data-variant-picker>
+    {%- for option in product.options_with_values -%}
+      {%- liquid
+        assign option_index = forloop.index0
+        assign has_swatches = false
+        for ov in option.values
+          if ov.swatch != blank
+            assign has_swatches = true
+          endif
+        endfor
+        assign use_dropdown = false
+        if block.settings.picker_style == 'dropdown' and has_swatches == false
+          assign use_dropdown = true
+        endif
+        assign group_id = form_id | append: '-opt-' | append: option_index
+      -%}
+      <fieldset class="vp__option" data-option-index="{{ option_index }}">
+        <legend class="vp__legend">
+          {{- option.name | escape }}{% if has_swatches %} — <span class="vp__legend-value" data-option-value>{{ option.selected_value }}</span>{% endif -%}
+        </legend>
+
+        {%- if use_dropdown -%}
+          <div class="vp__select-wrap">
+            <label class="visually-hidden" for="{{ group_id }}">{{ option.name | escape }}</label>
+            <select class="input vp__select" id="{{ group_id }}" data-option-input="{{ option_index }}">
+              {%- for ov in option.values -%}
+                <option value="{{ ov | escape }}" data-value="{{ ov | escape }}"{% if ov.selected %} selected{% endif %}>{{ ov }}</option>
+              {%- endfor -%}
+            </select>
+          </div>
+        {%- else -%}
+          <div class="{% if has_swatches %}vp__swatches{% else %}vp__pills{% endif %}">
+            {%- for ov in option.values -%}
+              {%- liquid
+                assign input_id = group_id | append: '-' | append: forloop.index
+                assign swatch_image = ''
+                if ov.swatch.image
+                  assign swatch_image = ov.swatch.image | image_url: width: 96
+                endif
+                assign use_swatch = false
+                if ov.swatch.color or swatch_image != blank
+                  assign use_swatch = true
+                endif
+              -%}
+              {%- if use_swatch -%}
+                <label class="vp__swatch" for="{{ input_id }}" title="{{ ov | escape }}" data-value="{{ ov | escape }}">
+                  <input type="radio" class="visually-hidden" id="{{ input_id }}" name="{{ group_id }}" value="{{ ov | escape }}" data-option-input="{{ option_index }}"{% if ov.selected %} checked{% endif %}>
+                  <span class="vp__chip" aria-hidden="true" style="{% if swatch_image != blank %}background-image: url('{{ swatch_image }}'); background-size: cover; background-position: center;{% else %}background-color: rgb({{ ov.swatch.color.rgb }});{% endif %}"></span>
+                  <span class="visually-hidden">{{ ov }}</span>
+                </label>
+              {%- else -%}
+                <label class="vp__pill-label" for="{{ input_id }}" data-value="{{ ov | escape }}">
+                  <input type="radio" class="visually-hidden" id="{{ input_id }}" name="{{ group_id }}" value="{{ ov | escape }}" data-option-input="{{ option_index }}"{% if ov.selected %} checked{% endif %}>
+                  <span class="vp__pill">{{ ov }}</span>
+                </label>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </fieldset>
+    {%- endfor -%}
+
+    {%- if block.settings.size_guide_page != blank or block.settings.size_guide_text != blank -%}
+      <p class="vp__guide">
+        {%- if block.settings.size_guide_page != blank -%}
+          <a href="{{ block.settings.size_guide_page.url }}">{{ 'product.size_guide' | t }}{% if block.settings.size_guide_text != blank %} — {{ block.settings.size_guide_text }}{% endif %}</a>
+        {%- else -%}
+          <span>{{ block.settings.size_guide_text }}</span>
+        {%- endif -%}
+      </p>
+    {%- endif -%}
+  </div>
+{%- endunless -%}
+
+{% stylesheet %}
+  .vp {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .vp__option {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  .vp__legend {
+    padding: 0;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .vp__legend-value {
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .vp__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .vp__swatch {
+    position: relative;
+    display: block;
+    width: 48px;
+    height: 48px;
+    padding: 4px;
+    border: 2px solid transparent;
+    border-radius: var(--r);
+    cursor: pointer;
+  }
+  .vp__chip {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: calc(var(--r) / 2);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .vp__swatch:has(input:checked) {
+    border-color: var(--fg);
+  }
+  .vp__swatch:has(input:focus-visible),
+  .vp__pill-label:has(input:focus-visible) {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+  .vp__swatch[data-unavailable]::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    background: linear-gradient(to top right, transparent calc(50% - 1px), var(--fg) calc(50% - 1px), var(--fg) calc(50% + 1px), transparent calc(50% + 1px));
+  }
+  .vp__swatch[data-unavailable] .vp__chip {
+    opacity: 0.5;
+  }
+
+  .vp__pills {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 10px;
+  }
+  .vp__pill-label {
+    display: block;
+    cursor: pointer;
+  }
+  .vp__pill {
+    display: grid;
+    place-items: center;
+    min-height: 52px;
+    padding: 0 8px;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--f-mono);
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .vp__pill-label input:checked + .vp__pill {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .vp__pill-label[data-unavailable] .vp__pill {
+    border-color: var(--line);
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  .vp__pill-label[data-unavailable] input:checked + .vp__pill {
+    background: var(--surface);
+    color: var(--muted);
+    border-color: var(--fg);
+  }
+  .vp__select-wrap {
+    max-width: 360px;
+  }
+  .vp__guide {
+    margin: -12px 0 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .vp__guide a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+{% endstylesheet %}

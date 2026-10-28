@@ -1,0 +1,329 @@
+{%- doc -%}
+  Renders one buy box block shared by the main product and featured product
+  sections. App blocks (`@app`) are rendered by the sections themselves.
+
+  Block types: vendor, title, price, description, variant_picker, quantity,
+  buy_buttons, pickup_availability, accordion, perks, share, custom_liquid, text.
+
+  @param {block} block
+  @param {product} product
+  @param {variant} variant - currently selected (or first available) variant
+  @param {string} form_id - id of the product form
+  @param {string} section_id
+  @param {string} [heading_tag] - h1 | h2 for the title block, default h2
+  @param {boolean} [link_title] - wrap the title in a link to the product
+
+  @example
+  {% render 'product-block', block: block, product: product, variant: current, form_id: form_id, section_id: section.id, heading_tag: 'h1' %}
+{%- enddoc -%}
+
+{%- case block.type -%}
+  {%- when 'vendor' -%}
+    {%- liquid
+      assign eyebrow_text = product.vendor
+      if eyebrow_text == blank
+        assign eyebrow_text = block.settings.fallback
+      endif
+    -%}
+    {%- if eyebrow_text != blank -%}
+      <div class="pb pb--vendor" {{ block.shopify_attributes }}>
+        <span class="eyebrow">{{ eyebrow_text }}</span>
+      </div>
+    {%- endif -%}
+
+  {%- when 'title' -%}
+    {%- assign title_tag = heading_tag | default: 'h2' -%}
+    <div class="pb pb--title" {{ block.shopify_attributes }}>
+      <{{ title_tag }} class="display pf__title">
+        {%- if link_title -%}
+          <a href="{{ product.url }}" class="pf__title-link">{{ product.title }}</a>
+        {%- else -%}
+          {{ product.title }}
+        {%- endif -%}
+      </{{ title_tag }}>
+    </div>
+
+  {%- when 'price' -%}
+    <div class="pb pb--price" {{ block.shopify_attributes }}>
+      {% render 'product-price',
+        product: product,
+        variant: variant,
+        show_range: block.settings.show_price_range,
+        show_free_shipping: block.settings.show_free_shipping
+      %}
+    </div>
+
+  {%- when 'description' -%}
+    {%- if product.description != blank -%}
+      <div class="pb pb--description" {{ block.shopify_attributes }}>
+        <div class="pf__desc rte">{{ product.description }}</div>
+      </div>
+    {%- endif -%}
+
+  {%- when 'variant_picker' -%}
+    <div class="pb pb--variant-picker" {{ block.shopify_attributes }}>
+      {% render 'product-variant-picker', product: product, block: block, form_id: form_id %}
+      {%- if block.settings.show_selling_plans -%}
+        {% render 'product-selling-plans', product: product, variant: variant, form_id: form_id, section_id: section_id %}
+      {%- endif -%}
+    </div>
+
+  {%- when 'quantity' -%}
+    <div class="pb pb--quantity" {{ block.shopify_attributes }}>
+      {% render 'product-quantity', variant: variant, form_id: form_id, section_id: section_id %}
+    </div>
+
+  {%- when 'buy_buttons' -%}
+    <div class="pb pb--buy-buttons" {{ block.shopify_attributes }}>
+      {% render 'product-buy-buttons',
+        product: product,
+        variant: variant,
+        block: block,
+        form_id: form_id,
+        section_id: section_id
+      %}
+    </div>
+
+  {%- when 'pickup_availability' -%}
+    <div class="pb pb--pickup" {{ block.shopify_attributes }}>
+      <div data-pickup>
+        {% render 'product-pickup', product_variant: variant %}
+      </div>
+    </div>
+
+  {%- when 'accordion' -%}
+    {%- liquid
+      assign panel_id = 'pf-acc-' | append: block.id
+      assign threshold_cents = settings.free_shipping_threshold | default: 0 | times: 100
+      assign amount_money = threshold_cents | money
+      assign acc_body = block.settings.content
+      assign acc_body = acc_body | replace: '[RETURN WINDOW]', settings.return_window | replace: '[GSM]', settings.fabric_gsm | replace: '[X]', settings.shipping_days | replace: '[AMOUNT]', amount_money
+      assign acc_label = block.settings.title | escape
+    -%}
+    <div class="pb pb--accordion" {{ block.shopify_attributes }}>
+      <stridecore-accordion class="pf__acc">
+        <div class="pf__acc-item">
+          <h2 class="pf__acc-heading">
+            <button type="button" class="pf__acc-trigger" aria-expanded="{{ block.settings.open }}" aria-controls="{{ panel_id }}" data-accordion-trigger>
+              <span>{{ block.settings.title }}</span>
+              <span class="pf__acc-sign" aria-hidden="true"></span>
+            </button>
+          </h2>
+          <div class="pf__acc-panel rte" id="{{ panel_id }}" role="region" aria-label="{{ acc_label }}"{% unless block.settings.open %} hidden{% endunless %}>
+            {{ acc_body }}
+          </div>
+        </div>
+      </stridecore-accordion>
+      <script src="{{ 'accordion.js' | asset_url }}" defer></script>
+    </div>
+
+  {%- when 'perks' -%}
+    <div class="pb pb--perks" {{ block.shopify_attributes }}>
+      <div class="pf__perks">
+        {%- if block.settings.show_shipping -%}
+          <div><strong>{{ 'product.perks.ships_in' | t }}</strong><span>{{ 'product.perks.ships_value' | t: days: settings.shipping_days }}</span></div>
+        {%- endif -%}
+        {%- if block.settings.show_returns -%}
+          <div><strong>{{ 'product.perks.returns' | t }}</strong><span>{{ 'product.perks.returns_value' | t: days: settings.return_window }}</span></div>
+        {%- endif -%}
+        {%- if block.settings.show_fabric -%}
+          <div><strong>{{ 'product.perks.fabric' | t }}</strong><span>{{ 'product.perks.fabric_value' | t: gsm: settings.fabric_gsm }}</span></div>
+        {%- endif -%}
+      </div>
+    </div>
+
+  {%- when 'share' -%}
+    {%- liquid
+      assign share_url = request.origin | append: product.url
+      assign share_url_encoded = share_url | url_encode
+      assign share_title_encoded = product.title | url_encode
+      assign share_scheme = request.origin | split: '//' | first
+      assign share_image_encoded = ''
+      if product.featured_image
+        assign share_image = product.featured_image | image_url: width: 1200 | prepend: share_scheme
+        assign share_image_encoded = share_image | url_encode
+      endif
+    -%}
+    <div class="pb pb--share" {{ block.shopify_attributes }}>
+      <div class="pf__share" data-share data-share-url="{{ share_url }}" data-share-title="{{ product.title | escape }}">
+        <span class="pf__share-label">{{ block.settings.label }}</span>
+        <ul class="pf__share-list" role="list">
+          <li>
+            <a class="pill pf__share-link" href="//www.facebook.com/sharer.php?u={{ share_url_encoded }}" target="_blank" rel="noopener noreferrer">
+              {% render 'social-icon', name: 'facebook', size: 16 %}
+              <span>{{ 'general.social.facebook' | t }}</span>
+              <span class="visually-hidden">{{ 'pdp.opens_new_window' | t }}</span>
+            </a>
+          </li>
+          <li>
+            <a class="pill pf__share-link" href="//twitter.com/intent/tweet?text={{ share_title_encoded }}&amp;url={{ share_url_encoded }}" target="_blank" rel="noopener noreferrer">
+              {% render 'social-icon', name: 'x', size: 16 %}
+              <span>{{ 'general.social.x' | t }}</span>
+              <span class="visually-hidden">{{ 'pdp.opens_new_window' | t }}</span>
+            </a>
+          </li>
+          <li>
+            <a class="pill pf__share-link" href="//pinterest.com/pin/create/button/?url={{ share_url_encoded }}&amp;media={{ share_image_encoded }}&amp;description={{ share_title_encoded }}" target="_blank" rel="noopener noreferrer">
+              {% render 'social-icon', name: 'pinterest', size: 16 %}
+              <span>{{ 'general.social.pinterest' | t }}</span>
+              <span class="visually-hidden">{{ 'pdp.opens_new_window' | t }}</span>
+            </a>
+          </li>
+          <li>
+            <button type="button" class="pill pf__share-link" data-share-copy>
+              <span data-share-copy-label>{{ 'pdp.copy_link' | t }}</span>
+            </button>
+          </li>
+        </ul>
+        <p class="visually-hidden" role="status" data-share-status data-copied-text="{{ 'pdp.link_copied' | t | escape }}"></p>
+      </div>
+    </div>
+
+  {%- when 'custom_liquid' -%}
+    <div class="pb pb--custom-liquid" {{ block.shopify_attributes }}>
+      {{ block.settings.custom_liquid }}
+    </div>
+
+  {%- when 'text' -%}
+    {%- if block.settings.text != blank -%}
+      <div class="pb pb--text pb--text-{{ block.settings.style }}" {{ block.shopify_attributes }}>
+        <div class="rte">{{ block.settings.text }}</div>
+      </div>
+    {%- endif -%}
+{%- endcase -%}
+
+{% stylesheet %}
+  .pb {
+    min-width: 0;
+  }
+  .pb--vendor {
+    margin-bottom: -8px;
+  }
+  .pb--accordion + .pb--accordion {
+    margin-top: -22px;
+  }
+  .pf__title {
+    margin: 0;
+    font-size: clamp(40px, 4.4vw, 64px);
+    overflow-wrap: anywhere;
+  }
+  .pf__title-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .pf__desc {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .pb--text-subheading .rte {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .pb--text-uppercase .rte {
+    font-family: var(--f-mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pf__perks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .pf__perks > div {
+    padding: 16px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+  }
+  .pf__perks > div + div {
+    border-left: 1px solid var(--line);
+  }
+  .pf__perks strong {
+    text-transform: uppercase;
+  }
+  .pf__perks span {
+    color: var(--muted);
+  }
+
+  .pf__acc {
+    display: flex;
+    flex-direction: column;
+  }
+  .pf__acc-item {
+    border-bottom: 1px solid var(--line);
+  }
+  .pf__acc-heading {
+    margin: 0;
+    font-size: inherit;
+  }
+  .pf__acc-trigger {
+    width: 100%;
+    min-height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    cursor: pointer;
+  }
+  .pf__acc-sign {
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1;
+  }
+  .pf__acc-sign::before {
+    content: '+';
+  }
+  .pf__acc-trigger[aria-expanded='true'] .pf__acc-sign::before {
+    content: '−';
+  }
+  .pf__acc-panel {
+    margin: 0 0 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .pf__share {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+  }
+  .pf__share-label {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .pf__share-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .pf__share-link {
+    gap: 8px;
+    padding: 0 14px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+{% endstylesheet %}

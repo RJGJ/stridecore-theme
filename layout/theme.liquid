@@ -35,14 +35,13 @@
     {%- endif %}
     <meta name="twitter:card" content="summary_large_image">
 
-    {% render 'font-faces' %}
     {% render 'css-variables' %}
 
     {{ 'base.css' | asset_url | stylesheet_tag }}
 
     <script>
-      window.KINETIC = window.KINETIC || {};
-      window.KINETIC.routes = {
+      window.STRIDECORE = window.STRIDECORE || {};
+      window.STRIDECORE.routes = {
         root: {{ routes.root_url | json }},
         cart: {{ routes.cart_url | json }},
         cartAdd: {{ routes.cart_add_url | json }},
@@ -51,10 +50,10 @@
         search: {{ routes.search_url | json }},
         predictiveSearch: {{ routes.predictive_search_url | json }}
       };
-      window.KINETIC.currency = {{ cart.currency.iso_code | default: shop.currency | json }};
-      window.KINETIC.locale = {{ request.locale.iso_code | json }};
-      window.KINETIC.cartType = {{ settings.cart_type | json }};
-      window.KINETIC.freeShippingThreshold = {{ settings.free_shipping_threshold | default: 0 | times: 100 | json }};
+      window.STRIDECORE.currency = {{ cart.currency.iso_code | default: shop.currency | json }};
+      window.STRIDECORE.locale = {{ request.locale.iso_code | json }};
+      window.STRIDECORE.cartType = {{ settings.cart_type | json }};
+      window.STRIDECORE.freeShippingThreshold = {{ settings.free_shipping_threshold | default: 0 | times: 100 | json }};
       document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
     </script>
     <script src="{{ 'global.js' | asset_url }}" defer></script>

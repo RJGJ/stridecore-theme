@@ -1,0 +1,212 @@
+{%- doc -%}
+  Full gift card page content for templates/gift_card.liquid: shop name, value,
+  formatted code, QR code (min 120px), Apple Wallet link, expiry, print and
+  copy-to-clipboard actions.
+
+  @param {object} gift_card - the gift_card object
+{%- enddoc -%}
+
+{%- liquid
+  assign formatted_code = gift_card.code | format_code
+  assign qr_label = 'gift_card_page.qr_label' | t
+  assign copy_ok = 'gift_card_page.copied' | t
+  assign copy_fail = 'gift_card_page.copy_failed' | t
+  assign initial_money = gift_card.initial_value | money
+  assign expiry_date = gift_card.expires_on | date: '%B %d, %Y'
+-%}
+
+<div class="gc container">
+  <header class="gc__header">
+    <p class="gc__shop display">{{ shop.name }}</p>
+    <h1 class="gc__title display display--lg">{{ 'gift_card_page.title' | t }}</h1>
+  </header>
+
+  <div class="gc__card{% if gift_card.enabled == false or gift_card.expired %} gc__card--inactive{% endif %}">
+    <div class="gc__value">
+      <p class="gc__label">{{ 'gift_card_page.balance' | t }}</p>
+      <p class="gc__amount display">{{ gift_card.balance | money }}</p>
+      {%- if gift_card.balance != gift_card.initial_value -%}
+        <p class="gc__initial">{{ 'gift_card_page.initial_value' | t: value: initial_money }}</p>
+      {%- endif -%}
+      {%- if gift_card.enabled == false -%}
+        <p class="gc__status" role="status">{{ 'gift_card_page.disabled' | t }}</p>
+      {%- elsif gift_card.expired -%}
+        <p class="gc__status" role="status">{{ 'gift_card_page.expired' | t }}</p>
+      {%- elsif gift_card.expires_on -%}
+        <p class="gc__expiry">{{ 'gift_card_page.expires_on' | t: date: expiry_date }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="gc__code-block">
+      <p class="gc__label" id="GiftCardCodeLabel">{{ 'gift_card_page.code' | t }}</p>
+      <p class="gc__code" id="GiftCardCode" aria-labelledby="GiftCardCodeLabel">{{ formatted_code }}</p>
+      <div class="gc__actions">
+        <button
+          type="button"
+          class="btn btn--ink"
+          data-copy-code="{{ gift_card.code | escape }}"
+          data-success-text="{{ copy_ok | escape }}"
+          data-error-text="{{ copy_fail | escape }}"
+        >
+          {{ 'gift_card_page.copy_code' | t }}
+        </button>
+        <button type="button" class="btn btn--outline" data-print>{{ 'gift_card_page.print' | t }}</button>
+      </div>
+      <p class="gc__copy-status" data-copy-status role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="gc__qr-block">
+      <gift-card-qr class="gc__qr" data-identifier="{{ gift_card.qr_identifier | escape }}" data-label="{{ qr_label | escape }}"></gift-card-qr>
+      <p class="gc__qr-note">{{ 'gift_card_page.qr_note' | t }}</p>
+    </div>
+  </div>
+
+  {%- if gift_card.message != blank -%}
+    <blockquote class="gc__message">{{ gift_card.message | escape | newline_to_br }}</blockquote>
+  {%- endif -%}
+
+  <div class="gc__footer">
+    {%- if gift_card.pass_url != blank -%}
+      <a href="{{ gift_card.pass_url }}" class="btn btn--accent gc__wallet" rel="nofollow noopener">{{ 'gift_card_page.apple_wallet' | t }}</a>
+    {%- endif -%}
+    <a href="{{ shop.url }}" class="btn gc__shop-link">{{ 'gift_card_page.use_online' | t }}</a>
+  </div>
+</div>
+
+<noscript>
+  <p class="container">{{ 'gift_card_page.code' | t }}: {{ formatted_code }}</p>
+</noscript>
+
+{% stylesheet %}
+  .gc {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(24px, 4vw, 40px);
+    padding-block: clamp(32px, 6vw, 80px);
+  }
+
+  .gc__header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .gc__shop {
+    font-size: clamp(20px, 2.5vw, 28px);
+  }
+
+  .gc__card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: clamp(24px, 4vw, 48px);
+    align-items: center;
+    padding: clamp(24px, 4vw, 48px);
+    border: 2px solid var(--fg);
+    border-radius: var(--r-img);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .gc__card--inactive {
+    opacity: 0.75;
+  }
+
+  .gc__label {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-family: var(--f-mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .gc__amount {
+    margin: 0;
+    font-size: clamp(44px, 7vw, 88px);
+    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .gc__initial,
+  .gc__expiry,
+  .gc__status {
+    margin: 12px 0 0;
+    font-size: 15px;
+  }
+
+  .gc__status {
+    font-weight: 700;
+  }
+
+  .gc__code {
+    margin: 0 0 16px;
+    font-family: var(--f-mono);
+    font-size: clamp(20px, 3vw, 30px);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    overflow-wrap: anywhere;
+  }
+
+  .gc__actions,
+  .gc__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .gc__copy-status {
+    min-height: 1.5em;
+    margin: 8px 0 0;
+    font-size: 14px;
+  }
+
+  .gc__qr-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .gc__qr {
+    display: block;
+    width: 160px;
+    height: 160px;
+    min-width: 120px;
+    min-height: 120px;
+    background: #fff;
+  }
+
+  .gc__qr svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .gc__qr-note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .gc__message {
+    margin: 0;
+    padding: 0.5em 0 0.5em 1.2em;
+    border-left: 4px solid var(--accent);
+    font-size: 18px;
+  }
+
+  @media print {
+    .shopify-section-group-header-group,
+    .shopify-section-group-footer-group,
+    .skip-link,
+    .gc__actions,
+    .gc__footer {
+      display: none !important;
+    }
+
+    .gc__card {
+      box-shadow: none;
+    }
+  }
+{% endstylesheet %}

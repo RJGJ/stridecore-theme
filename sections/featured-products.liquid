@@ -25,10 +25,14 @@
   assign status_template = 'home.featured.showing' | t: count: '__COUNT__'
 -%}
 
-<section class="container featured">
+<div
+  class="featured color-{{ section.settings.color_scheme }}"
+  style="--featured-pt: {{ section.settings.padding_top }}; --featured-pb: {{ section.settings.padding_bottom }}; --card-min: {{ section.settings.card_min }}px;"
+>
+  <div class="container">
   <featured-products class="featured__wrap" data-status-template="{{ status_template | escape }}">
     <div class="featured__head">
-      <h2 class="display display--lg featured__title">{{ section.settings.heading | escape | newline_to_br }}</h2>
+      <h2 class="display display--lg featured__title">{{ section.settings.heading }}</h2>
       {%- if section.settings.show_filters and type_list.size > 1 -%}
         <div class="featured__filters" role="group" aria-label="{{ 'home.featured.filter_label' | t }}">
           <button type="button" class="pill" data-filter="" aria-pressed="true">{{ 'home.featured.all' | t }}</button>
@@ -65,14 +69,12 @@
       <div class="product-grid">
         {%- for i in (1..4) -%}
           {%- liquid
-            assign card_tone = 'surface'
-            assign tone_index = forloop.index0 | modulo: 3
-            if tone_index == 0
-              assign card_tone = 'accent'
-            endif
+            assign placeholder_name = 'product-' | append: i
           -%}
           <div class="card">
-            {% render 'placeholder-media', ratio: '4 / 5', label: 'Product image', tone: card_tone %}
+            <div class="media media--placeholder">
+              {{ placeholder_name | placeholder_svg_tag: 'featured__placeholder' }}
+            </div>
             <div class="card__info">
               <span class="card__title">{{ 'home.featured.placeholder_title' | t }}</span>
             </div>
@@ -87,13 +89,36 @@
       </div>
     {%- endif -%}
   </featured-products>
-</section>
+  </div>
+</div>
 
 <script src="{{ 'featured-products.js' | asset_url }}" defer></script>
 
 {% stylesheet %}
 .featured {
-  padding-block: clamp(64px, 8vw, 120px);
+  padding-top: calc(var(--featured-pt) * 0.6px);
+  padding-bottom: calc(var(--featured-pb) * 0.6px);
+}
+@media (min-width: 750px) {
+  .featured {
+    padding-top: calc(var(--featured-pt) * 1px);
+    padding-bottom: calc(var(--featured-pb) * 1px);
+  }
+}
+.featured__title em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.featured__placeholder {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 5;
+  fill: currentColor;
+  color: var(--muted);
 }
 .featured__head {
   display: flex;
@@ -105,7 +130,6 @@
 }
 .featured__title {
   font-size: clamp(40px, 5.5vw, 84px);
-  text-wrap: initial;
 }
 .featured__filters {
   display: flex;
@@ -132,14 +156,24 @@
   "class": "section-featured-products",
   "settings": [
     {
-      "type": "textarea",
+      "type": "inline_richtext",
       "id": "heading",
       "label": "Heading",
-      "info": "Press Enter for a line break.",
-      "default": "Fresh off\nthe press"
+      "default": "Fresh off the press"
     },
-    { "type": "collection", "id": "collection", "label": "Collection", "info": "Leave empty to show all products." },
-    { "type": "range", "id": "product_count", "label": "Products to show", "min": 2, "max": 24, "step": 1, "default": 8 },
+    { "type": "collection", "id": "collection", "label": "Collection", "info": "Shows all products when empty." },
+    { "type": "range", "id": "product_count", "label": "Maximum products to show", "min": 2, "max": 24, "step": 1, "default": 8 },
+    {
+      "type": "range",
+      "id": "card_min",
+      "label": "Minimum product width",
+      "min": 200,
+      "max": 400,
+      "step": 20,
+      "unit": "px",
+      "default": 280,
+      "info": "Smaller values fit more products per row."
+    },
     {
       "type": "checkbox",
       "id": "show_filters",
@@ -147,8 +181,16 @@
       "info": "Builds tabs from the product types in this collection.",
       "default": true
     },
-    { "type": "text", "id": "button_label", "label": "Button label", "default": "View all products" }
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "View all products" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 80 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 80 }
   ],
-  "presets": [{ "name": "Featured products" }]
+  "presets": [
+    {
+      "name": "Featured products"
+    }
+  ]
 }
 {% endschema %}

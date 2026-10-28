@@ -30,6 +30,15 @@
       assign card_min = '280px'
   endcase
 
+  case section.settings.image_ratio
+    when 'square'
+      assign card_ratio = '1 / 1'
+    when 'landscape'
+      assign card_ratio = '4 / 3'
+    else
+      assign card_ratio = '4 / 5'
+  endcase
+
   assign promo_block = section.blocks | where: 'type', 'promo' | first
   assign filters_visible = section.settings.filters_open
   if has_filters == false
@@ -39,7 +48,7 @@
 
 <script src="{{ 'facets.js' | asset_url }}" defer></script>
 
-<div class="coll" style="--card-min: {{ card_min }}">
+<div class="coll color-{{ section.settings.color_scheme }}" style="--card-min: {{ card_min }}">
   {%- paginate collection.products by section.settings.per_page -%}
     <section class="coll-banner">
       <div class="container coll-banner__inner">
@@ -55,14 +64,14 @@
             <sup data-facet-swap="count-banner">{{ paginate.items }}</sup>
           </h1>
           {%- if section.settings.show_description and collection.description != blank -%}
-            <div class="coll-desc">{{ collection.description }}</div>
+            <div class="coll-desc rte">{{ collection.description }}</div>
           {%- endif -%}
         </div>
 
-        {%- if section.settings.show_image -%}
-          {%- if collection.image != blank -%}
-            {% render 'placeholder-media', image: collection.image, ratio: '21 / 9', label: collection.title, sizes: '100vw', loading: 'eager' %}
-          {%- endif -%}
+        {%- if section.settings.show_image and collection.image != blank -%}
+          <div class="coll-hero">
+            {% render 'placeholder-media', image: collection.image, ratio: '21 / 9', label: collection.title, sizes: '(min-width: 1360px) 1360px, 100vw', loading: 'eager' %}
+          </div>
         {%- endif -%}
 
         {%- if section.settings.subnav != blank -%}
@@ -151,75 +160,7 @@
               {% endunless %}
             >
               <div class="coll-filters__inner" data-facet-swap="sidebar">
-                {%- for filter in collection.filters -%}
-                  {%- assign filter_key = filter.param_name | handle -%}
-                  {%- case filter.type -%}
-                    {%- when 'price_range' -%}
-                      <fieldset class="coll-group">
-                        <legend>{{ filter.label }}</legend>
-                        <div class="coll-price">
-                          <div class="coll-price__field">
-                            <label for="Price-{{ section.id }}-min">{{ 'collection.price_from' | t }}</label>
-                            <input
-                              id="Price-{{ section.id }}-min"
-                              class="coll-input"
-                              type="number"
-                              inputmode="decimal"
-                              min="0"
-                              step="any"
-                              name="{{ filter.min_value.param_name }}"
-                              value="{% if filter.min_value.value != nil %}{{ filter.min_value.value | money_without_currency | replace: ',', '' }}{% endif %}"
-                              placeholder="0"
-                            >
-                          </div>
-                          <div class="coll-price__field">
-                            <label for="Price-{{ section.id }}-max">{{ 'collection.price_to' | t }}</label>
-                            <input
-                              id="Price-{{ section.id }}-max"
-                              class="coll-input"
-                              type="number"
-                              inputmode="decimal"
-                              min="0"
-                              step="any"
-                              name="{{ filter.max_value.param_name }}"
-                              value="{% if filter.max_value.value != nil %}{{ filter.max_value.value | money_without_currency | replace: ',', '' }}{% endif %}"
-                              placeholder="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
-                            >
-                          </div>
-                        </div>
-                      </fieldset>
-                    {%- else -%}
-                      <fieldset class="coll-group">
-                        <legend>{{ filter.label }}</legend>
-                        <ul class="coll-options">
-                          {%- for value in filter.values -%}
-                            {%- assign option_disabled = false -%}
-                            {%- if value.count == 0 and value.active == false -%}
-                              {%- assign option_disabled = true -%}
-                            {%- endif -%}
-                            <li>
-                              <label class="coll-check{% if option_disabled %} is-disabled{% endif %}" for="Filter-{{ section.id }}-{{ filter_key }}-{{ forloop.index }}">
-                                <input
-                                  type="checkbox"
-                                  id="Filter-{{ section.id }}-{{ filter_key }}-{{ forloop.index }}"
-                                  name="{{ value.param_name }}"
-                                  value="{{ value.value | escape }}"
-                                  {% if value.active %}
-                                    checked
-                                  {% endif %}
-                                  {% if option_disabled %}
-                                    disabled
-                                  {% endif %}
-                                >
-                                <span>{{ value.label }}</span>
-                                <span class="coll-check__count mono">{{ value.count }}</span>
-                              </label>
-                            </li>
-                          {%- endfor -%}
-                        </ul>
-                      </fieldset>
-                  {%- endcase -%}
-                {%- endfor -%}
+                {% render 'facet-filters', filters: collection.filters, id_prefix: section.id %}
 
                 {%- if has_active -%}
                   <a href="{{ clear_url }}" class="coll-clear" data-facet-link>{{ 'collection.clear_all' | t }}</a>
@@ -232,49 +173,17 @@
             <p class="visually-hidden" role="status" aria-live="polite" data-facet-status></p>
 
             <div data-facet-swap="results" class="coll-results__inner">
-              {%- if has_active -%}
-                <div class="coll-chips" role="group" aria-label="{{ 'collection.active_filters' | t }}">
-                  {%- for filter in collection.filters -%}
-                    {%- if filter.type == 'price_range' -%}
-                      {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
-                        {%- liquid
-                          assign chip_min = 0 | money
-                          if filter.min_value.value != nil
-                            assign chip_min = filter.min_value.value | money
-                          endif
-                          assign chip_max = filter.range_max | money
-                          if filter.max_value.value != nil
-                            assign chip_max = filter.max_value.value | money
-                          endif
-                          assign chip_label = chip_min | append: ' – ' | append: chip_max
-                          assign chip_aria = 'collection.remove_filter' | t: label: chip_label
-                        -%}
-                        <a href="{{ filter.url_to_remove }}" class="coll-chip" aria-label="{{ chip_aria }}" data-facet-link>
-                          {{- chip_label }}
-                          <span aria-hidden="true">&times;</span>
-                        </a>
-                      {%- endif -%}
-                    {%- else -%}
-                      {%- for value in filter.active_values -%}
-                        {%- assign chip_aria = 'collection.remove_filter' | t: label: value.label -%}
-                        <a href="{{ value.url_to_remove }}" class="coll-chip" aria-label="{{ chip_aria }}" data-facet-link>
-                          {{- value.label }}
-                          <span aria-hidden="true">&times;</span>
-                        </a>
-                      {%- endfor -%}
-                    {%- endif -%}
-                  {%- endfor -%}
-                  <a href="{{ clear_url }}" class="coll-clear" data-facet-link>{{ 'collection.clear_all' | t }}</a>
-                </div>
-              {%- endif -%}
+              {% render 'facet-chips', filters: collection.filters, clear_url: clear_url %}
 
               {%- if paginate.items == 0 -%}
                 <div class="coll-empty">
-                  <h2 class="display display--md">{{ 'collection.empty_title' | t }}</h2>
-                  <p class="muted">{{ 'collection.empty_text' | t }}</p>
                   {%- if has_active -%}
+                    <h2 class="display display--md">{{ 'collection.empty_title' | t }}</h2>
+                    <p class="muted">{{ 'collection.empty_text' | t }}</p>
                     <a href="{{ clear_url }}" class="btn btn--accent" data-facet-link>{{ 'collection.clear_all' | t }}</a>
                   {%- else -%}
+                    <h2 class="display display--md">{{ 'collection.empty_collection_title' | t }}</h2>
+                    <p class="muted">{{ 'collection.empty_collection_text' | t }}</p>
                     <a href="{{ routes.all_products_collection_url }}" class="btn btn--accent">{{ 'collection.browse_all' | t }}</a>
                   {%- endif -%}
                 </div>
@@ -309,8 +218,15 @@
 
                 <div class="product-grid coll-grid">
                   {%- for product in collection.products -%}
+                    {%- assign card_loading = 'lazy' -%}
+                    {%- if forloop.index <= 4 and paginate.current_page == 1 -%}
+                      {%- assign card_loading = 'eager' -%}
+                    {%- endif -%}
                     {% render 'product-card',
                       product: product,
+                      ratio: card_ratio,
+                      loading: card_loading,
+                      show_vendor: section.settings.show_vendor,
                       sizes: '(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 100vw'
                     %}
                     {%- if show_promo and forloop.index == section.settings.promo_position -%}
@@ -330,6 +246,15 @@
       </form>
     </facet-form>
   {%- endpaginate -%}
+
+  {%- for block in section.blocks -%}
+    {%- case block.type -%}
+      {%- when '@app' -%}
+        <div class="container coll-blocks">{% render block %}</div>
+      {%- when 'custom_liquid' -%}
+        <div class="container coll-blocks" {{ block.shopify_attributes }}>{{ block.settings.custom_liquid }}</div>
+    {%- endcase -%}
+  {%- endfor -%}
 </div>
 
 <noscript>
@@ -347,10 +272,11 @@
   .coll-crumbs a { text-decoration: none; display: inline-flex; align-items: center; min-height: 24px; }
   .coll-crumbs__current { color: var(--fg); }
   .coll-banner__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 24px; }
-  .coll-title { font-family: var(--f-display); font-weight: var(--d-weight); font-stretch: var(--d-stretch); font-size: clamp(64px, 11vw, 176px); line-height: var(--d-lead); letter-spacing: var(--d-track); text-transform: var(--h-case); }
+  .coll-title { overflow-wrap: anywhere; font-family: var(--f-display); font-weight: var(--d-weight); font-stretch: var(--d-stretch); font-size: clamp(64px, 11vw, 176px); line-height: var(--d-lead); letter-spacing: var(--d-track); text-transform: var(--h-case); }
   .coll-title sup { font-family: var(--f-mono); font-size: 0.16em; font-weight: 700; letter-spacing: 0; vertical-align: top; margin-left: 0.2em; padding: 0.2em 0.45em; background: var(--accent); color: var(--on-accent); border-radius: var(--r-pill); }
   .coll-desc { max-width: 420px; font-size: 17px; line-height: 1.55; color: var(--muted); }
-  .coll-desc p + p { margin-top: 0.8em; }
+  .coll-hero { overflow: hidden; border: 2px solid var(--fg); border-radius: var(--r-img); }
+  .coll-blocks { padding-bottom: clamp(32px, 4vw, 56px); }
   .coll-subnav { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
 
   .coll-toolbar { border-bottom: 1px solid var(--line); }
@@ -364,24 +290,11 @@
   .coll-body { display: flex; flex-wrap: wrap; gap: 40px; align-items: start; padding-top: 32px; padding-bottom: clamp(64px, 8vw, 112px); }
   .coll-filters { flex: 1 1 240px; max-width: 100%; }
   .coll-filters__inner { display: flex; flex-direction: column; gap: 32px; }
-  .coll-group { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; border: 0; min-width: 0; }
-  .coll-group legend { padding: 0; margin-bottom: 14px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
-  .coll-options { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
-  .coll-check { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 15px; cursor: pointer; }
-  .coll-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--fg); flex: none; }
-  .coll-check__count { margin-left: auto; font-size: 12px; color: var(--muted); }
-  .coll-check.is-disabled { opacity: 0.45; cursor: not-allowed; }
-  .coll-price { display: flex; gap: 10px; }
-  .coll-price__field { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-  .coll-price__field label { font-size: 13px; color: var(--muted); }
-  .coll-input { width: 100%; min-height: 44px; padding: 0 12px; background: var(--bg); color: var(--fg); border: 2px solid var(--fg); border-radius: var(--r); font-size: 15px; }
   .coll-clear { align-self: start; display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 700; text-decoration: underline; }
 
   .coll-results { flex: 999 1 560px; min-width: 0; }
   .coll-results__inner { display: flex; flex-direction: column; gap: 28px; transition: opacity 0.2s; }
   .coll-results__inner.is-loading { opacity: 0.45; pointer-events: none; }
-  .coll-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .coll-chip { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; background: var(--accent); color: var(--on-accent); border: 2px solid var(--fg); border-radius: var(--r-pill); font-family: var(--f-mono); font-size: 13px; font-weight: 700; text-decoration: none; }
   .coll-grid { grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min, 280px), 100%), 1fr)); gap: 40px 20px; }
   .coll-results__inner .pagination { margin-top: 24px; }
 
@@ -410,6 +323,12 @@
   "tag": "section",
   "class": "section-main-collection",
   "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
     { "type": "header", "content": "Layout" },
     { "type": "range", "id": "per_page", "label": "Products per page", "min": 4, "max": 48, "step": 4, "default": 12 },
     {
@@ -423,14 +342,27 @@
       ],
       "default": "medium"
     },
-    { "type": "checkbox", "id": "filters_open", "label": "Show filters by default", "default": true },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "info": "Images are cropped to fit, using the focal point you set.",
+      "options": [
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "square", "label": "Square" },
+        { "value": "landscape", "label": "Landscape" }
+      ],
+      "default": "portrait"
+    },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor", "default": false },
+    { "type": "checkbox", "id": "filters_open", "label": "Show filters on page load", "default": true },
     { "type": "header", "content": "Banner" },
     { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": true },
-    { "type": "checkbox", "id": "show_image", "label": "Show collection image", "default": false },
-    { "type": "link_list", "id": "subnav", "label": "Sub-collection links", "info": "Shown as pills under the title." },
+    { "type": "checkbox", "id": "show_image", "label": "Show collection image", "default": true },
+    { "type": "link_list", "id": "subnav", "label": "Sub-collection menu", "info": "Shown as buttons under the heading." },
     { "type": "header", "content": "Promo tile" },
     { "type": "checkbox", "id": "show_promo", "label": "Show promo tile", "default": true },
-    { "type": "range", "id": "promo_position", "label": "Insert after product number", "min": 1, "max": 12, "step": 1, "default": 5 }
+    { "type": "range", "id": "promo_position", "label": "Promo tile position", "min": 1, "max": 12, "step": 1, "default": 5, "info": "Number of products shown before the tile." }
   ],
   "blocks": [
     {
@@ -454,6 +386,13 @@
           ],
           "default": "fg"
         }
+      ]
+    },
+    {
+      "type": "custom_liquid",
+      "name": "Custom liquid",
+      "settings": [
+        { "type": "liquid", "id": "custom_liquid", "label": "Liquid" }
       ]
     },
     { "type": "@app" }

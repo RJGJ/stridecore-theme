@@ -1,0 +1,409 @@
+{%- doc -%}
+  Product media gallery. Supports images, hosted video, YouTube/Vimeo
+  (external_video) and 3D models. Two layouts: "stacked" (all media in a
+  grid, the STRIDECORE look) and "thumbnails" (one media at a time with a
+  thumbnail strip). Different aspect ratios are handled by the `ratio` mode.
+  Optional lightbox for images.
+
+  @param {product} product
+  @param {variant} variant - currently selected variant (its media is shown first in thumbnails layout)
+  @param {string} section_id
+  @param {string} [layout] - stacked | thumbnails, default stacked
+  @param {string} [ratio] - standard | adapt | portrait | square, default standard
+  @param {boolean} [enable_zoom] - show the lightbox button on images
+  @param {boolean} [loop_video] - loop hosted videos
+  @param {boolean} [show_badge] - show the sale / sold out / low stock sticker
+  @param {string} [badge] - sticker text for the initial variant
+
+  @example
+  {% render 'product-media-gallery', product: product, variant: current, section_id: section.id, layout: 'stacked' %}
+{%- enddoc -%}
+
+{%- liquid
+  assign gallery_layout = layout | default: 'stacked'
+  assign ratio_mode = ratio | default: 'standard'
+  assign gallery_label = 'product.gallery_label' | t
+  assign placeholder_label = 'product.main_image' | t
+  assign active_id = variant.featured_media.id
+  if gallery_layout != 'thumbnails' or active_id == blank
+    assign active_id = product.media.first.id
+  endif
+  assign do_loop = loop_video | default: false
+  assign has_model = false
+  assign has_zoom = false
+  if enable_zoom
+    for media in product.media
+      if media.media_type == 'image'
+        assign has_zoom = true
+      endif
+    endfor
+  endif
+  assign close_label = 'general.close' | t
+-%}
+
+<product-gallery
+  class="pm pm--{{ gallery_layout }}"
+  data-layout="{{ gallery_layout }}"
+  data-active-media="{{ active_id }}"
+  id="gallery-{{ section_id }}"
+  role="region"
+  aria-label="{{ gallery_label }}"
+>
+  {%- if product.media.size > 0 -%}
+    <ul class="pm__list" role="list">
+      {%- for media in product.media -%}
+        {%- liquid
+          assign is_active = false
+          if media.id == active_id
+            assign is_active = true
+          endif
+
+          assign media_alt = media.alt | default: product.title
+          assign item_ratio = ''
+          case ratio_mode
+            when 'adapt'
+              assign item_ratio = media.aspect_ratio | default: 1
+            when 'square'
+              assign item_ratio = '1 / 1'
+            when 'portrait'
+              assign item_ratio = '4 / 5'
+            else
+              if media.media_type != 'image'
+                assign item_ratio = media.aspect_ratio | default: 1
+              elsif gallery_layout == 'thumbnails'
+                assign item_ratio = '4 / 5'
+              elsif forloop.first
+                assign item_ratio = '5 / 4'
+              else
+                assign item_ratio = '4 / 5'
+              endif
+          endcase
+
+          if gallery_layout == 'thumbnails'
+            assign item_sizes = '(min-width: 1024px) 50vw, 100vw'
+          elsif forloop.first
+            assign item_sizes = '(min-width: 1024px) 55vw, 100vw'
+          else
+            assign item_sizes = '(min-width: 1024px) 27vw, (min-width: 640px) 50vw, 100vw'
+          endif
+        -%}
+        <li
+          class="pm__item{% if forloop.first and gallery_layout != 'thumbnails' %} pm__item--main{% endif %}{% if is_active %} is-active{% endif %}"
+          data-media-id="{{ media.id }}"
+          data-media-type="{{ media.media_type }}"
+        >
+          <div class="media pm__media" style="aspect-ratio: {{ item_ratio }}">
+            {%- case media.media_type -%}
+              {%- when 'image' -%}
+                {%- if forloop.first -%}
+                  {{
+                    media
+                    | image_url: width: 1600
+                    | image_tag: loading: 'eager', fetchpriority: 'high', sizes: item_sizes, widths: '540, 720, 900, 1200, 1600', alt: media_alt, class: 'pm__img'
+                  }}
+                {%- else -%}
+                  {{
+                    media
+                    | image_url: width: 1600
+                    | image_tag: loading: 'lazy', sizes: item_sizes, widths: '360, 540, 720, 900, 1200, 1600', alt: media_alt, class: 'pm__img'
+                  }}
+                {%- endif -%}
+              {%- when 'video' -%}
+                {%- assign video_label = media_alt | escape -%}
+                {{ media | video_tag: image_size: '1100x', controls: true, loop: do_loop, muted: false, preload: 'none', aria-label: video_label }}
+              {%- when 'external_video' -%}
+                {%- assign video_title = media_alt | escape -%}
+                {{ media | external_video_tag: title: video_title, loading: 'lazy' }}
+              {%- when 'model' -%}
+                {%- assign has_model = true -%}
+                {{ media | model_viewer_tag: image_size: '1100x', toggleable: true, data-model-id: media.id }}
+              {%- else -%}
+                {{ media | media_tag: image_size: '1100x' }}
+            {%- endcase -%}
+            {%- if media.media_type == 'image' and has_zoom -%}
+              {%- assign zoom_src = media | image_url: width: 2400 -%}
+              <button
+                type="button"
+                class="pm__zoom"
+                data-zoom
+                data-zoom-src="{{ zoom_src }}"
+                data-zoom-alt="{{ media_alt | escape }}"
+                aria-haspopup="dialog"
+                aria-label="{{ 'pdp.open_lightbox' | t }}"
+              >
+                {% render 'icon', name: 'plus', size: 20 %}
+              </button>
+            {%- endif -%}
+          </div>
+          {%- if media.media_type == 'model' -%}
+            <button
+              class="btn btn--sm btn--outline pm__xr"
+              type="button"
+              data-shopify-xr
+              data-shopify-model3d-id="{{ media.id }}"
+              data-shopify-title="{{ product.title | escape }}"
+              data-shopify-xr-hidden
+            >
+              {{ 'pdp.view_in_space' | t }}
+            </button>
+          {%- endif -%}
+          {%- if forloop.first and show_badge -%}
+            <span class="sticker pm__sticker" data-badge{% if badge == blank %} hidden{% endif %}>{{ badge }}</span>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+
+    {%- if gallery_layout == 'thumbnails' and product.media.size > 1 -%}
+      <ul class="pm__thumbs" role="list">
+        {%- for media in product.media -%}
+          {%- assign thumb_active = false -%}
+          {%- if media.id == active_id -%}
+            {%- assign thumb_active = true -%}
+          {%- endif -%}
+          <li>
+            <button
+              type="button"
+              class="pm__thumb{% if thumb_active %} is-active{% endif %}"
+              data-thumb="{{ media.id }}"
+              aria-label="{{ 'pdp.load_media' | t: index: forloop.index }}"
+              aria-current="{{ thumb_active }}"
+            >
+              {%- if media.preview_image -%}
+                {{ media.preview_image | image_url: width: 160 | image_tag: loading: 'lazy', widths: '80, 160', sizes: '80px', alt: '' }}
+              {%- endif -%}
+              {%- if media.media_type != 'image' -%}
+                <span class="pm__thumb-type" aria-hidden="true">{{ media.media_type | replace: '_', ' ' }}</span>
+              {%- endif -%}
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    {%- if has_zoom -%}
+      <dialog class="pm__dialog" data-zoom-dialog aria-label="{{ gallery_label }}">
+        <button type="button" class="icon-btn pm__dialog-close" data-zoom-close aria-label="{{ close_label }}">
+          {% render 'icon', name: 'close', size: 24 %}
+        </button>
+        <button type="button" class="icon-btn pm__dialog-nav pm__dialog-nav--prev" data-zoom-prev aria-label="{{ 'general.previous' | t }}">
+          <span class="pm__flip">{% render 'icon', name: 'arrow-right', size: 24 %}</span>
+        </button>
+        <img class="pm__dialog-img" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="" width="1" height="1" data-zoom-img>
+        <button type="button" class="icon-btn pm__dialog-nav pm__dialog-nav--next" data-zoom-next aria-label="{{ 'general.next' | t }}">
+          {% render 'icon', name: 'arrow-right', size: 24 %}
+        </button>
+      </dialog>
+    {%- endif -%}
+
+    {%- if has_model -%}
+      {%- assign model_media = product.media | where: 'media_type', 'model' -%}
+      <script type="application/json" data-xr-models>{{ model_media | json }}</script>
+    {%- endif -%}
+  {%- else -%}
+    <ul class="pm__list" role="list">
+      <li class="pm__item pm__item--main">
+        {% render 'placeholder-media', ratio: '5 / 4', label: placeholder_label %}
+        {%- if show_badge -%}
+          <span class="sticker pm__sticker" data-badge{% if badge == blank %} hidden{% endif %}>{{ badge }}</span>
+        {%- endif -%}
+      </li>
+    </ul>
+  {%- endif -%}
+</product-gallery>
+
+<script src="{{ 'product-media.js' | asset_url }}" defer></script>
+
+{% stylesheet %}
+  .pm {
+    display: block;
+    flex: 999 1 560px;
+    min-width: 0;
+  }
+  .pm__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  .pm__item {
+    position: relative;
+    min-width: 0;
+    scroll-margin-top: 24px;
+  }
+  .pm__item--main {
+    grid-column: 1 / -1;
+  }
+  .pm__media,
+  .pm__item .media--placeholder {
+    position: relative;
+    width: 100%;
+    border: 2px solid var(--fg);
+    overflow: hidden;
+  }
+  .pm__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .pm__media video,
+  .pm__media iframe,
+  .pm__media model-viewer {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+  }
+  .pm__item.is-highlighted .pm__media {
+    outline: 3px solid var(--accent-ink);
+    outline-offset: 3px;
+  }
+  .pm__sticker {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 8px 14px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .pm__zoom {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 2px solid var(--fg);
+    border-radius: var(--r);
+    background: var(--bg);
+    color: var(--fg);
+    cursor: zoom-in;
+  }
+  .pm__zoom:focus-visible,
+  .pm__thumb:focus-visible,
+  .pm__dialog .icon-btn:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+  .pm__xr {
+    margin-top: 12px;
+    width: 100%;
+  }
+  .pm__xr[data-shopify-xr-hidden] {
+    display: none;
+  }
+
+  /* Thumbnails layout: JS shows one media at a time; without JS everything stays visible. */
+  .pm--thumbnails .pm__list {
+    display: block;
+  }
+  .pm--thumbnails .pm__item + .pm__item {
+    margin-top: 16px;
+  }
+  .pm--thumbnails.is-enhanced .pm__item:not(.is-active) {
+    display: none;
+  }
+  .pm__thumbs {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 4px;
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+  }
+  .pm__thumb {
+    position: relative;
+    display: block;
+    width: 80px;
+    height: 80px;
+    padding: 0;
+    border: 2px solid var(--line);
+    border-radius: var(--r);
+    background: var(--surface);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .pm__thumb.is-active {
+    border-color: var(--fg);
+  }
+  .pm__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .pm__thumb-type {
+    position: absolute;
+    left: 4px;
+    bottom: 4px;
+    padding: 2px 6px;
+    background: var(--fg);
+    color: var(--bg);
+    font-family: var(--f-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+
+  .pm__dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  .pm__dialog[open] {
+    display: grid;
+    place-items: center;
+  }
+  .pm__dialog::backdrop {
+    background: rgb(0 0 0 / 0.7);
+  }
+  .pm__dialog-img {
+    max-width: calc(100vw - 112px);
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  .pm__dialog-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+  .pm__dialog-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .pm__dialog-nav--prev {
+    left: 8px;
+  }
+  .pm__dialog-nav--next {
+    right: 8px;
+  }
+  .pm__flip {
+    display: grid;
+    transform: scaleX(-1);
+  }
+
+  @media (max-width: 480px) {
+    .pm__sticker {
+      top: 12px;
+      left: 12px;
+    }
+  }
+{% endstylesheet %}

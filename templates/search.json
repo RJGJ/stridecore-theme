@@ -5,8 +5,9 @@
       "settings": {
         "placeholder": "Hoodies, cargo, caps…",
         "popular_terms": "Hoodie, Cargo, Tee, Cap, Jacket",
-        "include_content": false,
-        "per_page": 12
+        "include_content": true,
+        "per_page": 12,
+        "filters_open": true
       }
     }
   },

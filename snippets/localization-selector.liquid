@@ -1,0 +1,133 @@
+{%- doc -%}
+  Country/currency and language selectors, each in its own `localization` form
+  (Shopify UX guidelines). Renders nothing when the store sells in a single
+  country and a single language. Needs assets/localization.js; styles come from
+  the stylesheet of the section that renders it (header or footer).
+
+  @param {string} id - unique id prefix, e.g. "header" or "footer-mobile"
+  @param {string} [direction] - "down" (default) or "up": where the option list opens
+  @param {string} [class] - extra classes for the wrapper
+
+  @example
+  {% render 'localization-selector', id: 'footer', direction: 'up' %}
+{%- enddoc -%}
+
+{%- liquid
+  assign show_countries = false
+  assign show_languages = false
+  if localization.available_countries.size > 1
+    assign show_countries = true
+  endif
+  if localization.available_languages.size > 1
+    assign show_languages = true
+  endif
+  assign loc_direction = direction | default: 'down'
+-%}
+
+{%- if show_countries or show_languages -%}
+  <div class="loc loc--{{ loc_direction }} {{ class }}">
+    {%- if show_countries -%}
+      {%- assign country_form_id = 'LocalizationCountry-' | append: id -%}
+      {%- assign country_list_id = 'CountryList-' | append: id -%}
+      {%- assign country_label_id = 'CountryLabel-' | append: id -%}
+      <localization-form class="loc__selector">
+        {%- form 'localization', id: country_form_id, class: 'loc__form' -%}
+          <h2 id="{{ country_label_id }}" class="visually-hidden">{{ 'site.localization.country_label' | t }}</h2>
+          <div class="loc__disclosure">
+            <button
+              type="button"
+              class="loc__button"
+              aria-expanded="false"
+              aria-controls="{{ country_list_id }}"
+              aria-labelledby="{{ country_label_id }} {{ country_form_id }}-current"
+              data-localization-button
+            >
+              <span id="{{ country_form_id }}-current">
+                {{- localization.country.name }} ({{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol -}})
+              </span>
+              <span class="loc__caret" aria-hidden="true"></span>
+            </button>
+            <ul id="{{ country_list_id }}" class="loc__list" role="list" data-localization-panel>
+              {%- for country in localization.available_countries -%}
+                <li>
+                  <button
+                    type="submit"
+                    name="country_code"
+                    value="{{ country.iso_code }}"
+                    class="loc__option"
+                    {% if country.iso_code == localization.country.iso_code %}
+                      aria-current="true"
+                    {% endif %}
+                  >
+                    <span>{{ country.name }}</span>
+                    <span class="loc__currency">{{ country.currency.iso_code }} {{ country.currency.symbol }}</span>
+                  </button>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endform -%}
+      </localization-form>
+    {%- endif -%}
+
+    {%- if show_languages -%}
+      {%- assign language_form_id = 'LocalizationLanguage-' | append: id -%}
+      {%- assign language_list_id = 'LanguageList-' | append: id -%}
+      {%- assign language_label_id = 'LanguageLabel-' | append: id -%}
+      <localization-form class="loc__selector">
+        {%- form 'localization', id: language_form_id, class: 'loc__form' -%}
+          <h2 id="{{ language_label_id }}" class="visually-hidden">{{ 'site.localization.language_label' | t }}</h2>
+          <div class="loc__disclosure">
+            <button
+              type="button"
+              class="loc__button"
+              aria-expanded="false"
+              aria-controls="{{ language_list_id }}"
+              aria-labelledby="{{ language_label_id }} {{ language_form_id }}-current"
+              data-localization-button
+            >
+              <span id="{{ language_form_id }}-current">{{ localization.language.endonym_name | capitalize }}</span>
+              <span class="loc__caret" aria-hidden="true"></span>
+            </button>
+            <ul id="{{ language_list_id }}" class="loc__list" role="list" data-localization-panel>
+              {%- for language in localization.available_languages -%}
+                <li>
+                  <button
+                    type="submit"
+                    name="language_code"
+                    value="{{ language.iso_code }}"
+                    class="loc__option"
+                    lang="{{ language.iso_code }}"
+                    {% if language.iso_code == localization.language.iso_code %}
+                      aria-current="true"
+                    {% endif %}
+                  >
+                    {{ language.endonym_name | capitalize }}
+                  </button>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endform -%}
+      </localization-form>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .loc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .loc__selector, .loc__form { display: block; margin: 0; }
+  .loc__disclosure { position: relative; }
+  .loc__button { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; background: transparent; color: inherit; border: 2px solid currentColor; border-radius: var(--r); font-family: var(--f-mono); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; }
+  .loc__caret { width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+  .loc__button[aria-expanded='true'] .loc__caret { transform: translateY(2px) rotate(-135deg); }
+  .loc__list { position: absolute; z-index: 40; left: 0; min-width: 100%; width: max-content; max-width: min(320px, 85vw); max-height: min(60vh, 360px); overflow-y: auto; margin: 0; padding: 6px 0; list-style: none; background: var(--bg); color: var(--fg); border: 2px solid var(--fg); border-radius: var(--r); box-shadow: var(--shadow); }
+  .loc--down .loc__list { top: calc(100% + 4px); }
+  .loc--up .loc__list { bottom: calc(100% + 4px); }
+  .loc__list[hidden] { display: none; }
+  .loc__option { display: flex; justify-content: space-between; gap: 16px; width: 100%; min-height: 44px; padding: 0 16px; align-items: center; background: transparent; color: inherit; border: 0; border-radius: 0; font: inherit; font-size: 15px; font-weight: 600; text-align: start; cursor: pointer; }
+  .loc__option:hover, .loc__option:focus-visible { background: var(--fg); color: var(--bg); }
+  .loc__option[aria-current='true'] { text-decoration: underline; text-underline-offset: 4px; }
+  .loc__currency { font-family: var(--f-mono); font-size: 12px; opacity: 0.8; }
+  .js .loc__list:not([hidden]) { display: block; }
+{% endstylesheet %}

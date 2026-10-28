@@ -1,0 +1,110 @@
+{%- doc -%}
+  Details under a cart line title, shared by the cart page and the cart drawer:
+  variant options, selling plan name, visible line item properties, unit price
+  and line-level discount allocations.
+
+  @param {line_item} item - the cart line item
+  @param {string} [class] - extra classes for the wrapper
+
+  @example
+  {% render 'cart-line-details', item: item %}
+{%- enddoc -%}
+
+<div class="cart-line-details {{ class }}">
+  {%- unless item.product.has_only_default_variant -%}
+    <dl class="cart-line-details__options">
+      {%- for option in item.options_with_values -%}
+        <div>
+          <dt>{{ option.name }}:</dt>
+          <dd>{{ option.value }}</dd>
+        </div>
+      {%- endfor -%}
+    </dl>
+  {%- endunless -%}
+
+  {%- if item.selling_plan_allocation != blank -%}
+    <p class="cart-line-details__plan">{{ item.selling_plan_allocation.selling_plan.name }}</p>
+  {%- endif -%}
+
+  {%- assign property_size = item.properties | size -%}
+  {%- if property_size > 0 -%}
+    <dl class="cart-line-details__options cart-line-details__props">
+      {%- for property in item.properties -%}
+        {%- assign first_char = property.first | slice: 0 -%}
+        {%- if property.last != blank and first_char != '_' -%}
+          <div>
+            <dt>{{ property.first }}:</dt>
+            <dd>
+              {%- if property.last contains '/uploads/' -%}
+                <a href="{{ property.last }}" target="_blank" rel="noopener">{{ property.last | split: '/' | last }}</a>
+              {%- else -%}
+                {{ property.last }}
+              {%- endif -%}
+            </dd>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </dl>
+  {%- endif -%}
+
+  {%- if item.unit_price_measurement -%}
+    <p class="cart-line-details__unit">
+      <span class="visually-hidden">{{ 'products.price.unit_price' | t }}:</span>
+      {{ item.unit_price | unit_price_with_measurement: item.unit_price_measurement }}
+    </p>
+  {%- endif -%}
+
+  {%- if item.line_level_discount_allocations.size > 0 -%}
+    <ul class="cart-line-details__discounts" role="list" aria-label="{{ 'cart_page.discounts' | t }}">
+      {%- for allocation in item.line_level_discount_allocations -%}
+        <li>
+          <span>{{ allocation.discount_application.title }} (-{{ allocation.amount | money }})</span>
+        </li>
+      {%- endfor -%}
+    </ul>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .cart-line-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .cart-line-details p,
+  .cart-line-details dl,
+  .cart-line-details ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .cart-line-details__options > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 6px;
+  }
+  .cart-line-details__options dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .cart-line-details__unit {
+    font-family: var(--f-mono);
+    font-size: 13px;
+  }
+  .cart-line-details__discounts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    color: var(--accent-ink);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .cart-line-details__discounts li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+{% endstylesheet %}

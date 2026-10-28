@@ -1,0 +1,378 @@
+{%- liquid
+  assign ib_first = false
+  if section.index == 1
+    assign ib_first = true
+  endif
+  assign ib_loading = 'lazy'
+  assign ib_priority = 'auto'
+  if ib_first
+    assign ib_loading = 'eager'
+    assign ib_priority = 'high'
+  endif
+  assign ib_focal = 'object-position:' | append: section.settings.image.presentation.focal_point
+  assign ib_overlay = section.settings.overlay_opacity | divided_by: 100.0
+-%}
+
+<div
+  class="ib ib--{{ section.settings.height }} color-{{ section.settings.color_scheme }}"
+  style="--ib-overlay: {{ ib_overlay }};"
+>
+  <div class="ib__media">
+    {%- if section.settings.video != blank -%}
+      <banner-video class="ib__video-wrap" data-pause-label="{{ 'sections.image_banner.pause_video' | t | escape }}" data-play-label="{{ 'sections.image_banner.play_video' | t | escape }}">
+        {{
+          section.settings.video
+          | video_tag: image_size: '1920x', autoplay: true, loop: true, muted: true, controls: false, playsinline: true, class: 'ib__img', preload: 'metadata'
+        }}
+        <button type="button" class="ib__toggle" data-toggle aria-pressed="false" aria-label="{{ 'sections.image_banner.pause_video' | t }}">
+          <span class="ib__toggle-icon" aria-hidden="true"></span>
+        </button>
+      </banner-video>
+      <script src="{{ 'image-banner.js' | asset_url }}" defer></script>
+    {%- elsif section.settings.image != blank -%}
+      {{
+        section.settings.image
+        | image_url: width: 2400
+        | image_tag: loading: ib_loading, fetchpriority: ib_priority, sizes: '100vw', widths: '750,1100,1500,1920,2400', class: 'ib__img', style: ib_focal
+      }}
+    {%- else -%}
+      {{ 'lifestyle-1' | placeholder_svg_tag: 'ib__img ib__placeholder' }}
+    {%- endif -%}
+    <div class="ib__overlay"></div>
+  </div>
+
+  <div class="container ib__container">
+    <div class="ib__content ib__content--v-{{ section.settings.vertical_position }} ib__content--h-{{ section.settings.horizontal_position }}">
+      <div class="ib__box ib__box--{{ section.settings.text_alignment }}">
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'heading' -%}
+              <h2 class="display ib__heading ib__heading--{{ block.settings.heading_size }}" {{ block.shopify_attributes }}>{{ block.settings.heading }}</h2>
+            {%- when 'text' -%}
+              <div class="ib__text rte" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+            {%- when 'buttons' -%}
+              <div class="ib__buttons" {{ block.shopify_attributes }}>
+                {%- if block.settings.button_label_1 != blank -%}
+                  {%- assign url_1 = block.settings.button_link_1 -%}
+                  <a
+                    {% if url_1 != blank %}href="{{ url_1 }}"{% else %}role="link" aria-disabled="true"{% endif %}
+                    class="btn btn--accent"
+                  >{{ block.settings.button_label_1 }}</a>
+                {%- endif -%}
+                {%- if block.settings.button_label_2 != blank -%}
+                  {%- assign url_2 = block.settings.button_link_2 -%}
+                  <a
+                    {% if url_2 != blank %}href="{{ url_2 }}"{% else %}role="link" aria-disabled="true"{% endif %}
+                    class="btn btn--invert ib__btn-2"
+                  >{{ block.settings.button_label_2 }}</a>
+                {%- endif -%}
+              </div>
+            {%- when '@app' -%}
+              <div class="ib__app" {{ block.shopify_attributes }}>{%- render block -%}</div>
+          {%- endcase -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+.ib {
+  position: relative;
+  display: grid;
+  isolation: isolate;
+  overflow: hidden;
+  color: #fff;
+}
+.ib--small {
+  min-height: 360px;
+}
+.ib--medium {
+  min-height: 480px;
+}
+.ib--large {
+  min-height: 600px;
+}
+.ib--full {
+  min-height: 85vh;
+}
+@media (min-width: 750px) {
+  .ib--small {
+    min-height: 420px;
+  }
+  .ib--medium {
+    min-height: 600px;
+  }
+  .ib--large {
+    min-height: 760px;
+  }
+}
+.ib__media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--surface);
+}
+.ib__video-wrap {
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+.ib__media .ib__img,
+.ib__media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ib__placeholder {
+  fill: currentColor;
+  color: #8a8a8a;
+}
+.ib__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / var(--ib-overlay));
+  pointer-events: none;
+}
+.ib__container {
+  display: grid;
+  width: 100%;
+  padding-block: clamp(40px, 6vw, 96px);
+}
+.ib__content {
+  display: flex;
+  min-width: 0;
+}
+.ib__content--v-top {
+  align-items: flex-start;
+}
+.ib__content--v-middle {
+  align-items: center;
+}
+.ib__content--v-bottom {
+  align-items: flex-end;
+}
+.ib__content--h-left {
+  justify-content: flex-start;
+}
+.ib__content--h-center {
+  justify-content: center;
+}
+.ib__content--h-right {
+  justify-content: flex-end;
+}
+.ib__box {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 720px;
+  min-width: 0;
+}
+.ib__box--left {
+  align-items: flex-start;
+  text-align: left;
+}
+.ib__box--center {
+  align-items: center;
+  text-align: center;
+}
+.ib__box--right {
+  align-items: flex-end;
+  text-align: right;
+}
+.ib__heading {
+  text-shadow: none;
+}
+.ib__heading--medium {
+  font-size: clamp(40px, 5vw, 76px);
+}
+.ib__heading--large {
+  font-size: clamp(52px, 8vw, 128px);
+}
+.ib__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.ib__text {
+  max-width: 520px;
+  font-size: 19px;
+  line-height: 1.5;
+}
+.ib__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.ib__box--center .ib__buttons {
+  justify-content: center;
+}
+.ib__box--right .ib__buttons {
+  justify-content: flex-end;
+}
+.ib__btn-2 {
+  background: #fff;
+  border-color: #fff;
+  color: #111;
+}
+.ib__toggle {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+}
+.ib__toggle-icon {
+  width: 14px;
+  height: 14px;
+  border-left: 4px solid currentColor;
+  border-right: 4px solid currentColor;
+}
+.ib__toggle[aria-pressed='true'] .ib__toggle-icon {
+  width: 0;
+  height: 0;
+  border: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 13px solid currentColor;
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Image banner",
+  "tag": "section",
+  "class": "section-image-banner",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Image", "info": "2400 x 1200px .jpg recommended" },
+    { "type": "video", "id": "video", "label": "Background video", "info": "Replaces the image. Plays muted without sound and can be paused." },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Banner height",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" },
+        { "value": "full", "label": "Full screen" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "horizontal_position",
+      "label": "Horizontal position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "vertical_position",
+      "label": "Vertical position",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "middle", "label": "Middle" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "middle"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "label": "Overlay opacity",
+      "info": "Darkens the media so text stays readable.",
+      "default": 50
+    },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" }
+  ],
+  "blocks": [
+    {
+      "type": "heading",
+      "name": "Heading",
+      "limit": 1,
+      "settings": [
+        { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "Built for the way you <em>move</em>" },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "Heading size",
+          "options": [
+            { "value": "medium", "label": "Medium" },
+            { "value": "large", "label": "Large" }
+          ],
+          "default": "large"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Body text",
+          "default": "<p>Give your campaign a clear message and one strong image.</p>"
+        }
+      ]
+    },
+    {
+      "type": "buttons",
+      "name": "Buttons",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "button_label_1", "label": "First button label", "default": "Shop now" },
+        { "type": "url", "id": "button_link_1", "label": "First button link" },
+        { "type": "text", "id": "button_label_2", "label": "Second button label" },
+        { "type": "url", "id": "button_link_2", "label": "Second button link" }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "max_blocks": 5,
+  "presets": [
+    {
+      "name": "Image banner",
+      "blocks": [
+        { "type": "heading" },
+        { "type": "text" },
+        { "type": "buttons" }
+      ]
+    }
+  ]
+}
+{% endschema %}

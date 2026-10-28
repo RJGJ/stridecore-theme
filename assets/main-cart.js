@@ -2,12 +2,14 @@
  * <cart-page> progressive enhancement for sections/main-cart.liquid.
  *
  * Without JS the cart is a plain form (number inputs + "Update cart" + checkout).
- * With JS: stepper/remove/qty changes go through KINETIC.cart.change, and the
+ * With JS: stepper/remove/qty changes go through STRIDECORE.cart.change, and the
  * cart is re-rendered from the Section Rendering API (?sections=<id>). Any
- * kinetic:cart:updated event (drawer, quick add...) also triggers a re-render.
+ * stridecore:cart:updated event (drawer, quick add...) also triggers a re-render.
+ *
+ * Quantity inputs carry the variant quantity rule in data-min / data-step / data-max.
  *
  * Hooks: [data-qty-step], [data-qty], [data-remove], [data-line-key], [data-cart-root],
- * [data-cart-live], [data-bar-fill].
+ * [data-cart-live], [data-cart-error], [data-bar-fill], [data-cart-total].
  */
 (() => {
   if (customElements.get('cart-page')) return;
@@ -20,10 +22,13 @@
       this.seq = 0;
       this.pendingMessage = '';
 
-      this.onUpdated = (event) => this.render(event.detail);
-      this.onError = (event) => this.announce(event.detail?.message || this.dataset.msgError);
-      window.KINETIC?.on('cart:updated', this.onUpdated);
-      window.KINETIC?.on('cart:error', this.onError);
+      this.onUpdated = (event) => {
+        this.showError('');
+        this.render(event.detail);
+      };
+      this.onError = (event) => this.showError(event.detail?.message || this.dataset.msgError);
+      window.STRIDECORE?.on('cart:updated', this.onUpdated);
+      window.STRIDECORE?.on('cart:error', this.onError);
 
       this.addEventListener('click', (event) => this.handleClick(event));
       this.addEventListener('change', (event) => this.handleChange(event));
@@ -40,8 +45,8 @@
     }
 
     disconnectedCallback() {
-      window.KINETIC?.off('cart:updated', this.onUpdated);
-      window.KINETIC?.off('cart:error', this.onError);
+      window.STRIDECORE?.off('cart:updated', this.onUpdated);
+      window.STRIDECORE?.off('cart:error', this.onError);
     }
 
     get root() {
@@ -57,12 +62,43 @@
       });
     }
 
+    showError(message) {
+      const box = this.querySelector('[data-cart-error]');
+      if (box) {
+        box.textContent = message || '';
+        box.hidden = !message;
+      }
+      if (message) this.announce(message);
+    }
+
+    /* Clamp a typed or stepped quantity to the variant quantity rule. 0 removes the line. */
+    normalize(input, value) {
+      const min = Number(input.dataset.min) || 1;
+      const step = Number(input.dataset.step) || 1;
+      const max = input.dataset.max ? Number(input.dataset.max) : Infinity;
+      if (!value || value <= 0) return 0;
+      if (value < min) return min;
+      let next = min + Math.round((value - min) / step) * step;
+      if (next > max) next = min + Math.floor((max - min) / step) * step;
+      return Math.max(min, next);
+    }
+
     handleClick(event) {
       const step = event.target.closest('[data-qty-step]');
       if (step) {
         const line = step.closest('[data-line-key]');
         const input = line.querySelector('[data-qty]');
-        const next = Math.max(0, (parseInt(input.value, 10) || 0) + Number(step.dataset.qtyStep));
+        const current = parseInt(input.value, 10) || 0;
+        const stepSize = Number(input.dataset.step) || 1;
+        const direction = Number(step.dataset.qtyStep);
+        const min = Number(input.dataset.min) || 1;
+        let next = current + direction * stepSize;
+        if (direction < 0 && next < min) next = 0;
+        if (direction > 0 && input.dataset.max && next > Number(input.dataset.max)) next = current;
+        if (next === current) {
+          this.showError(this.dataset.msgMax || '');
+          return;
+        }
         input.value = next;
         this.update(line, next, next === 0 ? 'removed' : 'updated');
         return;
@@ -77,11 +113,11 @@
     handleChange(event) {
       const input = event.target;
       if (input.matches('[data-qty]')) {
-        const next = Math.max(0, parseInt(input.value, 10) || 0);
+        const next = this.normalize(input, parseInt(input.value, 10) || 0);
         input.value = next;
         this.update(input.closest('[data-line-key]'), next, next === 0 ? 'removed' : 'updated');
       } else if (input.matches('textarea[name="note"]')) {
-        window.KINETIC.fetchJSON(`${window.KINETIC.routes?.cartUpdate || '/cart/update'}.js`, {
+        window.STRIDECORE.fetchJSON(`${window.STRIDECORE.routes?.cartUpdate || '/cart/update'}.js`, {
           method: 'POST',
           body: JSON.stringify({ note: input.value }),
         }).catch(() => {});
@@ -89,14 +125,14 @@
     }
 
     async update(line, quantity, kind) {
-      if (!line || !window.KINETIC) return;
+      if (!line || !window.STRIDECORE) return;
       this.pendingMessage = kind;
       line.setAttribute('aria-busy', 'true');
       try {
-        await window.KINETIC.cart.change(line.dataset.lineKey, quantity);
-        // render() runs from the kinetic:cart:updated listener.
+        await window.STRIDECORE.cart.change(line.dataset.lineKey, quantity);
+        // render() runs from the stridecore:cart:updated listener.
       } catch (_) {
-        // Error text arrives through kinetic:cart:error; resync the markup.
+        // Error text arrives through stridecore:cart:error; resync the markup.
         this.render();
       }
     }
@@ -147,11 +183,12 @@
       const noteValue = note ? note.value : null;
       const oldFill = this.querySelector('[data-bar-fill]');
       const oldPct = oldFill ? oldFill.style.width : null;
-      const cartUrl = window.KINETIC?.routes?.cart || '/cart';
+      const cartUrl = window.STRIDECORE?.routes?.cart || '/cart';
 
       try {
         const res = await fetch(`${cartUrl}?sections=${encodeURIComponent(this.sectionId)}`, {
           credentials: 'same-origin',
+          cache: 'no-store',
           headers: { Accept: 'application/json' },
         });
         if (!res.ok) throw new Error(`Section request failed (${res.status})`);
@@ -183,7 +220,7 @@
 
         const kind = this.pendingMessage || 'updated';
         this.pendingMessage = '';
-        const total = cart && window.KINETIC ? window.KINETIC.money(cart.total_price) : '';
+        const total = cart && window.STRIDECORE ? window.STRIDECORE.money(cart.total_price) : '';
         const template = kind === 'removed' ? this.dataset.msgRemoved : this.dataset.msgUpdated;
         this.announce((template || '').replace('{total}', total));
       } catch (error) {

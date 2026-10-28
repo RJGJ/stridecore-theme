@@ -1,22 +1,53 @@
-<section class="container perks">
-  <div class="perks__grid">
+<div
+  class="perks color-{{ section.settings.color_scheme }}"
+  style="--perks-pt: {{ section.settings.padding_top }}; --perks-pb: {{ section.settings.padding_bottom }};"
+>
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="display display--md perks__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+    <div class="perks__grid">
     {%- for block in section.blocks -%}
       {%- liquid
         assign perk_number = forloop.index | plus: 100 | append: '' | slice: 1, 2
-        assign perk_text = block.settings.text | replace: '{return_window}', settings.return_window
       -%}
-      <div class="perks__item" {{ block.shopify_attributes }}>
-        <span class="perks__num">{{ perk_number }}</span>
-        <span class="perks__title">{{ block.settings.title }}</span>
-        <span class="perks__text">{{ perk_text }}</span>
-      </div>
+      {%- if block.type == '@app' -%}
+        <div class="perks__item" {{ block.shopify_attributes }}>
+          {%- render block -%}
+        </div>
+      {%- else -%}
+        <div class="perks__item" {{ block.shopify_attributes }}>
+          <span class="perks__num" aria-hidden="true">{{ perk_number }}</span>
+          <h3 class="perks__title">{{ block.settings.title }}</h3>
+          <div class="perks__text rte">{{ block.settings.text }}</div>
+        </div>
+      {%- endif -%}
     {%- endfor -%}
+    </div>
   </div>
-</section>
+</div>
 
 {% stylesheet %}
 .perks {
-  padding-block: clamp(56px, 7vw, 104px);
+  padding-top: calc(var(--perks-pt) * 0.6px);
+  padding-bottom: calc(var(--perks-pb) * 0.6px);
+}
+@media (min-width: 750px) {
+  .perks {
+    padding-top: calc(var(--perks-pt) * 1px);
+    padding-bottom: calc(var(--perks-pb) * 1px);
+  }
+}
+.perks__heading {
+  margin-bottom: 32px;
+}
+.perks__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
 }
 .perks__grid {
   display: grid;
@@ -40,6 +71,7 @@
   color: var(--accent-ink);
 }
 .perks__title {
+  font-family: var(--f-body);
   font-size: 20px;
   font-weight: 800;
   text-transform: uppercase;
@@ -56,21 +88,29 @@
   "name": "Perks",
   "tag": "section",
   "class": "section-perks",
-  "settings": [],
+  "settings": [
+    { "type": "inline_richtext", "id": "heading", "label": "Heading" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
+  ],
   "blocks": [
     {
       "type": "perk",
       "name": "Perk",
       "settings": [
-        { "type": "text", "id": "title", "label": "Title", "default": "Heavyweight" },
+        { "type": "text", "id": "title", "label": "Heading", "default": "Heavyweight" },
         {
-          "type": "textarea",
+          "type": "richtext",
           "id": "text",
-          "label": "Text",
-          "info": "Use {return_window} to insert the return window from theme settings.",
-          "default": "Dense cotton that holds its shape wash after wash."
+          "label": "Body text",
+          "default": "<p>Dense cotton that holds its shape wash after wash.</p>"
         }
       ]
+    },
+    {
+      "type": "@app"
     }
   ],
   "max_blocks": 8,
@@ -78,10 +118,10 @@
     {
       "name": "Perks",
       "blocks": [
-        { "type": "perk", "settings": { "title": "Heavyweight", "text": "Dense cotton that holds its shape wash after wash." } },
-        { "type": "perk", "settings": { "title": "Boxy fits", "text": "Dropped shoulders, cropped lengths. Size guide on every product." } },
-        { "type": "perk", "settings": { "title": "Easy returns", "text": "{return_window} days to change your mind, no questions." } },
-        { "type": "perk", "settings": { "title": "Limited runs", "text": "Small batches. When a drop is gone, it is gone." } }
+        { "type": "perk", "settings": { "title": "Heavyweight", "text": "<p>Dense cotton that holds its shape wash after wash.</p>" } },
+        { "type": "perk", "settings": { "title": "Boxy fits", "text": "<p>Dropped shoulders, cropped lengths. Size guide on every product.</p>" } },
+        { "type": "perk", "settings": { "title": "Easy returns", "text": "<p>Changed your mind? Send it back, no questions asked.</p>" } },
+        { "type": "perk", "settings": { "title": "Limited runs", "text": "<p>Small batches. When a drop is gone, it is gone.</p>" } }
       ]
     }
   ]

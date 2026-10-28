@@ -1,12 +1,17 @@
 {
-  "name": "kinetic-theme",
-  "version": "0.1.0",
-  "repository": "git@github.com:RJGJ/kinetic-theme.git",
+  "name": "stridecore-theme",
+  "version": "1.0.0",
+  "repository": "git@github.com:RJGJ/stridecore-theme.git",
   "author": "RJGJ (https://rjgjaictin.dev)",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.64.0",
     "@shopify/cli": "^4.9.4",
-    "archiver": "^8.0.0"
+    "archiver": "^8.0.0",
+    "chrome-launcher": "1.2.2",
+    "dotenv": "18.0.8",
+    "lighthouse": "13.5.0"
   },
   "private": true,
   "scripts": {
@@ -14,6 +19,9 @@
     "lint": "shopify theme check",
     "pull": "shopify theme pull",
     "push": "shopify theme push",
-    "package": "node scripts/package.mjs"
+    "package": "node scripts/package.mjs",
+    "qa": "node scripts/qa/run.mjs",
+    "e2e": "playwright test -c scripts/e2e/playwright.config.mjs",
+    "lighthouse": "node scripts/e2e/lighthouse.mjs"
   }
 }

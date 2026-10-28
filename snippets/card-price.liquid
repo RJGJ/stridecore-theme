@@ -1,0 +1,64 @@
+{%- doc -%}
+  Price block for a product card: current price (or "From {min}" when variants
+  have different prices), compare-at price when on sale, and the unit price of
+  the first available variant when it has one.
+
+  @param {product} product
+
+  @example
+  {% render 'card-price', product: product %}
+{%- enddoc -%}
+
+{%- liquid
+  assign on_sale = false
+  if product.compare_at_price_max > product.price
+    assign on_sale = true
+  endif
+  assign price_variant = product.selected_or_first_available_variant
+-%}
+
+<div class="price card__price">
+  {%- if product.price_varies -%}
+    <span class="card__price-main">
+      {%- if on_sale -%}
+        <span class="visually-hidden">{{ 'products.price.sale' | t }}</span>
+      {%- endif -%}
+      {%- assign min_price = product.price_min | money -%}
+      {{ 'products.price.from' | t: price: min_price }}
+    </span>
+  {%- else -%}
+    {%- if on_sale -%}
+      <s>
+        <span class="visually-hidden">{{ 'products.price.regular' | t }}</span>
+        {{ product.compare_at_price | money }}
+      </s>
+    {%- endif -%}
+    <span class="card__price-main">
+      <span class="visually-hidden">
+        {%- if on_sale -%}
+          {{ 'products.price.sale' | t }}
+        {%- else -%}
+          {{ 'products.price.regular' | t }}
+        {%- endif -%}
+      </span>
+      {{ product.price | money }}
+    </span>
+  {%- endif -%}
+  {%- if price_variant.unit_price_measurement -%}
+    <small class="card__unit">
+      <span class="visually-hidden">{{ 'products.price.unit_price' | t }}:</span>
+      {{ price_variant.unit_price | unit_price_with_measurement: price_variant.unit_price_measurement }}
+    </small>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .card__price {
+    flex: none;
+  }
+  .card__unit {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 400;
+  }
+{% endstylesheet %}

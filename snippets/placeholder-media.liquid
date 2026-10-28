@@ -1,5 +1,5 @@
 {%- doc -%}
-  Renders a Shopify image, or the striped KINETIC placeholder block when no
+  Renders a Shopify image, or the striped STRIDECORE placeholder block when no
   image is set. The wrapper fills its container; control the shape with
   `ratio` or let a parent set the height.
 
@@ -21,6 +21,7 @@
   assign media_widths = widths | default: '360,540,720,900,1200,1600'
   assign media_sizes = sizes | default: '100vw'
   assign media_loading = loading | default: 'lazy'
+  assign media_focal = 'object-position:' | append: image.presentation.focal_point
 -%}
 
 {%- if image != blank -%}
@@ -28,7 +29,7 @@
     {{
       image
       | image_url: width: 1600
-      | image_tag: loading: media_loading, sizes: media_sizes, widths: media_widths
+      | image_tag: loading: media_loading, sizes: media_sizes, widths: media_widths, style: media_focal
     }}
   </div>
 {%- else -%}

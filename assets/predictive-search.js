@@ -19,7 +19,7 @@ class PredictiveSearch extends HTMLElement {
     this.live = this.querySelector('[data-predictive-live]');
     if (!this.input || !this.panel) return;
 
-    const K = window.KINETIC || {};
+    const K = window.STRIDECORE || {};
     const routes = K.routes || {};
     this.url = this.dataset.url || routes.predictiveSearch || '/search/suggest';
     this.sectionId = this.dataset.sectionId || 'predictive-search';
@@ -148,7 +148,7 @@ class PredictiveSearch extends HTMLElement {
         if (this.isOpen()) {
           event.preventDefault();
           this.close();
-        } else if (this.input.value) {
+        } else if (this.input.value && !this.closest('dialog')) {
           event.preventDefault();
           this.input.value = '';
           this.lastQuery = '';
@@ -175,8 +175,8 @@ class PredictiveSearch extends HTMLElement {
 
     const params = new URLSearchParams({
       q: query,
-      'resources[type]': 'product,collection,page,article',
-      'resources[limit]': '6',
+      'resources[type]': 'product,collection,page,article,query',
+      'resources[limit]': '4',
       'resources[limit_scope]': 'each',
       section_id: this.sectionId,
     });
@@ -207,6 +207,10 @@ class PredictiveSearch extends HTMLElement {
       return;
     }
     this.panel.innerHTML = markup;
+    /* Option ids must stay unique when several predictive search forms exist on the page. */
+    this.panel.querySelectorAll('[id^="PSOption-"]').forEach((option) => {
+      option.id = `${this.panel.id}-${option.id}`;
+    });
     this.setActive(-1);
     this.open();
     const status = this.panel.querySelector('[data-predictive-status]');

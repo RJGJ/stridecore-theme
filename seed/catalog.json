@@ -1,0 +1,1055 @@
+{
+  "brand": "Northline Athletics",
+  "currency": "USD",
+  "colors": [
+    {
+      "name": "Black",
+      "hex": "#111111"
+    },
+    {
+      "name": "Slate",
+      "hex": "#4A5560"
+    },
+    {
+      "name": "Glacier Blue",
+      "hex": "#8FB8D6"
+    },
+    {
+      "name": "Ember Orange",
+      "hex": "#E4572E"
+    },
+    {
+      "name": "Forest",
+      "hex": "#2F5D46"
+    },
+    {
+      "name": "Bone",
+      "hex": "#E9E4D8"
+    }
+  ],
+  "sizes": [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+  ],
+  "defaults": {
+    "inventory": 14,
+    "taxable": true
+  },
+  "products": [
+    {
+      "handle": "pace-seamless-tee",
+      "title": "Pace Seamless Tee",
+      "type": "Tops",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "tops",
+        "tees",
+        "running",
+        "new"
+      ],
+      "price": "38.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "A seamless short-sleeve tee knitted in one piece so nothing rubs on long runs.",
+      "features": [
+        "Body-mapped mesh panels at the back and underarms",
+        "Flatlock seams, no side seams",
+        "Soft 86% recycled polyester, 14% elastane"
+      ],
+      "seoTitle": "Pace Seamless Tee | Running T-Shirt | Northline Athletics",
+      "seoDescription": "Seamless short-sleeve running tee with breathable mesh zones and a soft, stretchy fit."
+    },
+    {
+      "handle": "stride-long-sleeve",
+      "title": "Stride Long Sleeve",
+      "type": "Tops",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "tops",
+        "long-sleeve",
+        "running"
+      ],
+      "price": "52.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "Lightweight long-sleeve base layer with thumb loops for cool mornings.",
+      "features": [
+        "Brushed interior for warmth without bulk",
+        "Thumb loops and a zip-free neckline",
+        "Reflective heat-seal details"
+      ],
+      "seoTitle": "Stride Long Sleeve | Running Base Layer | Northline Athletics",
+      "seoDescription": "A light, brushed long-sleeve running top with thumb loops and reflective details.",
+      "inventoryOverrides": [
+        {
+          "color": "Slate",
+          "size": "M",
+          "qty": 2
+        }
+      ]
+    },
+    {
+      "handle": "aero-mesh-tank",
+      "title": "Aero Mesh Tank",
+      "type": "Tops",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "tops",
+        "tanks",
+        "training"
+      ],
+      "price": "34.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "An open-knit tank that moves heat out fast, built for summer intervals and heavy gym sessions.",
+      "features": [
+        "Open-knit mesh with a relaxed drop armhole",
+        "Quick-dry, odor-resistant finish",
+        "Longer hem that stays tucked in"
+      ],
+      "seoTitle": "Aero Mesh Tank | Training Tank Top | Northline Athletics",
+      "seoDescription": "Breathable mesh training tank with a relaxed fit and quick-dry finish."
+    },
+    {
+      "handle": "core-sports-bra",
+      "title": "Core Support Sports Bra",
+      "type": "Tops",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "tops",
+        "sports-bras",
+        "training",
+        "new"
+      ],
+      "price": "44.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "Medium-support bra with a wide underband and a racerback that stays put through jumps and sprints.",
+      "features": [
+        "Removable pads",
+        "Wide, non-slip underband",
+        "Smooth fabric that will not chafe"
+      ],
+      "seoTitle": "Core Support Sports Bra | Medium Support | Northline Athletics",
+      "seoDescription": "Medium-support racerback sports bra with removable pads and a secure underband."
+    },
+    {
+      "handle": "studio-crop-top",
+      "title": "Studio Crop Top",
+      "type": "Tops",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "tops",
+        "crop",
+        "yoga"
+      ],
+      "price": "36.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "A soft, cropped top for yoga, Pilates and easy days.",
+      "features": [
+        "Buttery stretch fabric",
+        "Built-in light-support shelf",
+        "Cropped to sit at the high waist"
+      ],
+      "seoTitle": "Studio Crop Top | Yoga Top | Northline Athletics",
+      "seoDescription": "Soft cropped yoga top with a built-in shelf bra and four-way stretch.",
+      "inventoryOverrides": [
+        {
+          "color": "Bone",
+          "size": "XS",
+          "qty": 0
+        }
+      ]
+    },
+    {
+      "handle": "altitude-half-zip",
+      "title": "Altitude Half-Zip",
+      "type": "Tops",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "tops",
+        "midlayer",
+        "running"
+      ],
+      "price": "78.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "A warm, breathable midlayer for the run to the trailhead and the first cold kilometers.",
+      "features": [
+        "Grid fleece interior",
+        "Chin guard and zip pocket",
+        "Stretch panels at the side for a full range of motion"
+      ],
+      "seoTitle": "Altitude Half-Zip | Running Midlayer | Northline Athletics",
+      "seoDescription": "Grid-fleece half-zip midlayer with a zip pocket for cool-weather running."
+    },
+    {
+      "handle": "tempo-running-shorts",
+      "title": "Tempo Running Shorts",
+      "type": "Bottoms",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "bottoms",
+        "shorts",
+        "running",
+        "sale"
+      ],
+      "price": "42.00",
+      "compareAtPrice": "56.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "Five-inch running shorts with a built-in liner and a pocket big enough for a phone.",
+      "features": [
+        "Lightweight woven shell",
+        "Brief liner with a soft waistband",
+        "Zip back pocket and reflective trim"
+      ],
+      "seoTitle": "Tempo Running Shorts 5 in | Northline Athletics",
+      "seoDescription": "Lined five-inch running shorts with a phone-sized zip pocket."
+    },
+    {
+      "handle": "sculpt-high-rise-leggings",
+      "title": "Sculpt High-Rise Leggings",
+      "type": "Bottoms",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "bottoms",
+        "leggings",
+        "training",
+        "new"
+      ],
+      "price": "68.00",
+      "priceBySize": {
+        "XXL": "72.00",
+        "XL": "72.00"
+      },
+      "priceByColor": {
+        "Glacier Blue": "74.00"
+      },
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "Compressive high-rise leggings that stay opaque through deep squats. Sizes XL and up use extra fabric, and Glacier Blue uses a premium dye, so prices vary by variant.",
+      "features": [
+        "Squat-proof, four-way stretch fabric",
+        "Hidden waistband pocket",
+        "Flat seams that lie smooth under layers"
+      ],
+      "seoTitle": "Sculpt High-Rise Leggings | Northline Athletics",
+      "seoDescription": "Squat-proof high-rise training leggings with a hidden waistband pocket."
+    },
+    {
+      "handle": "flex-training-joggers",
+      "title": "Flex Training Joggers",
+      "type": "Bottoms",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "bottoms",
+        "joggers",
+        "training"
+      ],
+      "price": "64.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "Tapered joggers with stretch in every direction, for warm-ups, travel days and the walk home.",
+      "features": [
+        "Four-way stretch woven fabric",
+        "Zip hand pockets",
+        "Tapered leg with zipped ankle"
+      ],
+      "seoTitle": "Flex Training Joggers | Northline Athletics",
+      "seoDescription": "Tapered four-way stretch joggers with zip pockets for training and travel."
+    },
+    {
+      "handle": "lift-training-shorts",
+      "title": "Lift Training Shorts",
+      "type": "Bottoms",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "bottoms",
+        "shorts",
+        "training"
+      ],
+      "price": "46.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "Seven-inch shorts cut for squats, lunges and deadlifts without riding up.",
+      "features": [
+        "Gusseted crotch for full range of motion",
+        "Two deep pockets",
+        "Water-repellent finish"
+      ],
+      "seoTitle": "Lift Training Shorts 7 in | Northline Athletics",
+      "seoDescription": "Seven-inch gusseted training shorts with deep pockets."
+    },
+    {
+      "handle": "studio-biker-shorts",
+      "title": "Studio Biker Shorts",
+      "type": "Bottoms",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "bottoms",
+        "shorts",
+        "yoga"
+      ],
+      "price": "40.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "Smooth biker shorts with a high waist, made for studio classes and warm days.",
+      "features": [
+        "Soft, matte fabric with medium compression",
+        "Wide flat waistband",
+        "Side pocket for a card or key"
+      ],
+      "seoTitle": "Studio Biker Shorts | Northline Athletics",
+      "seoDescription": "High-waist biker shorts with medium compression and a side pocket."
+    },
+    {
+      "handle": "pace-running-tights",
+      "title": "Pace Running Tights",
+      "type": "Bottoms",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "bottoms",
+        "tights",
+        "running"
+      ],
+      "price": "74.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "Full-length tights with a brushed interior and reflective details for dark winter miles.",
+      "features": [
+        "Brushed, thermal interior",
+        "Two thigh pockets",
+        "360-degree reflective detailing"
+      ],
+      "seoTitle": "Pace Running Tights | Winter Running | Northline Athletics",
+      "seoDescription": "Thermal full-length running tights with pockets and reflective details."
+    },
+    {
+      "handle": "cadence-wind-jacket",
+      "title": "Cadence Wind Jacket",
+      "type": "Outerwear",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "outerwear",
+        "jackets",
+        "running",
+        "sale"
+      ],
+      "price": "89.00",
+      "compareAtPrice": "119.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "A packable wind jacket that weighs less than a banana and stuffs into its own pocket.",
+      "features": [
+        "Wind-resistant ripstop shell",
+        "Packs into the chest pocket",
+        "Adjustable hood and drawcord hem"
+      ],
+      "seoTitle": "Cadence Wind Jacket | Packable Running Jacket | Northline Athletics",
+      "seoDescription": "Ultralight packable wind jacket with an adjustable hood."
+    },
+    {
+      "handle": "summit-rain-shell",
+      "title": "Summit Rain Shell",
+      "type": "Outerwear",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "outerwear",
+        "jackets",
+        "trail"
+      ],
+      "price": "148.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "A fully seam-taped waterproof shell for long days on the trail. Currently sold out; join the waitlist from the product page.",
+      "features": [
+        "Fully seam-taped waterproof membrane",
+        "Helmet-compatible hood",
+        "Pit zips for ventilation"
+      ],
+      "seoTitle": "Summit Rain Shell | Waterproof Trail Jacket | Northline Athletics",
+      "seoDescription": "Waterproof, seam-taped trail shell with pit zips and a helmet-compatible hood.",
+      "soldOut": true
+    },
+    {
+      "handle": "cadence-pullover-hoodie",
+      "title": "Cadence Pullover Hoodie",
+      "type": "Outerwear",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "outerwear",
+        "hoodies",
+        "training",
+        "sale"
+      ],
+      "price": "59.00",
+      "compareAtPrice": "79.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "A midweight hoodie in French terry with a soft brushed back, for before and after the workout.",
+      "features": [
+        "Midweight cotton-blend terry",
+        "Kangaroo pocket",
+        "Lined hood that holds its shape"
+      ],
+      "seoTitle": "Cadence Pullover Hoodie | Northline Athletics",
+      "seoDescription": "Midweight terry pullover hoodie with a kangaroo pocket."
+    },
+    {
+      "handle": "warm-up-track-jacket",
+      "title": "Warm-Up Track Jacket",
+      "type": "Outerwear",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "outerwear",
+        "jackets",
+        "training",
+        "new"
+      ],
+      "price": "84.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "A stretch-woven track jacket for the warm-up, the commute and the cooldown.",
+      "features": [
+        "Full-length zip with a chin guard",
+        "Zip pockets",
+        "Stretch woven fabric that resists light rain"
+      ],
+      "seoTitle": "Warm-Up Track Jacket | Northline Athletics",
+      "seoDescription": "Stretch-woven full-zip track jacket with zip pockets."
+    },
+    {
+      "handle": "thermal-running-vest",
+      "title": "Thermal Running Vest",
+      "type": "Outerwear",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "outerwear",
+        "vests",
+        "running"
+      ],
+      "price": "72.00",
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "blurb": "A light insulated vest that keeps your core warm while your arms stay free.",
+      "features": [
+        "Light synthetic insulation",
+        "Wind-blocking front panel",
+        "Stretch back for ventilation"
+      ],
+      "seoTitle": "Thermal Running Vest | Northline Athletics",
+      "seoDescription": "Light insulated running vest with a wind-blocking front.",
+      "lowStock": true
+    },
+    {
+      "handle": "grip-chalk",
+      "title": "Grip Chalk",
+      "type": "Accessories",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "accessories",
+        "lifting",
+        "climbing"
+      ],
+      "options": [
+        "Size"
+      ],
+      "optionValues": {
+        "Size": [
+          "200 g",
+          "400 g"
+        ]
+      },
+      "variantPrices": {
+        "200 g": "12.00",
+        "400 g": "21.00"
+      },
+      "unitPrice": {
+        "200 g": {
+          "quantity": 200
+        },
+        "400 g": {
+          "quantity": 400
+        },
+        "unit": "G",
+        "referenceValue": 100,
+        "referenceUnit": "G"
+      },
+      "blurb": "Pure magnesium carbonate chalk for lifting and climbing. Sold by weight so you can compare price per 100 g.",
+      "features": [
+        "Loose, fine-grain chalk",
+        "No additives",
+        "Resealable pouch"
+      ],
+      "seoTitle": "Grip Chalk | Lifting and Climbing Chalk | Northline Athletics",
+      "seoDescription": "Pure magnesium carbonate loose chalk in 200 g and 400 g bags."
+    },
+    {
+      "handle": "insulated-steel-bottle",
+      "title": "Insulated Steel Bottle",
+      "type": "Accessories",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "accessories",
+        "hydration",
+        "new"
+      ],
+      "options": [
+        "Color"
+      ],
+      "optionValues": {
+        "Color": [
+          "Black",
+          "Glacier Blue",
+          "Forest",
+          "Bone"
+        ]
+      },
+      "price": "32.00",
+      "blurb": "A 750 ml double-wall bottle that keeps water cold for 24 hours.",
+      "features": [
+        "Double-wall vacuum insulation",
+        "Leak-proof, one-hand cap",
+        "Fits most cup holders"
+      ],
+      "seoTitle": "Insulated Steel Bottle 750 ml | Northline Athletics",
+      "seoDescription": "750 ml vacuum-insulated steel water bottle with a leak-proof cap."
+    },
+    {
+      "handle": "gym-duffel-bag",
+      "title": "Gym Duffel Bag 35 L",
+      "type": "Accessories",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "accessories",
+        "bags"
+      ],
+      "options": [
+        "Color"
+      ],
+      "optionValues": {
+        "Color": [
+          "Black",
+          "Slate",
+          "Forest"
+        ]
+      },
+      "price": "88.00",
+      "blurb": "A 35 liter duffel with a ventilated shoe compartment and a wet pocket.",
+      "features": [
+        "Ventilated shoe compartment",
+        "Waterproof wet pocket",
+        "Padded, removable shoulder strap"
+      ],
+      "seoTitle": "Gym Duffel Bag 35 L | Northline Athletics",
+      "seoDescription": "35 L gym duffel with a ventilated shoe compartment and wet pocket."
+    },
+    {
+      "handle": "performance-crew-socks-3-pack",
+      "title": "Performance Crew Socks, 3-Pack",
+      "type": "Accessories",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "accessories",
+        "socks",
+        "running"
+      ],
+      "options": [
+        "Color",
+        "Size"
+      ],
+      "optionValues": {
+        "Color": [
+          "Black",
+          "Bone",
+          "Slate"
+        ],
+        "Size": [
+          "S/M",
+          "L/XL"
+        ]
+      },
+      "price": "24.00",
+      "blurb": "Cushioned crew socks with arch support and a seamless toe.",
+      "features": [
+        "Targeted cushioning in the heel and forefoot",
+        "Arch compression band",
+        "Moisture-wicking blend"
+      ],
+      "seoTitle": "Performance Crew Socks 3-Pack | Northline Athletics",
+      "seoDescription": "Three pairs of cushioned crew socks with arch support."
+    },
+    {
+      "handle": "run-cap",
+      "title": "Lightweight Run Cap",
+      "type": "Accessories",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "accessories",
+        "headwear",
+        "running"
+      ],
+      "options": [
+        "Color"
+      ],
+      "optionValues": {
+        "Color": [
+          "Black",
+          "Ember Orange",
+          "Bone"
+        ]
+      },
+      "price": "28.00",
+      "blurb": "A five-panel cap that dries in minutes and folds into a pocket.",
+      "features": [
+        "Quick-dry fabric with laser-cut vents",
+        "Sweat-wicking band",
+        "Adjustable back strap"
+      ],
+      "seoTitle": "Lightweight Run Cap | Northline Athletics",
+      "seoDescription": "Quick-dry five-panel running cap with laser-cut vents."
+    },
+    {
+      "handle": "resistance-band-set",
+      "title": "Resistance Band Set",
+      "type": "Accessories",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "accessories",
+        "strength"
+      ],
+      "options": [
+        "Resistance"
+      ],
+      "optionValues": {
+        "Resistance": [
+          "Light",
+          "Medium",
+          "Heavy"
+        ]
+      },
+      "variantPrices": {
+        "Light": "19.00",
+        "Medium": "22.00",
+        "Heavy": "26.00"
+      },
+      "blurb": "Fabric-covered loop bands that will not roll or snap, in three resistance levels.",
+      "features": [
+        "Non-slip fabric covering",
+        "Sold individually",
+        "Stored in a mesh pouch"
+      ],
+      "seoTitle": "Resistance Loop Band | Northline Athletics",
+      "seoDescription": "Fabric-covered loop resistance bands in three strengths."
+    },
+    {
+      "handle": "gift-card",
+      "title": "Northline Gift Card",
+      "type": "Gift Cards",
+      "vendor": "Northline Athletics",
+      "tags": [
+        "gift-card"
+      ],
+      "giftCard": true,
+      "options": [
+        "Denomination"
+      ],
+      "optionValues": {
+        "Denomination": [
+          "$25",
+          "$50",
+          "$100",
+          "$200"
+        ]
+      },
+      "variantPrices": {
+        "$25": "25.00",
+        "$50": "50.00",
+        "$100": "100.00",
+        "$200": "200.00"
+      },
+      "blurb": "Give an athlete the gear they actually want. Delivered by email with a personal message, valid for one year.",
+      "features": [
+        "Delivered by email",
+        "Never expires within one year of purchase",
+        "Redeemable on everything in the store"
+      ],
+      "seoTitle": "Northline Gift Card | Northline Athletics",
+      "seoDescription": "Email delivered gift card for Northline Athletics in four amounts."
+    }
+  ],
+  "collections": [
+    {
+      "handle": "featured",
+      "title": "Featured",
+      "type": "manual",
+      "descriptionHtml": "<p>The pieces we reach for first, from morning runs to late sessions.</p>",
+      "products": [
+        "pace-seamless-tee",
+        "sculpt-high-rise-leggings",
+        "cadence-wind-jacket",
+        "core-sports-bra",
+        "tempo-running-shorts",
+        "cadence-pullover-hoodie",
+        "insulated-steel-bottle",
+        "warm-up-track-jacket"
+      ]
+    },
+    {
+      "handle": "tops",
+      "title": "Tops",
+      "type": "smart",
+      "rules": [
+        {
+          "column": "TYPE",
+          "relation": "EQUALS",
+          "condition": "Tops"
+        }
+      ],
+      "descriptionHtml": "<p>Tees, tanks, bras and midlayers.</p>"
+    },
+    {
+      "handle": "bottoms",
+      "title": "Bottoms",
+      "type": "smart",
+      "rules": [
+        {
+          "column": "TYPE",
+          "relation": "EQUALS",
+          "condition": "Bottoms"
+        }
+      ],
+      "descriptionHtml": "<p>Shorts, leggings, tights and joggers.</p>"
+    },
+    {
+      "handle": "outerwear",
+      "title": "Outerwear",
+      "type": "smart",
+      "rules": [
+        {
+          "column": "TYPE",
+          "relation": "EQUALS",
+          "condition": "Outerwear"
+        }
+      ],
+      "descriptionHtml": "<p>Wind, rain and warmth for every season.</p>"
+    },
+    {
+      "handle": "accessories",
+      "title": "Accessories",
+      "type": "smart",
+      "rules": [
+        {
+          "column": "TYPE",
+          "relation": "EQUALS",
+          "condition": "Accessories"
+        }
+      ],
+      "descriptionHtml": "<p>Bottles, bags, socks and small things that matter.</p>"
+    },
+    {
+      "handle": "new-arrivals",
+      "title": "New arrivals",
+      "type": "smart",
+      "rules": [
+        {
+          "column": "TAG",
+          "relation": "EQUALS",
+          "condition": "new"
+        }
+      ],
+      "descriptionHtml": "<p>Just landed this season.</p>"
+    },
+    {
+      "handle": "sale",
+      "title": "Sale",
+      "type": "smart",
+      "rules": [
+        {
+          "column": "TAG",
+          "relation": "EQUALS",
+          "condition": "sale"
+        }
+      ],
+      "descriptionHtml": "<p>Reduced prices on selected pieces.</p>"
+    }
+  ],
+  "menus": [
+    {
+      "handle": "main-menu",
+      "title": "Main menu",
+      "items": [
+        {
+          "title": "Shop",
+          "type": "COLLECTION",
+          "ref": "collection:all",
+          "items": [
+            {
+              "title": "Tops",
+              "type": "COLLECTION",
+              "ref": "collection:tops",
+              "items": [
+                {
+                  "title": "Tees and tanks",
+                  "type": "HTTP",
+                  "url": "/collections/tops?filter.p.tag=tees"
+                },
+                {
+                  "title": "Sports bras",
+                  "type": "HTTP",
+                  "url": "/collections/tops?filter.p.tag=sports-bras"
+                }
+              ]
+            },
+            {
+              "title": "Bottoms",
+              "type": "COLLECTION",
+              "ref": "collection:bottoms",
+              "items": [
+                {
+                  "title": "Leggings and tights",
+                  "type": "HTTP",
+                  "url": "/collections/bottoms?filter.p.tag=leggings"
+                },
+                {
+                  "title": "Shorts",
+                  "type": "HTTP",
+                  "url": "/collections/bottoms?filter.p.tag=shorts"
+                }
+              ]
+            },
+            {
+              "title": "Outerwear",
+              "type": "COLLECTION",
+              "ref": "collection:outerwear"
+            },
+            {
+              "title": "Accessories",
+              "type": "COLLECTION",
+              "ref": "collection:accessories"
+            }
+          ]
+        },
+        {
+          "title": "New arrivals",
+          "type": "COLLECTION",
+          "ref": "collection:new-arrivals"
+        },
+        {
+          "title": "Sale",
+          "type": "COLLECTION",
+          "ref": "collection:sale"
+        },
+        {
+          "title": "Journal",
+          "type": "BLOG",
+          "ref": "blog:news"
+        },
+        {
+          "title": "About",
+          "type": "PAGE",
+          "ref": "page:about"
+        }
+      ]
+    },
+    {
+      "handle": "footer",
+      "title": "Footer menu",
+      "items": [
+        {
+          "title": "Search",
+          "type": "SEARCH",
+          "url": "/search"
+        },
+        {
+          "title": "About",
+          "type": "PAGE",
+          "ref": "page:about"
+        },
+        {
+          "title": "Contact",
+          "type": "PAGE",
+          "ref": "page:contact"
+        },
+        {
+          "title": "FAQ",
+          "type": "PAGE",
+          "ref": "page:faq"
+        },
+        {
+          "title": "Shipping",
+          "type": "PAGE",
+          "ref": "page:shipping"
+        },
+        {
+          "title": "Returns",
+          "type": "PAGE",
+          "ref": "page:returns"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "handle": "about",
+      "title": "About",
+      "templateSuffix": "about",
+      "body": "<p>Northline Athletics started in 2019 with one question: why does good training kit either feel great or last, but rarely both? We design in small batches, test every piece on real miles and real reps, and only release something when we would wear it ourselves.</p><h2>How we work</h2><p>Every fabric is tested for stretch recovery, opacity and wash durability. We use recycled polyester wherever it performs as well as the alternative, and we publish where each piece is made.</p><h2>Who it is for</h2><p>Early-morning runners, lunchtime lifters, weekend trail people and everyone in between.</p>"
+    },
+    {
+      "handle": "contact",
+      "title": "Contact",
+      "templateSuffix": "contact",
+      "body": "<p>Questions about sizing, an order or a product? Send us a message and a real person will reply within one business day.</p><p>Customer care is open Monday to Friday, 9 am to 5 pm Pacific.</p>"
+    },
+    {
+      "handle": "faq",
+      "title": "Frequently asked questions",
+      "templateSuffix": "",
+      "body": "<h2>How do your sizes fit?</h2><p>Tops and bottoms are true to size with an athletic cut. Each product page lists model height and the size worn. If you are between sizes, size up for a relaxed fit.</p><h2>How should I wash my gear?</h2><p>Machine wash cold with like colors, skip fabric softener and hang to dry. This keeps the stretch and the finish working for longer.</p><h2>Can I change or cancel an order?</h2><p>We can change an order within one hour of purchase. Contact us as soon as you can and we will do our best.</p><h2>Do you restock sold-out items?</h2><p>Most core styles return within six weeks. Use the notify option on the product page, or contact us.</p>"
+    },
+    {
+      "handle": "shipping",
+      "title": "Shipping",
+      "templateSuffix": "",
+      "body": "<h2>Delivery times</h2><p>Standard shipping takes three to five business days in the United States. Express shipping takes one to two business days. Orders placed before 1 pm Pacific usually leave the warehouse the same day.</p><h2>Shipping costs</h2><p>Standard shipping is free on orders over $75. Below that, it is a flat $6. Express shipping is $15.</p><h2>International</h2><p>We ship to Canada and the United Kingdom. Duties and taxes are shown at checkout.</p>"
+    },
+    {
+      "handle": "returns",
+      "title": "Returns",
+      "templateSuffix": "",
+      "body": "<h2>30-day returns</h2><p>If something is not right, return it within 30 days of delivery. Items must be unworn, unwashed and have their tags attached.</p><h2>How to return</h2><p>Contact us with your order number and we will email a prepaid label for orders in the United States. Refunds go to the original payment method within five business days of us receiving the parcel.</p><h2>Exchanges</h2><p>Need a different size? Place a new order and return the original item, which gets you the new size sooner.</p>"
+    }
+  ],
+  "blog": {
+    "handle": "news",
+    "title": "News",
+    "articles": [
+      {
+        "handle": "build-a-base-before-your-first-10k",
+        "title": "Build a base before your first 10K",
+        "author": "Maya Okafor",
+        "tags": [
+          "running",
+          "training"
+        ],
+        "summary": "Six weeks of easy running will do more for your first 10K than any speed session.",
+        "body": "<p>Most new runners start too fast. The first month is about teaching your legs and tendons to handle repeated impact, not about pace.</p><h2>Start with time, not distance</h2><p>Run for 20 to 30 minutes at a pace where you can speak in full sentences. Do it three times a week and add five minutes to one run every week.</p><h2>Add strides in week four</h2><p>After an easy run, add four 20-second relaxed pickups with full recovery. They wake up your running form without adding much stress.</p><p>By week six most people can run 40 minutes continuously, which is the base a 10K plan needs.</p>"
+      },
+      {
+        "handle": "the-case-for-the-easy-run",
+        "title": "The case for the easy run",
+        "author": "Daniel Reyes",
+        "tags": [
+          "running"
+        ],
+        "summary": "Why the slowest run of your week might be the one that makes you faster.",
+        "body": "<p>Easy runs build your aerobic engine and let hard days stay hard. If every run is medium effort, you are too tired to run fast and too fast to recover.</p><p>A good test: if you cannot chat comfortably, slow down. Your heart rate will thank you, and your pace will improve over the next few months.</p><p>Keep two-thirds of your weekly running at this effort and protect your quality days.</p>"
+      },
+      {
+        "handle": "how-to-pack-a-gym-bag",
+        "title": "How to pack a gym bag so you actually go",
+        "author": "Maya Okafor",
+        "tags": [
+          "training",
+          "gear"
+        ],
+        "summary": "A short checklist that removes the excuses before they start.",
+        "body": "<p>The best gym bag is the one that is already packed. Keep a second set of essentials in the bag so you never have to hunt for them.</p><ul><li>Spare socks and a clean base layer</li><li>A lightweight towel</li><li>Insulated bottle, filled the night before</li><li>Headphones and a charging cable</li><li>A zip pouch for your keys and wallet</li></ul><p>Put shoes in the ventilated compartment and wet kit in the wet pocket, and your bag will smell fine for years.</p>"
+      },
+      {
+        "handle": "what-to-wear-for-cold-weather-running",
+        "title": "What to wear for cold-weather running",
+        "author": "Daniel Reyes",
+        "tags": [
+          "running",
+          "gear"
+        ],
+        "summary": "Dress for how you will feel ten minutes in, not when you step outside.",
+        "body": "<p>A common rule is to dress as if it were 10 degrees Celsius warmer than the thermometer says. You should feel slightly cool when you start.</p><h2>Layer smart</h2><p>A light base layer, a vest for your core and thin gloves cover most conditions down to freezing. Add tights below about 5 degrees Celsius.</p><h2>Be seen</h2><p>Winter means dark mornings. Reflective details and a light make you easier to spot.</p>"
+      },
+      {
+        "handle": "strength-training-for-runners",
+        "title": "Strength training for runners: two sessions, 30 minutes",
+        "author": "Priya Nair",
+        "tags": [
+          "training",
+          "strength"
+        ],
+        "summary": "Two short sessions a week can reduce injury risk and improve your running economy.",
+        "body": "<p>You do not need a long gym routine. Two 30-minute sessions a week cover what matters most for runners.</p><h2>The essentials</h2><p>Split squats, hip hinges, calf raises, step-ups and a few core exercises like planks and side planks. Do three sets of eight to ten reps with a challenging load.</p><p>Schedule them after an easy run or on a rest day, never before a key workout.</p>"
+      },
+      {
+        "handle": "a-simple-recovery-routine",
+        "title": "A simple recovery routine for busy weeks",
+        "author": "Priya Nair",
+        "tags": [
+          "recovery",
+          "wellness"
+        ],
+        "summary": "Ten minutes after training can make tomorrow's session feel better.",
+        "body": "<p>Recovery does not need gadgets. A few habits make the biggest difference.</p><ul><li>Walk for five minutes after hard efforts to bring your heart rate down</li><li>Drink water and eat protein within an hour</li><li>Spend five minutes on gentle mobility for hips and calves</li><li>Go to bed at the same time each night</li></ul><p>Consistency beats intensity, especially when the week is full.</p>"
+      }
+    ]
+  },
+  "policies": {
+    "REFUND_POLICY": "<h2>Refund policy</h2><p>You can return unworn, unwashed items with tags attached within 30 days of delivery for a full refund to your original payment method. Final sale items and gift cards cannot be returned.</p><p>Refunds are issued within five business days of receiving your return.</p>",
+    "SHIPPING_POLICY": "<h2>Shipping policy</h2><p>Orders ship within one business day. Standard delivery takes three to five business days in the United States. Free standard shipping applies to orders over $75.</p>",
+    "PRIVACY_POLICY": "<h2>Privacy policy</h2><p>We collect only the information needed to process your order, such as your name, address, email address and payment details. We never sell your personal data. You can ask us to access or delete your data at any time by contacting customer care.</p>",
+    "TERMS_OF_SERVICE": "<h2>Terms of service</h2><p>By placing an order you agree to provide accurate information and to pay the listed price. Prices and availability may change without notice. We may cancel an order if a product is listed with an obvious pricing error.</p>"
+  },
+  "discount": {
+    "title": "Welcome 10 percent off",
+    "percentage": 0.1,
+    "minimumSubtotal": "50.00"
+  },
+  "pickupLocation": {
+    "name": "Northline Studio",
+    "address1": "100 Demo Street",
+    "city": "Vancouver",
+    "provinceCode": "BC",
+    "countryCode": "CA",
+    "zip": "V6B 1A1",
+    "pickupInstructions": "Pickup is at the front desk. Bring your order confirmation. Orders are usually ready within one hour."
+  }
+}

@@ -6,10 +6,23 @@
       "type": "footer",
       "blocks": {
         "shop": { "type": "link_list", "settings": { "heading": "Shop", "menu": "footer" } },
-        "help": { "type": "link_list", "settings": { "heading": "Help" } }
+        "newsletter": {
+          "type": "newsletter",
+          "settings": {
+            "heading": "Join the crew",
+            "text": "Be first to hear about new drops and restocks.",
+            "button_label": "Sign up"
+          }
+        },
+        "social": { "type": "social_media", "settings": { "heading": "Follow", "show_follow_on_shop": true } },
+        "store": { "type": "store_info", "settings": { "heading": "Store" } }
       },
-      "block_order": ["shop", "help"],
-      "settings": { "show_follow": true, "show_store": true }
+      "block_order": ["shop", "newsletter", "social", "store"],
+      "settings": {
+        "show_localization": true,
+        "show_wordmark": true,
+        "color_scheme": "scheme-1"
+      }
     }
   },
   "order": ["footer"]

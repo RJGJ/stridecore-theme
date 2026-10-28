@@ -26,7 +26,11 @@
                   endif
                 -%}
                 {%- unless skip or message == blank -%}
-                  <span {{ block.shopify_attributes }}>{{ message }}</span>
+                  {%- if block.settings.link != blank -%}
+                    <a href="{{ block.settings.link }}" class="ticker__link"{% if copy == 2 or repeat == 2 %} tabindex="-1"{% endif %} {{ block.shopify_attributes }}>{{ message }}</a>
+                  {%- else -%}
+                    <span {{ block.shopify_attributes }}>{{ message }}</span>
+                  {%- endif -%}
                   <span aria-hidden="true">✦</span>
                 {%- endunless -%}
               {%- endfor -%}
@@ -53,6 +57,20 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
+  .ticker__link {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ticker__track {
+      width: auto;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .ticker .marquee__group[aria-hidden='true'] {
+      display: none;
+    }
+  }
 {% endstylesheet %}
 
 {% schema %}
@@ -60,7 +78,7 @@
   "name": "Announcement ticker",
   "tag": "div",
   "settings": [
-    { "type": "checkbox", "id": "enabled", "label": "Show ticker", "default": true },
+    { "type": "checkbox", "id": "enabled", "label": "Show announcement ticker", "default": true },
     {
       "type": "paragraph",
       "content": "Use {threshold} in a message for the free shipping amount (hidden when the threshold is 0) and {return_window} for the return window in days."
@@ -71,7 +89,8 @@
       "type": "message",
       "name": "Message",
       "settings": [
-        { "type": "text", "id": "text", "label": "Text", "default": "New drop — SS27 collection out now" }
+        { "type": "text", "id": "text", "label": "Text", "default": "New drop — SS27 collection out now" },
+        { "type": "url", "id": "link", "label": "Link" }
       ]
     }
   ],

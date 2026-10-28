@@ -1,0 +1,220 @@
+{%- liquid
+  assign mc_columns = section.settings.columns_desktop
+  assign mc_vw = 100 | divided_by: mc_columns
+  assign mc_sizes = '(min-width: 1024px) ' | append: mc_vw | append: 'vw, (min-width: 750px) 50vw, 100vw'
+-%}
+
+<div
+  class="mc color-{{ section.settings.color_scheme }}"
+  style="--mc-pt: {{ section.settings.padding_top }}; --mc-pb: {{ section.settings.padding_bottom }}; --mc-cols: {{ mc_columns }};"
+>
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="display display--md mc__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <ul class="mc__grid mc__grid--{{ section.settings.text_alignment }}" role="list">
+      {%- for block in section.blocks -%}
+        {%- if block.type == '@app' -%}
+          <li class="mc__item" {{ block.shopify_attributes }}>{%- render block -%}</li>
+        {%- else -%}
+          {%- liquid
+            assign mc_image = block.settings.image
+            assign mc_focal = 'object-position:' | append: mc_image.presentation.focal_point
+          -%}
+          <li class="mc__item" {{ block.shopify_attributes }}>
+            {%- if section.settings.show_images -%}
+              <div class="mc__media">
+                {%- if mc_image != blank -%}
+                  <div class="media" style="aspect-ratio: {{ section.settings.image_ratio }}">
+                    {{
+                      mc_image
+                      | image_url: width: 1000
+                      | image_tag: loading: 'lazy', sizes: mc_sizes, widths: '300,500,700,1000', style: mc_focal
+                    }}
+                  </div>
+                {%- else -%}
+                  <div class="media media--placeholder mc__placeholder" style="aspect-ratio: {{ section.settings.image_ratio }}">
+                    {{ 'image' | placeholder_svg_tag: 'mc__placeholder-svg' }}
+                  </div>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+            {%- if block.settings.title != blank -%}
+              <h3 class="mc__title">{{ block.settings.title }}</h3>
+            {%- endif -%}
+            {%- if block.settings.text != blank -%}
+              <div class="mc__text rte">{{ block.settings.text }}</div>
+            {%- endif -%}
+            {%- if block.settings.link_label != blank -%}
+              {%- assign mc_url = block.settings.link -%}
+              <a
+                {% if mc_url != blank %}href="{{ mc_url }}"{% else %}role="link" aria-disabled="true"{% endif %}
+                class="mc__link"
+              >{{ block.settings.link_label }} {% render 'icon', name: 'arrow-right', size: 18, stroke: 2.5 %}</a>
+            {%- endif -%}
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>
+
+{% stylesheet %}
+.mc {
+  padding-top: calc(var(--mc-pt) * 0.6px);
+  padding-bottom: calc(var(--mc-pb) * 0.6px);
+}
+.mc__heading {
+  margin-bottom: 40px;
+}
+.mc__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
+}
+.mc__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mc__item {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.mc__grid--center .mc__item {
+  align-items: center;
+  text-align: center;
+}
+.mc__grid--left .mc__item {
+  align-items: flex-start;
+}
+.mc__media {
+  width: 100%;
+}
+.mc__media .media {
+  border: 2px solid var(--fg);
+}
+.mc__placeholder {
+  color: var(--muted);
+}
+.mc__placeholder-svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+.mc__title {
+  font-family: var(--f-display);
+  font-weight: var(--d-weight);
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: var(--d-lead);
+  letter-spacing: var(--d-track);
+  text-transform: var(--h-case);
+  overflow-wrap: break-word;
+}
+.mc__text {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.mc__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+@media (min-width: 750px) {
+  .mc {
+    padding-top: calc(var(--mc-pt) * 1px);
+    padding-bottom: calc(var(--mc-pb) * 1px);
+  }
+  .mc__grid {
+    grid-template-columns: repeat(min(var(--mc-cols), 2), minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .mc__grid {
+    grid-template-columns: repeat(var(--mc-cols), minmax(0, 1fr));
+  }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Multicolumn",
+  "tag": "section",
+  "class": "section-multicolumn",
+  "settings": [
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "Why choose us" },
+    { "type": "range", "id": "columns_desktop", "min": 1, "max": 4, "step": 1, "label": "Columns on desktop", "default": 3 },
+    { "type": "checkbox", "id": "show_images", "label": "Show images", "default": true },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "4 / 5", "label": "Portrait" },
+        { "value": "1 / 1", "label": "Square" },
+        { "value": "3 / 2", "label": "Landscape" }
+      ],
+      "default": "1 / 1"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "left"
+    },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 72 }
+  ],
+  "blocks": [
+    {
+      "type": "column",
+      "name": "Column",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "title", "label": "Heading", "default": "Column heading" },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Body text",
+          "default": "<p>Pair a short description with an image to highlight a feature, a benefit or a service.</p>"
+        },
+        { "type": "text", "id": "link_label", "label": "Link label" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Multicolumn",
+      "blocks": [
+        { "type": "column", "settings": { "title": "Built to last", "text": "<p>Heavyweight fabrics and reinforced seams that hold up wash after wash.</p>" } },
+        { "type": "column", "settings": { "title": "Made in small runs", "text": "<p>Limited batches keep every drop special and every piece well made.</p>" } },
+        { "type": "column", "settings": { "title": "Easy returns", "text": "<p>Not the right fit? Send it back and we will sort it out.</p>" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

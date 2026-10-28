@@ -1,0 +1,46 @@
+{%- doc -%}
+  Renders the list of social media links that the merchant filled in under
+  Theme settings > Social media. Renders nothing when no link is set.
+
+  @param {string} [class] - extra classes for the list
+{%- enddoc -%}
+
+{%- liquid
+  assign social_networks = 'facebook,instagram,tiktok,youtube,x,pinterest,snapchat,tumblr,vimeo,linkedin' | split: ','
+  assign social_any = false
+  for network in social_networks
+    assign social_key = 'social_' | append: network
+    if settings[social_key] != blank
+      assign social_any = true
+    endif
+  endfor
+-%}
+{%- if social_any -%}
+  <ul class="social-links {{ class }}" role="list">
+    {%- for network in social_networks -%}
+      {%- assign social_key = 'social_' | append: network -%}
+      {%- assign social_url = settings[social_key] -%}
+      {%- if social_url != blank -%}
+        <li>
+          <a href="{{ social_url }}" class="social-links__link" target="_blank" rel="noopener">
+            {% render 'social-icon', name: network %}
+            <span class="visually-hidden">
+              {%- case network -%}
+                {%- when 'facebook' -%}{{ 'general.social.facebook' | t }}
+                {%- when 'instagram' -%}{{ 'general.social.instagram' | t }}
+                {%- when 'tiktok' -%}{{ 'general.social.tiktok' | t }}
+                {%- when 'youtube' -%}{{ 'general.social.youtube' | t }}
+                {%- when 'x' -%}{{ 'general.social.x' | t }}
+                {%- when 'pinterest' -%}{{ 'general.social.pinterest' | t }}
+                {%- when 'snapchat' -%}{{ 'general.social.snapchat' | t }}
+                {%- when 'tumblr' -%}{{ 'general.social.tumblr' | t }}
+                {%- when 'vimeo' -%}{{ 'general.social.vimeo' | t }}
+                {%- when 'linkedin' -%}{{ 'general.social.linkedin' | t }}
+              {%- endcase -%}
+            </span>
+          </a>
+        </li>
+      {%- endif -%}
+    {%- endfor -%}
+  </ul>
+{%- endif -%}

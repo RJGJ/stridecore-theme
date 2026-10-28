@@ -1,0 +1,463 @@
+{%- liquid
+  assign product = section.settings.product
+  assign current = product.selected_or_first_available_variant
+  assign threshold_cents = settings.free_shipping_threshold | default: 0 | times: 100
+  assign form_id = 'product-form-' | append: section.id
+  assign empty_label = 'product.main_image' | t
+
+  assign initial_badge = ''
+  if current.available == false
+    assign initial_badge = 'products.badge.sold_out' | t
+  elsif current.compare_at_price > current.price
+    assign saved_percent = current.compare_at_price | minus: current.price | times: 100.0 | divided_by: current.compare_at_price | round
+    assign initial_badge = '-' | append: saved_percent | append: '%'
+  elsif current.inventory_management != blank and current.inventory_quantity > 0 and current.inventory_quantity <= 5
+    assign initial_badge = 'products.badge.low_stock' | t
+  endif
+-%}
+
+<div class="featured-product color-{{ section.settings.color_scheme }}">
+  {%- if product == blank -%}
+    <div class="pf container">
+      <div class="pm">{% render 'placeholder-media', ratio: '5 / 4', label: empty_label %}</div>
+      <div class="pf__buy">
+        <p class="eyebrow">{{ 'pdp.featured_empty' | t }}</p>
+      </div>
+    </div>
+  {%- else -%}
+    <product-form
+      class="pf container"
+      data-section-id="{{ section.id }}"
+      data-update-url="false"
+      data-root-url="{{ routes.root_url }}"
+      data-threshold="{{ threshold_cents }}"
+      data-label-add="{{ 'product.add_to_cart' | t | escape }}"
+      data-label-adding="{{ 'product.adding' | t | escape }}"
+      data-label-added="{{ 'product.added' | t | escape }}"
+      data-label-sold-out="{{ 'product.sold_out' | t | escape }}"
+      data-label-unavailable="{{ 'product.unavailable' | t | escape }}"
+      data-label-error="{{ 'product.error_generic' | t | escape }}"
+      data-label-status-added="{{ 'product.added_message' | t | escape }}"
+      data-label-qty-min="{{ 'pdp.qty_min' | t: quantity: '%n' | escape }}"
+      data-label-qty-max="{{ 'pdp.qty_max' | t: quantity: '%n' | escape }}"
+      data-label-qty-step="{{ 'pdp.qty_step' | t: quantity: '%n' | escape }}"
+    >
+      {% render 'product-variants-json', product: product %}
+
+      {% render 'product-media-gallery',
+        product: product,
+        variant: current,
+        section_id: section.id,
+        layout: section.settings.gallery_layout,
+        ratio: section.settings.media_ratio,
+        enable_zoom: section.settings.enable_zoom,
+        loop_video: section.settings.enable_video_looping,
+        show_badge: section.settings.show_badge,
+        badge: initial_badge
+      %}
+
+      <div class="pf__buy">
+        {%- for block in section.blocks -%}
+          {%- if block.type == '@app' -%}
+            <div class="pb pb--app" {{ block.shopify_attributes }}>{% render block %}</div>
+          {%- else -%}
+            {% render 'product-block',
+              block: block,
+              product: product,
+              variant: current,
+              form_id: form_id,
+              section_id: section.id,
+              heading_tag: 'h2',
+              link_title: true
+            %}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if section.settings.show_details_link -%}
+          <a class="pill featured-product__link" href="{{ product.url }}">{{ 'pdp.view_full_details' | t }}</a>
+        {%- endif -%}
+      </div>
+    </product-form>
+    <script src="{{ 'product-form.js' | asset_url }}" defer></script>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .featured-product {
+    background: var(--bg);
+    color: var(--fg);
+    padding-block: clamp(48px, 6vw, 96px);
+  }
+  .featured-product .pf {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(32px, 4vw, 64px);
+    align-items: start;
+  }
+  .featured-product .pf__buy {
+    flex: 1 1 380px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .featured-product__link {
+    align-self: flex-start;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Featured product",
+  "tag": "section",
+  "class": "section-featured-product",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "select",
+      "id": "gallery_layout",
+      "label": "Gallery layout",
+      "options": [
+        {
+          "value": "stacked",
+          "label": "Stacked"
+        },
+        {
+          "value": "thumbnails",
+          "label": "Thumbnails"
+        }
+      ],
+      "default": "stacked"
+    },
+    {
+      "type": "select",
+      "id": "media_ratio",
+      "label": "Media ratio",
+      "options": [
+        {
+          "value": "standard",
+          "label": "Standard"
+        },
+        {
+          "value": "adapt",
+          "label": "Adapt to media"
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait"
+        },
+        {
+          "value": "square",
+          "label": "Square"
+        }
+      ],
+      "default": "standard"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_zoom",
+      "label": "Enable image lightbox",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_video_looping",
+      "label": "Enable video looping",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badge",
+      "label": "Show sale and stock badge",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_details_link",
+      "label": "Show link to full product details",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "vendor",
+      "name": "Vendor",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "fallback",
+          "label": "Text when vendor is empty",
+          "default": "SS27 / Drop 04"
+        }
+      ]
+    },
+    {
+      "type": "title",
+      "name": "Heading",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "price",
+      "name": "Price",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_price_range",
+          "label": "Show price range",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "show_free_shipping",
+          "label": "Show free shipping tag",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "description",
+      "name": "Description",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "variant_picker",
+      "name": "Variant picker",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "picker_style",
+          "label": "Option style",
+          "options": [
+            {
+              "value": "pills",
+              "label": "Pills"
+            },
+            {
+              "value": "dropdown",
+              "label": "Dropdown"
+            }
+          ],
+          "default": "pills"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_selling_plans",
+          "label": "Show purchase options",
+          "default": true
+        },
+        {
+          "type": "page",
+          "id": "size_guide_page",
+          "label": "Size guide page"
+        },
+        {
+          "type": "text",
+          "id": "size_guide_text",
+          "label": "Size guide note",
+          "default": "runs boxy, size down for a closer fit"
+        }
+      ]
+    },
+    {
+      "type": "quantity",
+      "name": "Quantity",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "buy_buttons",
+      "name": "Buy buttons",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_dynamic_checkout",
+          "label": "Show dynamic checkout buttons",
+          "default": true,
+          "info": "Customers see their preferred payment method, such as Shop Pay or Apple Pay."
+        },
+        {
+          "type": "checkbox",
+          "id": "show_payment_terms",
+          "label": "Show payment installments banner",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_gift_card_recipient",
+          "label": "Show recipient form for gift cards",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "pickup_availability",
+      "name": "Pickup availability",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "accordion",
+      "name": "Accordion",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Details & fit"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content",
+          "info": "Placeholders [AMOUNT], [RETURN WINDOW], [GSM] and [X] are replaced from theme settings.",
+          "default": "<p>Boxy, cropped body. Dropped shoulder. Double-layer hood, kangaroo pocket, ribbed cuffs and hem.</p>"
+        },
+        {
+          "type": "checkbox",
+          "id": "open",
+          "label": "Open by default",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "perks",
+      "name": "Perks",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_shipping",
+          "label": "Show shipping time",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_returns",
+          "label": "Show returns",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_fabric",
+          "label": "Show fabric",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "share",
+      "name": "Share",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Heading",
+          "default": "Share"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Designed for training, built to last.</p>"
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Text style",
+          "options": [
+            {
+              "value": "body",
+              "label": "Body"
+            },
+            {
+              "value": "subheading",
+              "label": "Subheading"
+            },
+            {
+              "value": "uppercase",
+              "label": "Uppercase"
+            }
+          ],
+          "default": "body"
+        }
+      ]
+    },
+    {
+      "type": "custom_liquid",
+      "name": "Custom liquid",
+      "settings": [
+        {
+          "type": "liquid",
+          "id": "custom_liquid",
+          "label": "Liquid"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured product",
+      "blocks": [
+        {
+          "type": "vendor"
+        },
+        {
+          "type": "title"
+        },
+        {
+          "type": "price"
+        },
+        {
+          "type": "description"
+        },
+        {
+          "type": "variant_picker"
+        },
+        {
+          "type": "quantity"
+        },
+        {
+          "type": "buy_buttons"
+        },
+        {
+          "type": "pickup_availability"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

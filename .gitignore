@@ -16,3 +16,4 @@ node_modules
 reports/
 seed/images/
 dist/
+.env

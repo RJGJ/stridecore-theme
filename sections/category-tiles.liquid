@@ -1,5 +1,19 @@
-<section class="container category-tiles">
-  <div class="category-tiles__grid">
+{%- liquid
+  assign tiles_eager = false
+  if section.index < 3
+    assign tiles_eager = true
+  endif
+-%}
+
+<div
+  class="category-tiles color-{{ section.settings.color_scheme }}"
+  style="--tiles-pt: {{ section.settings.padding_top }}; --tiles-pb: {{ section.settings.padding_bottom }};"
+>
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="display display--md category-tiles__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+    <div class="category-tiles__grid">
     {%- for block in section.blocks -%}
       {%- liquid
         assign collection = block.settings.collection
@@ -12,20 +26,25 @@
           assign tile_url = routes.all_products_collection_url
         endif
         assign tile_number = forloop.index | plus: 100 | append: '' | slice: 1, 2
+        assign tile_alt = block.settings.image.alt | default: tile_title
+        assign tile_loading = 'lazy'
+        if tiles_eager and forloop.first
+          assign tile_loading = 'eager'
+        endif
       -%}
       <a href="{{ tile_url }}" class="tile tile--{{ block.settings.tone }}" {{ block.shopify_attributes }}>
         {%- if block.settings.image != blank -%}
           <div class="tile__bg">
-            {{ block.settings.image | image_url: width: 1000 | image_tag: loading: 'lazy', sizes: '(min-width: 1024px) 33vw, 100vw', widths: '400,600,800,1000' }}
+            {{ block.settings.image | image_url: width: 1000 | image_tag: loading: tile_loading, sizes: '(min-width: 1024px) 33vw, (min-width: 750px) 50vw, 100vw', widths: '400,600,800,1000', alt: tile_alt }}
           </div>
         {%- else -%}
           <div class="tile__bg stripes"></div>
         {%- endif -%}
         <div class="tile__content">
           <div class="tile__top">
-            <span>{{ tile_number }}</span>
+            <span aria-hidden="true">{{ tile_number }}</span>
             {%- if block.settings.image == blank -%}
-              <span>{{ 'home.tiles.category_image' | t }}</span>
+              <span aria-hidden="true">{{ 'home.tiles.category_image' | t }}</span>
             {%- endif -%}
           </div>
           <div class="tile__bottom">
@@ -35,12 +54,31 @@
         </div>
       </a>
     {%- endfor -%}
+    </div>
   </div>
-</section>
+</div>
 
 {% stylesheet %}
 .category-tiles {
-  padding-top: clamp(48px, 6vw, 96px);
+  padding-top: calc(var(--tiles-pt) * 0.6px);
+  padding-bottom: calc(var(--tiles-pb) * 0.6px);
+}
+@media (min-width: 750px) {
+  .category-tiles {
+    padding-top: calc(var(--tiles-pt) * 1px);
+    padding-bottom: calc(var(--tiles-pb) * 1px);
+  }
+}
+.category-tiles__heading {
+  margin-bottom: 32px;
+}
+.category-tiles__heading em {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  font-style: normal;
 }
 .category-tiles__grid {
   display: grid;
@@ -138,23 +176,29 @@
   "name": "Category tiles",
   "tag": "section",
   "class": "section-category-tiles",
-  "settings": [],
+  "settings": [
+    { "type": "inline_richtext", "id": "heading", "label": "Heading" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Top padding", "default": 64 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Bottom padding", "default": 0 }
+  ],
   "blocks": [
     {
       "type": "tile",
       "name": "Tile",
       "settings": [
         { "type": "collection", "id": "collection", "label": "Collection" },
-        { "type": "text", "id": "title", "label": "Title override", "info": "Leave blank to use the collection title." },
-        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "title", "label": "Heading", "info": "Uses the collection title when empty." },
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "3:4 aspect ratio recommended" },
         {
           "type": "select",
           "id": "tone",
-          "label": "Color tone",
+          "label": "Tile color",
           "options": [
             { "value": "accent", "label": "Accent" },
             { "value": "surface", "label": "Surface" },
-            { "value": "fg", "label": "Foreground" }
+            { "value": "fg", "label": "Inverse" }
           ],
           "default": "accent"
         }

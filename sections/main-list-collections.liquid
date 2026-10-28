@@ -1,4 +1,4 @@
-<section class="container section-pad lc">
+<section class="container section-pad lc color-{{ section.settings.color_scheme }}">
   <h1 class="display display--lg lc-title">{{ section.settings.title }}</h1>
 
   {%- paginate collections by section.settings.per_page -%}
@@ -9,9 +9,14 @@
           {%- assign num = forloop.index | plus: paginate.current_offset -%}
         {%- endif -%}
         <a href="{{ collection.url }}" class="lc-tile">
+          {%- assign tile_loading = 'lazy' -%}
+          {%- if forloop.index <= 3 and paginate.current_page == 1 -%}
+            {%- assign tile_loading = 'eager' -%}
+          {%- endif -%}
           {%- render 'placeholder-media',
             image: collection.featured_image,
-            label: 'Category image',
+            label: collection.title,
+            loading: tile_loading,
             tone: 'surface',
             sizes: '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw',
             class: 'lc-tile__media'
@@ -35,7 +40,7 @@
 </section>
 
 {% stylesheet %}
-  .lc-title { margin-bottom: clamp(28px, 4vw, 48px); }
+  .lc-title { overflow-wrap: anywhere; margin-bottom: clamp(28px, 4vw, 48px); }
   .lc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 20px; }
   .lc-tile { position: relative; display: block; aspect-ratio: 3 / 4; border: 2px solid var(--fg); border-radius: var(--r-img); overflow: hidden; text-decoration: none; color: var(--fg); }
   .lc-tile:hover { opacity: 1; }
@@ -58,6 +63,7 @@
   "tag": "section",
   "class": "section-main-list-collections",
   "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
     { "type": "text", "id": "title", "label": "Heading", "default": "Collections" },
     { "type": "range", "id": "per_page", "label": "Collections per page", "min": 3, "max": 24, "step": 3, "default": 12 }
   ],

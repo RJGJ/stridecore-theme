@@ -1,12 +1,12 @@
 /**
- * <kinetic-accordion> : accessible disclosure group.
+ * <stridecore-accordion> : accessible disclosure group.
  * Triggers are buttons[data-accordion-trigger] with aria-expanded + aria-controls pointing at a panel.
  * Add the `data-single` attribute to keep at most one panel open.
  */
 (() => {
-  if (customElements.get('kinetic-accordion')) return;
+  if (customElements.get('stridecore-accordion')) return;
 
-  class KineticAccordion extends HTMLElement {
+  class StridecoreAccordion extends HTMLElement {
     connectedCallback() {
       if (this._ready) return;
       this._ready = true;
@@ -51,5 +51,5 @@
     }
   }
 
-  customElements.define('kinetic-accordion', KineticAccordion);
+  customElements.define('stridecore-accordion', StridecoreAccordion);
 })();

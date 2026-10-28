@@ -1,0 +1,58 @@
+{%- doc -%}
+  Line price for a cart line: the discounted (final) line price, with the
+  original line price struck through when a discount applies. Used by the cart
+  page and the cart drawer.
+
+  @param {line_item} item - the cart line item
+  @param {string} [class] - extra classes for the wrapper
+
+  @example
+  {% render 'cart-line-price', item: item %}
+{%- enddoc -%}
+
+<div class="cart-line-price {{ class }}">
+  {%- if item.original_line_price > item.final_line_price -%}
+    <s class="cart-line-price__was">
+      <span class="visually-hidden">{{ 'products.price.regular' | t }}</span>
+      {{ item.original_line_price | money }}
+    </s>
+  {%- endif -%}
+  <span class="cart-line-price__now">
+    <span class="visually-hidden">
+      {%- if item.original_line_price > item.final_line_price -%}
+        {{ 'products.price.sale' | t }}
+      {%- else -%}
+        {{ 'cart_page.line_total' | t }}
+      {%- endif -%}
+    </span>
+    {{ item.final_line_price | money }}
+  </span>
+  {%- if item.quantity > 1 -%}
+    {%- assign each_price = item.final_price | money -%}
+    <span class="cart-line-price__each">{{ 'cart_page.each' | t: price: each_price }}</span>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .cart-line-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-family: var(--f-mono);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .cart-line-price__was {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .cart-line-price__now {
+    font-size: 17px;
+  }
+  .cart-line-price__each {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 400;
+  }
+{% endstylesheet %}

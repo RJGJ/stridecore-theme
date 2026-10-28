@@ -1,4 +1,4 @@
-// Builds dist/kinetic-<version>.zip containing only theme directories.
+// Builds dist/stridecore-<version>.zip containing only theme directories.
 import { createWriteStream, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,7 +17,7 @@ const walk = (dir) =>
   });
 
 mkdirSync(join(root, 'dist'), { recursive: true });
-const out = join(root, 'dist', `kinetic-${version}.zip`);
+const out = join(root, 'dist', `stridecore-${version}.zip`);
 const archive = new ZipArchive({ zlib: { level: 9 } });
 archive.pipe(createWriteStream(out));
 

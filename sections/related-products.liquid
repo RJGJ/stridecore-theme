@@ -28,7 +28,7 @@
   {%- endif -%}
 
   <product-recommendations
-    data-url="{{ recs_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ limit }}&intent=related"
+    data-url="{{ recs_url }}?section_id={{ section.id }}&amp;product_id={{ product.id }}&amp;limit={{ limit }}&amp;intent=related"
     data-loaded="{% if recommendations.performed %}true{% else %}false{% endif %}"
   >
     {%- if recommendations.performed and recommendations.products_count > 0 -%}
@@ -53,46 +53,7 @@
   </product-recommendations>
 </section>
 
-<script>
-  (() => {
-    if (customElements.get('product-recommendations')) return;
-    class ProductRecommendations extends HTMLElement {
-      connectedCallback() {
-        if (this.dataset.loaded === 'true' || !this.dataset.url) return;
-        if (!('IntersectionObserver' in window)) return this.load();
-        this.observer = new IntersectionObserver(
-          (entries) => {
-            if (entries.some((e) => e.isIntersecting)) {
-              this.observer.disconnect();
-              this.load();
-            }
-          },
-          { rootMargin: '400px 0px' }
-        );
-        this.observer.observe(this);
-      }
-      disconnectedCallback() {
-        if (this.observer) this.observer.disconnect();
-      }
-      async load() {
-        try {
-          const res = await fetch(this.dataset.url, { credentials: 'same-origin' });
-          if (!res.ok) return;
-          const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
-          const fresh = doc.querySelector('product-recommendations');
-          const section = this.closest('section');
-          if (fresh && fresh.querySelector('.card')) {
-            this.innerHTML = fresh.innerHTML;
-            if (section) section.hidden = false;
-          }
-        } catch (_) {
-          /* keep the server-rendered fallback */
-        }
-      }
-    }
-    customElements.define('product-recommendations', ProductRecommendations);
-  })();
-</script>
+<script src="{{ 'product-recommendations.js' | asset_url }}" defer></script>
 
 {% stylesheet %}
   .related {
@@ -114,9 +75,9 @@
   "name": "Related products",
   "tag": "div",
   "settings": [
-    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Pairs well with" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow text", "default": "Pairs well with" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "You may also like" },
-    { "type": "range", "id": "limit", "label": "Products to show", "min": 2, "max": 8, "step": 1, "default": 4 },
+    { "type": "range", "id": "limit", "label": "Number of products", "min": 2, "max": 8, "step": 1, "default": 4 },
     { "type": "checkbox", "id": "show_quick_add", "label": "Show quick add", "default": true }
   ],
   "presets": [{ "name": "Related products" }]

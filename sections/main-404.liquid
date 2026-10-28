@@ -12,7 +12,7 @@
     <span>4</span>
   </div>
 
-  <h1 class="display nf__title">{{ section.settings.heading }}</h1>
+  <h1 class="display nf__title"><span class="visually-hidden">{{ 'not_found.title' | t }}: </span>{{ section.settings.heading }}</h1>
   {%- if section.settings.text != blank -%}
     <p class="nf__text">{{ section.settings.text }}</p>
   {%- endif -%}
