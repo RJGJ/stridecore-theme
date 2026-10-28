@@ -24,7 +24,7 @@ async function location(ctx) {
       found = p.location;
       log(`  created location ${found.name}`);
     } catch (e) {
-      warn(`${e.message}\n  Location not created (plan may not allow more locations). Using the first active location instead; add the pickup location manually (see docs/seed.md).`);
+      warn(`${e.message}\n  Location not created (plan may not allow more locations). Using the first active location instead; add the pickup location manually (see dev-docs/seed.md).`);
     }
   } else if (!client.live) client.mutate('locationAdd', '', {}, '');
   const target = found || nodes[0];
@@ -53,7 +53,7 @@ async function metaobjects(ctx) {
         m: { fields: [{ key: 'label', value: c.name }, { key: 'color', value: c.hex }] },
       }, 'metaobjectUpsert');
     }
-    log('  done. Linking options to these entries is a manual or --link-colors step (see docs/seed.md).');
+    log('  done. Linking options to these entries is a manual or --link-colors step (see dev-docs/seed.md).');
   } catch (e) { warn(`${e.message}\n  Falling back to plain-text Color option values; swatches come from the theme color map.`); }
 }
 

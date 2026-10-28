@@ -50,11 +50,10 @@ Key features:
 
 ## Before you submit (only you can do these)
 
-- [ ] Add your support form link to `docs/support.md` (`SUPPORT_FORM_URL`), set up its auto-reply, and be ready to answer within two business days.
-- [ ] Publish the docs (for example GitHub Pages from `docs/`) and set the theme documentation URL and support URL in `config/settings_schema.json`.
+- [ ] Create a public support contact form (the Theme Store requires one; GitHub issues alone may not count), add its link to `docs/support.md` and the listing, set up an auto-reply, and be ready to answer within two business days.
+- [ ] Confirm GitHub Pages serves the docs at https://rjgj.github.io/stridecore-theme/ (set up from `docs/` on `main`).
 - [ ] Confirm the demo store: Bogus Gateway on, no apps installed, store is a client transfer store, then transfer it.
 - [ ] Add store policies (refund, privacy, terms, shipping) on the demo store.
 - [ ] Add photos for products still missing images, and a gift card product (activate gift cards first).
 - [ ] Test on real devices: iOS Safari, Samsung Internet, and the Instagram, Facebook and Pinterest in-app browsers.
-- [ ] Review the license note in `LICENSE.md` against how you plan to distribute the theme (free or paid).
 - [ ] Take listing screenshots and submit in the Partner Dashboard.
